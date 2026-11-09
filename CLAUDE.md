@@ -1,0 +1,58 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+Steady Strength: a native iOS app (SwiftUI, iOS 17+, SwiftData), one install per person on their own iPhone. No accounts, no server, all data on-device behind Face ID. The work lives on the `steady-strength` branch. The repo's default branch is an unrelated, abandoned cricket PWA (the repo is named `cricket-pwa`; a rename to `steady-strength` and making it private is pending, done by the owner in GitHub settings). `fitness-tracker/` at the root is also leftover from that.
+
+## Environment constraints
+
+- The cloud sandbox has **no Swift/Xcode**. Swift is only verified by GitHub Actions (macos-15). Write Swift carefully and read CI logs (`gh api repos/<owner>/<repo>/actions/jobs/<id>/logs`, or `mcp__github__get_job_logs`) to fix failures.
+- Python (importer) and Node (relay) can run locally.
+- `gh` cannot change repo settings or read Actions settings through the proxy; use it for reads, runs and logs.
+
+## Commands
+
+```bash
+python3 -m unittest discover -s tools/importer                 # importer tests
+(cd tools/importer && python3 -m unittest test_importer.SomeClass.test_name)   # single Python test
+python3 tools/importer/import_programs.py                      # regenerate Resources/Generated (needs openpyxl)
+(cd relay && npm install && npm run typecheck && npm test)     # plate relay
+swift test --package-path Packages/SteadyCore                  # core logic (macOS only)
+swift test --package-path Packages/SteadyCore --filter SleepTests/testX   # single core test
+xcodegen generate                                              # creates SteadyStrength.xcodeproj (gitignored) from project.yml
+xcodebuild test -scheme SteadyStrength -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -only-testing:SteadyStrengthTests/FeatureTests/testBackupRoundTrip   # single app test
+```
+
+## Architecture
+
+- **`Packages/SteadyCore`**: all pure logic, no UI, tested with `swift test`. Programs and exercise models, session building and versions, progression, substitution, nutrition targets, readiness, weekly volume and summary, panel and plate parsing, sleep. New logic goes here first so CI can test it quickly.
+- **`App/`**: SwiftUI views, SwiftData models (`Model/Models.swift`), services (HealthKit, reminders, photos, plate relay, export/import).
+- **Bundled content flow**: `Resources/Source/*.xlsx` (never edited) → `tools/importer` → `Resources/Generated/*.json` (committed, bundled). CI regenerates and fails on any diff, so **never hand-edit `Resources/Generated`**; change the importer (`catalogue_meta.py`, `steady_programs.py`, `coach_decisions.json`) and regenerate.
+- **`ContentStore`** loads the JSON once and merges the user's `CustomExercise` rows into `content.library` (via `BundledContent.adding`). Always read exercises through `store.content`, not the raw JSON.
+- **Data lifecycle is spread over several files.** Adding or changing a SwiftData model means updating all of: `Persistence.schema`, `Persistence.eraseAll`, `DataExport.Snapshot`, and `DataImport.apply` (backup/restore must round-trip; `AppTests/FeatureTests.swift` covers it). New stored properties need default values (lightweight migration). New export fields should be optional so old backup files still decode.
+- **Programs vs open workouts**: a program session is built by `WorkoutPlanner.plan` from a program workout; an "open workout" (`WorkoutLog.isFreestyle`) lists its own exercises in `freeExerciseIds` and does not advance the program.
+- **Goal and nutrition**: `GoalSwitch` (in `GoalChangeView.swift`) recalculates `NutritionPlan` and handles the two-week maintenance ease-in; `finishEaseInIfDue` runs from the Today screen.
+- **Plate relay** (`relay/`, Cloudflare Worker) fronts the Claude API for plate-photo estimates; the app only sends photos the user consents to. Config comes from `Config/Signing.xcconfig` plus a gitignored `Config/Local.xcconfig`, with the token injected from GitHub secrets.
+
+## CI and releases
+
+- `ci.yml` runs on pushes to `steady-strength`: importer, relay, then iOS (SteadyCore tests, app unit tests, UI tests, screenshot tour). A new push **cancels in-progress runs** on that branch, so do not push while you need a run to finish.
+- **TestFlight**: after CI is green, push that commit to the `testflight` branch (`git push --force origin steady-strength:refs/heads/testflight`; force is fine there, deleting the branch is blocked). `testflight.yml` archives unsigned with Xcode 26, adds entitlements with `codesign`, then uploads with an App Store Connect API key (secrets live in GitHub; never ask for or handle them in chat). Build number is the run number. If the runner is cancelled for capacity, push a new commit. TestFlight builds expire after 90 days.
+- **Never run `deploy-relay.yml` and do not modify `relay/`**: pushes touching `relay/` on `steady-strength` deploy automatically.
+
+## Swift gotchas learned here
+
+- `if a < b, c > d` parses as generics; use `&&`.
+- Do not read a property inside a mutating closure on the same value (runtime "access conflict"); copy to a local first.
+- SwiftData batch `context.delete(model: SetLog.self)` fails (SetLog requires a workout); delete workouts and sets one by one.
+- `TextField(value:)` with live clamping breaks typing; use the text-based `WeightField`.
+- Python text-splicing of Swift has corrupted files before; re-read the result.
+
+## Product rules
+
+- Health data stays on the phone. The only things that leave are barcode lookups (Open Food Facts) and plate photos the user explicitly consents to; progress photos are never analysed or uploaded; food-panel and barcode photos are read on-device.
+- No medical claims and no invented clinical content; use cautious, non-prescriptive wording (summaries are observations, not advice). Programs carry a reviewed/draft status (`contentStatus`), and the five `ss-*` programs are marked reviewed on the owner's authority.
+- Not being built: Apple Watch, Strava, subscriptions, cloud sync, widgets, LiDAR plate depth (needs on-device testing), exercise video hosting.
