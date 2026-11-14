@@ -2,20 +2,42 @@ import SwiftUI
 import SwiftData
 import SteadyCore
 
+enum AppTab: Hashable { case today, train, food, progress, settings }
+
+private struct ShowTabKey: EnvironmentKey {
+    static let defaultValue: (AppTab) -> Void = { _ in }
+}
+
+extension EnvironmentValues {
+    /// Switches the main tab bar, for example back to Today after changing program.
+    var showTab: (AppTab) -> Void {
+        get { self[ShowTabKey.self] }
+        set { self[ShowTabKey.self] = newValue }
+    }
+}
+
 struct MainTabView: View {
+    @State private var tab: AppTab = .today
+
     var body: some View {
-        TabView {
+        TabView(selection: $tab) {
             TodayView()
                 .tabItem { Label("Today", systemImage: "sun.max") }
+                .tag(AppTab.today)
             TrainView()
                 .tabItem { Label("Train", systemImage: "dumbbell") }
+                .tag(AppTab.train)
             FoodView()
                 .tabItem { Label("Food", systemImage: "fork.knife") }
+                .tag(AppTab.food)
             ProgressTabView()
                 .tabItem { Label("Progress", systemImage: "chart.xyaxis.line") }
+                .tag(AppTab.progress)
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
+                .tag(AppTab.settings)
         }
+        .environment(\.showTab, { tab = $0 })
     }
 }
 

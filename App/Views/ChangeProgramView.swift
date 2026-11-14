@@ -36,6 +36,7 @@ struct ChangeProgramView: View {
     @Environment(ContentStore.self) private var store
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.showTab) private var showTab
     @Query private var plans: [TrainingPlan]
     @Query private var profiles: [UserProfile]
     @State private var chosen: Program?
@@ -80,6 +81,7 @@ struct ChangeProgramView: View {
                     }
                     chosen = nil
                     dismiss()
+                    showTab(.today)
                 }
             }
         }
@@ -139,8 +141,16 @@ private struct SwitchConfirmSheet: View {
                     }
                 }
                 Section {
-                    Button("Switch to this program") { onConfirm() }.fontWeight(.semibold)
-                        .accessibilityIdentifier("confirmSwitch")
+                    Button { onConfirm() } label: {
+                        Text("Switch to \(program.name)").font(.headline).frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .foregroundStyle(Color.night)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("confirmSwitch")
+                } footer: {
+                    Text("Tap the button to make the change. Closing this screen keeps your current program.")
                 }
             }
             .navigationTitle("Switch program")
