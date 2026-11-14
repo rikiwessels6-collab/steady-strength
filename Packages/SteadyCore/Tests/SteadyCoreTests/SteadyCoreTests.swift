@@ -18,9 +18,9 @@ final class ContentTests: XCTestCase {
     var content: BundledContent { Self.content }
 
     func testAllProgramsDecode() {
-        XCTAssertEqual(content.programs.count, 14)
+        XCTAssertEqual(content.programs.count, 15)
         let slots = content.programs.flatMap { $0.weeks.flatMap { $0.workouts.flatMap(\.slots) } }
-        XCTAssertEqual(slots.count, 4012)
+        XCTAssertEqual(slots.count, 4204)
         XCTAssertFalse(slots.contains { if case .unknown = $0.reps.scheme { return true } else { return false } })
     }
 
