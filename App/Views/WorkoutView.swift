@@ -219,6 +219,7 @@ struct ActiveWorkoutView: View {
     @State private var confirmFinish = false
     @State private var confirmDiscard = false
     @State private var showRecap = false
+    @State private var nextUp: String?
     @Query private var appSettings: [AppSettings]
     @FocusState private var focused: Bool
 
@@ -227,6 +228,7 @@ struct ActiveWorkoutView: View {
             let built = WorkoutPlanner.plan(program: program, workout: workout, version: log.version, content: content,
                                             equipment: Set(trainingPlan.equipment), chosenSwaps: log.swaps, week: log.weekNumber)
             let totalSets = built.plan.reduce(0) { $0 + $1.sets }
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 16) {
                     WorkoutHeader(name: log.workoutName, version: log.version, week: log.weekNumber,
@@ -243,9 +245,10 @@ struct ActiveWorkoutView: View {
                                      isSwapped: item.exerciseId != item.originalExerciseId,
                                      lastTime: WorkoutPlanner.lastTime(item.exerciseId, logs: logs.filter { $0 !== log }),
                                      focused: $focused,
-                                     onSetDone: { setDone(item, index: index, plan: built.plan) },
+                                     onSetDone: { setDone(item, index: index, plan: built.plan, proxy: proxy) },
                                      onSwap: { swapFor = item },
                                      onInfo: { infoFor = item })
+                            .id("ex-\(item.id)")
                     }
                     RoutineCard(kind: .cooldown, version: log.version)
                     VStack(spacing: 10) {
@@ -258,9 +261,11 @@ struct ActiveWorkoutView: View {
                             .font(.subheadline)
                     }
                     .padding(.top, 8)
+                    .id("finish")
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 24)
+            }
             }
             .scrollDismissesKeyboard(.interactively)
             .background(Color.night.ignoresSafeArea())
@@ -269,7 +274,7 @@ struct ActiveWorkoutView: View {
                     RestTimerBar(endsAt: end, total: restTotal,
                                  onAdd: { restEndsAt = (restEndsAt ?? .now).addingTimeInterval(30); restTotal += 30 },
                                  onLess: { restEndsAt = (restEndsAt ?? .now).addingTimeInterval(-15); restTotal = max(15, restTotal - 15) },
-                                 onDone: { restEndsAt = nil })
+                                 onDone: { restEndsAt = nil }, nextText: nextUp)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -329,8 +334,18 @@ struct ActiveWorkoutView: View {
     }
 
     /// Rest after a set: none between superset partners, the round's rest after the last one.
-    private func setDone(_ item: PlannedExercise, index: Int, plan: [PlannedExercise]) {
+    private func setDone(_ item: PlannedExercise, index: Int, plan: [PlannedExercise], proxy: ScrollViewProxy) {
         focused = false
+        // Work out what comes next, and move the screen there once this exercise is finished.
+        let rows = plan.map { p in (name: p.name, done: log.sets.filter { $0.slotOrder == p.id }.count, total: p.sets) }
+        nextUp = NextUp.text(remaining: rows, current: index)
+        if rows.indices.contains(index), rows[index].done >= rows[index].total {
+            let later = rows.indices.first { $0 > index && rows[$0].done < rows[$0].total }
+            let target = later ?? rows.indices.first { rows[$0].done < rows[$0].total }
+            withAnimation(.easeInOut) {
+                if let t = target { proxy.scrollTo("ex-\(plan[t].id)", anchor: .top) } else { proxy.scrollTo("finish", anchor: .bottom) }
+            }
+        }
         if let g = item.supersetGroup, index + 1 < plan.count, plan[index + 1].supersetGroup == g {
             restEndsAt = nil
             return
@@ -394,6 +409,7 @@ struct ExerciseCard: View {
     @Query private var appSettings: [AppSettings]
     @Query private var notes: [ExerciseNote]
     @State private var showPlates = false
+    @State private var heavierAccepted: Double?
 
     private var done: [SetLog] {
         log.sets.filter { $0.slotOrder == item.id }.sorted { $0.setIndex < $1.setIndex }
@@ -410,8 +426,21 @@ struct ExerciseCard: View {
         }
         return WorkoutPlanner.scaled(w, factor: log.loadFactor)
     }
+    /// Judged from the set just done: lighter is applied straight away, heavier only once you tap to accept it.
+    private var advice: SetAdvice? {
+        guard loadable, exercise?.timed != true, let last = done.last, done.count < item.sets else { return nil }
+        let a = SetAdvisor.next(lastWeight: last.weight, lastReps: last.reps,
+                                minReps: last.minReps ?? item.minimumReps(set: last.setIndex),
+                                topReps: last.targetReps ?? item.targetReps(set: last.setIndex),
+                                step: Progression.increment(for: exercise))
+        return a.kind == .keep ? nil : a
+    }
     private var startWeight: Double {
-        done.last?.weight ?? suggestedWeight ?? WorkoutPlanner.defaultStartWeight(exercise)
+        if let a = advice {
+            if a.kind == .lighter { return a.weight }
+            if a.kind == .heavier && heavierAccepted == a.weight { return a.weight }
+        }
+        return done.last?.weight ?? suggestedWeight ?? WorkoutPlanner.defaultStartWeight(exercise)
     }
     private var isBarbell: Bool {
         exercise?.equipment.contains { $0.contains("barbell") || $0.contains("ez_bar") || $0.contains("trap_bar") } ?? false
@@ -532,6 +561,22 @@ struct ExerciseCard: View {
                     } onEffort: { set, value in
                         set.rpe = value
                         try? context.save()
+                    }
+                }
+                if let a = advice, let note = a.note {
+                    if a.kind == .lighter {
+                        Label("\(note) Now \(NumberText.format(a.weight)) kg.", systemImage: "arrow.down.circle")
+                            .font(.footnote).foregroundStyle(Color.gold)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("setAdviceLighter")
+                    } else if heavierAccepted != a.weight {
+                        HStack(spacing: 10) {
+                            Text(note).font(.footnote).foregroundStyle(Color.inkMuted)
+                            Spacer()
+                            Button("Use \(NumberText.format(a.weight)) kg") { heavierAccepted = a.weight }
+                                .font(.footnote.weight(.semibold)).buttonStyle(.bordered).tint(Color.gold)
+                                .accessibilityIdentifier("setAdviceHeavier")
+                        }
                     }
                 }
                 if !done.isEmpty && done.allSatisfy({ $0.rpe == nil }) {
@@ -705,6 +750,8 @@ struct RestTimerBar: View {
     let onAdd: () -> Void
     let onLess: () -> Void
     let onDone: () -> Void
+    /// What comes after this rest, for example "Next: set 2 of 3".
+    var nextText: String? = nil
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
             let left = max(0, Int(endsAt.timeIntervalSince(ctx.date).rounded(.up)))
@@ -720,6 +767,9 @@ struct RestTimerBar: View {
                     Text(left > 0 ? "REST" : "GO").font(.caption2.weight(.bold)).tracking(1.2).opacity(0.75)
                     Text(left > 0 ? "\(left / 60):\(String(format: "%02d", left % 60))" : "Next set")
                         .font(.title2.weight(.bold).monospacedDigit())
+                    if let nextText {
+                        Text(nextText).font(.caption2).opacity(0.75).lineLimit(1)
+                    }
                 }
                 Spacer()
                 if left > 0 {

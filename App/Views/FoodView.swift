@@ -146,6 +146,23 @@ struct FoodView: View {
         return "\(time)\(grams) · P \(Int(e.protein.rounded())) C \(Int(e.carbs.rounded())) F \(Int(e.fat.rounded()))"
     }
 
+    /// Foods usually eaten at this meal over the last 30 days that aren't logged in it yet.
+    private func usualFoods(_ meal: MealSlot, logged: [FoodEntry]) -> [UsualFood] {
+        let cal = Calendar.current
+        let startOfDay = cal.startOfDay(for: day)
+        let since = cal.date(byAdding: .day, value: -30, to: startOfDay) ?? startOfDay
+        let history = entries.filter { $0.meal == meal && $0.eatenAt >= since && $0.eatenAt < startOfDay && !$0.foodId.hasPrefix("quick-") }
+            .map { FoodHabits.Eaten(foodId: $0.foodId, name: $0.name, grams: $0.grams, date: $0.eatenAt) }
+        return FoodHabits.usual(history, excluding: Set(logged.map(\.foodId)))
+    }
+
+    /// Logs a usual food with the amount used last time.
+    private func logUsual(_ u: UsualFood, meal: MealSlot) {
+        guard let source = entries.last(where: { $0.foodId == u.foodId && $0.meal == meal }) else { return }
+        context.insert(FoodEntry(copying: source, eatenAt: FoodTiming.defaultEatenAt(for: day), meal: meal))
+        try? context.save()
+    }
+
     private func repeatLabel(_ date: Date, _ items: [FoodEntry]) -> String {
         let when = Calendar.current.isDateInYesterday(date)
             ? "yesterday" : date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
@@ -159,6 +176,7 @@ struct FoodView: View {
         let kcal = items.reduce(0) { $0 + $1.kcal }
         let prev = previousMeal(meal)
         let prevLabel = prev.map { repeatLabel($0.date, $0.items) }
+        let usual = usualFoods(meal, logged: items)
         return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(meal.label.uppercased()).font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
@@ -191,6 +209,21 @@ struct FoodView: View {
                     }
                     .buttonStyle(.bordered).tint(Color.gold)
                     .accessibilityIdentifier("repeat-\(meal.rawValue)")
+                }
+            }
+            if !usual.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("YOUR USUAL · ONE TAP TO ADD").font(.caption2.weight(.semibold)).tracking(1.2)
+                        .foregroundStyle(Color.inkMuted.opacity(0.8))
+                    ForEach(usual) { u in
+                        Button { logUsual(u, meal: meal) } label: {
+                            Label("\(u.name) · \(Int(u.grams.rounded())) g", systemImage: "plus.circle.fill")
+                                .font(.footnote.weight(.semibold)).lineLimit(1)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.bordered).tint(Color.gold)
+                        .accessibilityIdentifier("usual-\(meal.rawValue)-\(u.foodId)")
+                    }
                 }
             }
             ForEach(items) { e in
@@ -302,7 +335,12 @@ struct AddFoodSheet: View {
             .overlay { if searching { ProgressView().controlSize(.large) } }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search foods")
             .onSubmit(of: .search) { Task { await runSearch() } }
-            .onChange(of: query) { _, q in if q.isEmpty { results = []; message = nil } }
+            .onChange(of: query) { _, q in
+                // Your own foods match as you type; Search adds the wider database.
+                let text = q.trimmingCharacters(in: .whitespaces)
+                if text.isEmpty { results = []; message = nil }
+                else if text.count >= 2 { results = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(text) } }
+            }
             .navigationTitle("Add to \(meal.label)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
