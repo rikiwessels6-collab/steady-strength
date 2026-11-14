@@ -166,6 +166,47 @@ final class FeatureTests: XCTestCase {
         XCTAssertNil(logs.first { $0.isFreestyle }?.finishedAt)                   // open workout untouched
     }
 
+    func testCalorieSuggestionAppliesAndKeepsProtein() {
+        let p = profile(goal: .fatLoss)
+        let n = nutrition(for: p)
+        let protein = n.protein
+        GoalSwitch.applyCalories(n.calories - 100, profile: p, nutrition: n)
+        XCTAssertEqual(n.protein, protein)
+        XCTAssertNotNil(n.lastCoachAdjustAt)
+        XCTAssertLessThan(n.calories, n.maintenance)
+    }
+
+    func testSavedMealRoundTripsThroughBackup() throws {
+        let c = try container()
+        let ctx = c.mainContext
+        ctx.insert(profile())
+        let item = FoodItem(id: "oats", name: "Oats", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 380, protein: 13, carbs: 60, fat: 7), servingGrams: nil, servingLabel: nil)
+        let entry = FoodEntry(item: item, grams: 50, meal: .breakfast, source: .manual, eatenAt: .now)
+        ctx.insert(entry)
+        ctx.insert(SavedMeal(name: "Usual breakfast", items: [MealItem(entry)]))
+        try ctx.save()
+        let url = try DataExport.write(ctx)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let other = try container()
+        _ = try DataImport.restore(from: url, into: other.mainContext)
+        let meals = try other.mainContext.fetch(FetchDescriptor<SavedMeal>())
+        XCTAssertEqual(meals.first?.name, "Usual breakfast")
+        XCTAssertEqual(meals.first?.items.first?.kcal ?? 0, 190, accuracy: 0.01)
+        // Adding it back gives the same numbers.
+        let again = FoodEntry(mealItem: try XCTUnwrap(meals.first?.items.first), eatenAt: .now, meal: .lunch)
+        XCTAssertEqual(again.kcal, 190, accuracy: 0.01)
+        XCTAssertEqual(again.meal, .lunch)
+    }
+
+    func testFoodTimingUsesNowForTodayAndMiddayOtherwise() {
+        let cal = Calendar.current
+        let now = Date.now
+        XCTAssertEqual(FoodTiming.defaultEatenAt(for: now, now: now), now)
+        let yesterday = cal.date(byAdding: .day, value: -1, to: now)!
+        XCTAssertEqual(cal.component(.hour, from: FoodTiming.defaultEatenAt(for: yesterday, now: now)), 12)
+    }
+
     func testNotABackupIsRejected() {
         XCTAssertThrowsError(try DataImport.decode(Data("{\"hello\": 1}".utf8)))
     }

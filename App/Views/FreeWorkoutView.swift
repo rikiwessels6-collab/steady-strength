@@ -36,6 +36,7 @@ struct FreeWorkoutView: View {
     @State private var picking = false
     @State private var confirmFinish = false
     @State private var confirmDiscard = false
+    @State private var showRecap = false
     @FocusState private var focused: Bool
 
     private func planned(_ id: String, order: Int, content: BundledContent) -> PlannedExercise {
@@ -137,9 +138,15 @@ struct FreeWorkoutView: View {
                 Button("Finish") {
                     log.finishedAt = .now
                     try? context.save()
-                    dismiss()
+                    showRecap = true
                 }
             } message: { Text("It is saved to your history. Your program stays where it was.") }
+            .fullScreenCover(isPresented: $showRecap) {
+                WorkoutRecapView(log: log) {
+                    showRecap = false
+                    dismiss()
+                }
+            }
             .confirmationDialog("Discard this workout?", isPresented: $confirmDiscard, titleVisibility: .visible) {
                 Button("Discard", role: .destructive) {
                     context.delete(log)

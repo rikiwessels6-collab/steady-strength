@@ -171,10 +171,18 @@ struct SettingsView: View {
                         NavigationLink("What the app keeps") { ConsentList(settings: s) }
                     }
                     Button("Export my data") {
-                        do { exportURL = try DataExport.write(context) } catch { exportError = error.localizedDescription }
+                        do {
+                            exportURL = try DataExport.write(context)
+                            settings.first?.lastBackupAt = .now
+                            try? context.save()
+                        } catch { exportError = error.localizedDescription }
                     }
                     if let url = exportURL {
                         ShareLink(item: url) { Label("Share export file", systemImage: "square.and.arrow.up") }
+                    }
+                    if let last = settings.first?.lastBackupAt {
+                        Text("Last backup file made \(last.formatted(date: .abbreviated, time: .omitted)). Save it to Files or iCloud Drive with Share.")
+                            .font(.footnote).foregroundStyle(.secondary)
                     }
                     RestoreBackupButton()
                     Button("Erase all my data", role: .destructive) { confirmErase = true }

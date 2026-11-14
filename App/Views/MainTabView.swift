@@ -64,12 +64,22 @@ struct TodayView: View {
     @Query private var checkIns: [CheckInSettings]
     @Query(sort: \WorkoutLog.startedAt, order: .reverse) private var logs: [WorkoutLog]
     @Query private var foodEntries: [FoodEntry]
+    @Query private var appSettings: [AppSettings]
+    @Environment(\.showTab) private var showTab
     @State private var startSheet = false
     @State private var activeLog: WorkoutLog?
 
     /// The session in progress: an open workout, or one from the program you are on now.
     private var unfinished: WorkoutLog? {
         logs.first { $0.finishedAt == nil && ($0.isFreestyle || $0.programId == plans.first?.programId) }
+    }
+
+    /// True once there is something worth keeping and no backup file has been made for 30 days.
+    private var backupDue: Bool {
+        let finished = logs.filter { $0.finishedAt != nil }
+        guard finished.count >= 3, let oldest = finished.last?.startedAt else { return false }
+        let since = appSettings.first?.lastBackupAt ?? oldest
+        return Date.now.timeIntervalSince(since) > 30 * 86_400
     }
 
     var body: some View {
@@ -86,12 +96,31 @@ struct TodayView: View {
                     if let plan = plans.first, let program = store.content?.program(plan.programId) {
                         sessionCard(plan: plan, program: program)
                         WeekStrip(logs: logs, plan: plan)
+                        let streak = Consistency.weekStreak(sessionDates: logs.compactMap(\.finishedAt), planned: plan.daysPerWeek)
+                        if streak >= 2 {
+                            Label("\(streak) weeks in a row hitting your \(plan.daysPerWeek) sessions", systemImage: "flame.fill")
+                                .font(.subheadline.weight(.semibold)).foregroundStyle(Color.gold)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .accessibilityIdentifier("streak")
+                        }
                     }
                     if let n = food.first {
                         let range = Calendar.current.dayRange(.now)
                         FoodCard(plan: n, totals: totals(foodEntries.filter { $0.eatenAt >= range.0 && $0.eatenAt < range.1 }))
                     }
                     if let c = checkIns.first { CheckInCard(settings: c) }
+                    if backupDue {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("BACK UP YOUR DATA").font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
+                            Text("Everything lives only on this phone. It has been a month or more since your last backup file.")
+                                .font(.subheadline).foregroundStyle(Color.inkMuted)
+                            Button("Go to Export my data") { showTab(.settings) }
+                                .buttonStyle(.bordered).tint(Color.gold)
+                                .accessibilityIdentifier("backupNudge")
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .card()
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 24)

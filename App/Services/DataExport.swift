@@ -21,6 +21,7 @@ enum DataExport {
             let calories: Int, protein: Int, carbs: Int, fat: Int, fibre: Int, maintenance: Int
             let presetName: String, proteinPerKg: Double, startAtMaintenance: Bool
             var easeInUntil: Date? = nil
+            var lastCoachAdjustAt: Date? = nil
         }
         struct CheckIn: Codable {
             let weekday: Int, sleepGoalHours: Double, stepsGoal: Int, metrics: [String], dailyCheckIns: Bool
@@ -55,6 +56,9 @@ enum DataExport {
         struct SavedFoodRecord: Codable {
             let itemData: Data, isFavourite: Bool, isCustom: Bool, lastUsed: Date, useCount: Int
         }
+        struct SavedMealRecord: Codable {
+            let name: String, itemsData: Data, createdAt: Date, lastUsed: Date
+        }
         struct SettingsRecord: Codable {
             let barWeightKg: Double, plateStock: [String: Int], warmupStyle: String
             let remindersEnabled: Bool, reminderHour: Int, reminderMinute: Int
@@ -77,6 +81,7 @@ enum DataExport {
         var customExercises: [CustomRecord]? = nil
         var savedFoods: [SavedFoodRecord]? = nil
         var settings: SettingsRecord? = nil
+        var savedMeals: [SavedMealRecord]? = nil
     }
 
     @MainActor
@@ -93,6 +98,7 @@ enum DataExport {
         let photos = try context.fetch(FetchDescriptor<ProgressPhoto>(sortBy: [SortDescriptor(\.date)]))
         let customs = try context.fetch(FetchDescriptor<CustomExercise>(sortBy: [SortDescriptor(\.createdAt)]))
         let saved = try context.fetch(FetchDescriptor<SavedFood>())
+        let meals = try context.fetch(FetchDescriptor<SavedMeal>(sortBy: [SortDescriptor(\.createdAt)]))
         let snapshot = Snapshot(
             exportedAt: .now,
             profile: p.map { Snapshot.Profile(name: $0.name, birthYear: $0.birthYear, sex: $0.sexRaw, heightCm: $0.heightCm,
@@ -108,7 +114,7 @@ enum DataExport {
             nutritionPlan: n.map { Snapshot.Food(calories: $0.calories, protein: $0.protein, carbs: $0.carbs, fat: $0.fat,
                                          fibre: $0.fibre, maintenance: $0.maintenance, presetName: $0.presetName,
                                          proteinPerKg: $0.proteinPerKg, startAtMaintenance: $0.startAtMaintenance,
-                                         easeInUntil: $0.easeInUntil) },
+                                         easeInUntil: $0.easeInUntil, lastCoachAdjustAt: $0.lastCoachAdjustAt) },
             checkInSettings: c.map { Snapshot.CheckIn(weekday: $0.weekday, sleepGoalHours: $0.sleepGoalHours, stepsGoal: $0.stepsGoal,
                                            metrics: $0.metrics, dailyCheckIns: $0.dailyCheckIns) },
             consents: s?.consents ?? [:],
@@ -141,7 +147,8 @@ enum DataExport {
                                                              lastUsed: $0.lastUsed, useCount: $0.useCount) },
             settings: s.map { Snapshot.SettingsRecord(barWeightKg: $0.barWeightKg, plateStock: $0.plateStock, warmupStyle: $0.warmupStyleRaw,
                                                       remindersEnabled: $0.remindersEnabled, reminderHour: $0.reminderHour,
-                                                      reminderMinute: $0.reminderMinute) })
+                                                      reminderMinute: $0.reminderMinute) },
+            savedMeals: meals.map { Snapshot.SavedMealRecord(name: $0.name, itemsData: $0.itemsData, createdAt: $0.createdAt, lastUsed: $0.lastUsed) })
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601

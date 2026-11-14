@@ -11,7 +11,28 @@ struct WeeklySummaryView: View {
     @Query private var nutrition: [NutritionPlan]
     @Query private var plans: [TrainingPlan]
     @Query private var profiles: [UserProfile]
+    @Environment(\.modelContext) private var context
     @State private var weeksBack = 0
+
+    /// A calorie suggestion from the last four weeks of weigh-ins and two weeks of food logs.
+    private func advice() -> CalorieAdvice? {
+        guard let p = profiles.first, let n = nutrition.first else { return nil }
+        let now = Date.now
+        let points = checkIns.compactMap { e in e.weightKg.map { WeightPoint(date: e.date, kg: $0) } }
+        let recent = points.filter { $0.date >= now.addingTimeInterval(-28 * 86_400) }.sorted { $0.date < $1.date }
+        let span = (recent.last?.date.timeIntervalSince(recent.first?.date ?? now) ?? 0) / 86_400
+        let cal = Calendar.current
+        let since = now.addingTimeInterval(-14 * 86_400)
+        let byDay = Dictionary(grouping: foods.filter { $0.eatenAt >= since && $0.eatenAt <= now }) { cal.startOfDay(for: $0.eatenAt) }
+        let intake: Double? = byDay.isEmpty ? nil
+            : byDay.values.map { $0.reduce(0) { $0 + $1.kcal } }.reduce(0, +) / Double(byDay.count)
+        let lastChange = [n.lastCoachAdjustAt, p.goalChangedAt].compactMap { $0 }.max()
+        return CalorieCoach.advise(goal: p.goal, currentCalories: n.calories, floor: Int(Nutrition.safeFloor(p.sex)),
+                                   bodyWeightKg: recent.last?.kg ?? p.weightKg,
+                                   weeklyChangeKg: WeightTrend.weeklyChange(points, now: now), spanDays: span,
+                                   loggedDays: byDay.count, averageIntake: intake, easingIn: n.startAtMaintenance,
+                                   daysSinceLastChange: lastChange.map { now.timeIntervalSince($0) / 86_400 })
+    }
 
     private var range: (start: Date, end: Date) { VolumeReport.weekRange(containing: .now, weeksBack: weeksBack) }
 
@@ -102,6 +123,21 @@ struct WeeklySummaryView: View {
                 stat("Average calories", f.avgKcal.map { "\(Int($0.rounded()))" + (f.kcalTarget.map { " / \($0)" } ?? "") } ?? "-")
                 stat("Average protein", f.avgProtein.map { "\(Int($0.rounded())) g" + (f.proteinTarget.map { " / \($0) g" } ?? "") } ?? "-")
                 if let w = f.weightThisWeek { stat("Average weight", String(format: "%.1f kg", w)) }
+            }
+            if weeksBack == 0, let a = advice() {
+                Section {
+                    Text(a.message).font(.callout)
+                    if a.kind == .adjust, let p = profiles.first, let n = nutrition.first {
+                        Button("Change my target to \(a.newCalories.formatted()) kcal") {
+                            GoalSwitch.applyCalories(a.newCalories, profile: p, nutrition: n)
+                            try? context.save()
+                        }
+                        .fontWeight(.semibold)
+                        .accessibilityIdentifier("applyCalories")
+                    }
+                } header: { Text("Calorie target") } footer: {
+                    Text("A suggestion from your weight trend and food logs, never applied without your tap. Your protein target stays the same.")
+                }
             }
             Section {
                 ForEach(WeekSummary.notes(f), id: \.self) { Text($0).font(.callout) }

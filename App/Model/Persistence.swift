@@ -3,7 +3,7 @@ import SwiftData
 
 enum Persistence {
     static let schema = Schema([UserProfile.self, TrainingPlan.self, NutritionPlan.self, CheckInSettings.self, AppSettings.self,
-                                 WorkoutLog.self, SetLog.self, FoodEntry.self, SavedFood.self, CheckInEntry.self, ExerciseNote.self, ProgressPhoto.self, CustomExercise.self])
+                                 WorkoutLog.self, SetLog.self, FoodEntry.self, SavedFood.self, CheckInEntry.self, ExerciseNote.self, ProgressPhoto.self, CustomExercise.self, SavedMeal.self])
 
     /// UI tests pass -UITestInMemory to start from a clean, throwaway store.
     static var isUITest: Bool { ProcessInfo.processInfo.arguments.contains("-UITestInMemory") }
@@ -46,6 +46,7 @@ enum Persistence {
         try context.delete(model: ExerciseNote.self)
         try context.delete(model: ProgressPhoto.self)
         try context.delete(model: CustomExercise.self)
+        try context.delete(model: SavedMeal.self)
         PhotoStore.deleteAll()
         // Deleted one by one: a batch delete is refused because every set must belong to a workout.
         for log in try context.fetch(FetchDescriptor<WorkoutLog>()) { context.delete(log) }

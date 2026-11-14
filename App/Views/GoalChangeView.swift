@@ -60,6 +60,15 @@ enum GoalSwitch {
         return true
     }
 
+    /// Applies a calorie target suggested by the weekly summary, keeping protein and the macro style.
+    static func applyCalories(_ kcal: Int, profile: UserProfile, nutrition n: NutritionPlan, today: Date = .now) {
+        let preset = MacroPreset.all.first { $0.name == n.presetName } ?? .balanced
+        let t = Nutrition.targets(profile.stats, activity: profile.activity, goal: profile.goal,
+                                  proteinPerKg: n.proteinPerKg, preset: preset, calorieOverride: Double(kcal))
+        copy(t, into: n)
+        n.lastCoachAdjustAt = today
+    }
+
     /// Programs in the catalogue tagged for this goal.
     static func programs(for goal: Goal, in catalogue: [Program]) -> [Program] {
         catalogue.filter { ($0.goalTags ?? []).contains(goal.programTag) }

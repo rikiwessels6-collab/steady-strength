@@ -218,6 +218,7 @@ struct ActiveWorkoutView: View {
     @State private var infoFor: PlannedExercise?
     @State private var confirmFinish = false
     @State private var confirmDiscard = false
+    @State private var showRecap = false
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -298,9 +299,15 @@ struct ActiveWorkoutView: View {
                     log.finishedAt = .now
                     trainingPlan.nextSessionIndex += 1
                     try? context.save()
-                    dismiss()
+                    showRecap = true
                 }
             } message: { Text("Sets you didn't tick count as not done, and your next session moves on.") }
+            .fullScreenCover(isPresented: $showRecap) {
+                WorkoutRecapView(log: log) {
+                    showRecap = false
+                    dismiss()
+                }
+            }
             .confirmationDialog("Discard this workout?", isPresented: $confirmDiscard, titleVisibility: .visible) {
                 Button("Discard", role: .destructive) {
                     context.delete(log)

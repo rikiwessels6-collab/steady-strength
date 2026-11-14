@@ -44,6 +44,8 @@ struct FoodView: View {
     @State private var day = Date.now
     @State private var addingTo: MealSlot?
     @State private var editing: FoodEntry?
+    @State private var savingMeal: MealSlot?
+    @State private var mealName = ""
 
     private var dayEntries: [FoodEntry] {
         let (s, e) = Calendar.current.dayRange(day)
@@ -65,7 +67,25 @@ struct FoodView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $addingTo) { meal in AddFoodSheet(meal: meal, day: day) }
             .sheet(item: $editing) { entry in EditEntrySheet(entry: entry) }
+            .alert("Save as a meal", isPresented: Binding(get: { savingMeal != nil }, set: { if !$0 { savingMeal = nil } })) {
+                TextField("Name, for example Usual breakfast", text: $mealName)
+                Button("Save") { saveMeal() }
+                Button("Cancel", role: .cancel) { savingMeal = nil }
+            } message: {
+                Text("Keeps these foods and amounts together so you can add them all in one tap from Add, then Meals.")
+            }
         }
+    }
+
+    private func saveMeal() {
+        guard let meal = savingMeal else { return }
+        let items = dayEntries.filter { $0.meal == meal }.map { MealItem($0) }
+        let name = mealName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !items.isEmpty else { return }
+        context.insert(SavedMeal(name: name.isEmpty ? meal.label : name, items: items))
+        try? context.save()
+        savingMeal = nil
+        mealName = ""
     }
 
     private var dayHeader: some View {
@@ -119,6 +139,13 @@ struct FoodView: View {
         try? context.save()
     }
 
+    /// "7:30 am · 150 g · P 20 C 30 F 5". Quick adds have no real weight, so the grams are left out.
+    private func detail(_ e: FoodEntry) -> String {
+        let time = e.eatenAt.formatted(date: .omitted, time: .shortened)
+        let grams = e.foodId.hasPrefix("quick-") ? "" : " · \(Int(e.grams.rounded())) g"
+        return "\(time)\(grams) · P \(Int(e.protein.rounded())) C \(Int(e.carbs.rounded())) F \(Int(e.fat.rounded()))"
+    }
+
     private func repeatLabel(_ date: Date, _ items: [FoodEntry]) -> String {
         let when = Calendar.current.isDateInYesterday(date)
             ? "yesterday" : date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
@@ -137,6 +164,15 @@ struct FoodView: View {
                 Text(meal.label.uppercased()).font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
                 Spacer()
                 if kcal > 0 { Text("\(Int(kcal.rounded())) kcal").font(.subheadline.monospacedDigit()).foregroundStyle(Color.inkMuted) }
+                if items.count >= 2 {
+                    Button { mealName = ""; savingMeal = meal } label: {
+                        Image(systemName: "bookmark").font(.subheadline.weight(.semibold)).foregroundStyle(Color.gold)
+                            .frame(width: 44, height: 44).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Save \(meal.label) as a meal")
+                    .accessibilityIdentifier("saveMeal-\(meal.rawValue)")
+                }
                 Button { addingTo = meal } label: {
                     Image(systemName: "plus").font(.subheadline.weight(.bold)).foregroundStyle(Color.night)
                         .frame(width: 30, height: 30).background(LinearGradient.brand, in: Circle())
@@ -162,7 +198,7 @@ struct FoodView: View {
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(e.name).font(.body.weight(.medium)).foregroundStyle(Color.ink).lineLimit(1)
-                            Text("\(e.eatenAt.formatted(date: .omitted, time: .shortened)) · \(Int(e.grams.rounded())) g · P \(Int(e.protein.rounded())) C \(Int(e.carbs.rounded())) F \(Int(e.fat.rounded()))")
+                            Text(detail(e))
                                 .font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
                         }
                         Spacer()
@@ -184,6 +220,8 @@ struct AddFoodSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Query(sort: \SavedFood.lastUsed, order: .reverse) private var saved: [SavedFood]
+    @Query(sort: \SavedMeal.lastUsed, order: .reverse) private var meals: [SavedMeal]
+    @State private var quickAdding = false
     @State private var query = ""
     @State private var results: [FoodItem] = []
     @State private var searching = false
@@ -209,20 +247,49 @@ struct AddFoodSheet: View {
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                 }
+                Section {
+                    Button { quickAdding = true } label: { Label("Quick add calories", systemImage: "bolt") }
+                        .accessibilityIdentifier("quickAdd")
+                }
                 if let message { Section { Text(message).font(.footnote).foregroundStyle(Color.inkMuted) } }
                 if !results.isEmpty {
                     Section("Results") { ForEach(results) { row($0, source: .search) } }
                 } else {
                     Section {
                         Picker("Show", selection: $tab) {
-                            Text("Recent").tag(0); Text("Favourites").tag(1); Text("My foods").tag(2)
+                            Text("Recent").tag(0); Text("Favourites").tag(1); Text("My foods").tag(2); Text("Meals").tag(3)
                         }
                         .pickerStyle(.segmented)
                         .listRowBackground(Color.clear)
-                        ForEach(list) { s in if let item = s.item { row(item, source: s.isCustom ? .saved : .recent) } }
-                        if list.isEmpty {
-                            Text(tab == 0 ? "Foods you log appear here." : tab == 1 ? "Tap the star on a food to keep it here." : "Foods you create appear here.")
-                                .font(.footnote).foregroundStyle(Color.inkMuted)
+                        if tab == 3 {
+                            ForEach(meals) { m in
+                                Button { add(m) } label: {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(m.name).foregroundStyle(Color.ink).lineLimit(2)
+                                            Text(m.items.map(\.name).joined(separator: ", "))
+                                                .font(.caption).foregroundStyle(Color.inkMuted).lineLimit(2)
+                                        }
+                                        Spacer()
+                                        Text("\(Int(m.kcal.rounded())) kcal").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
+                                    }
+                                }
+                                .accessibilityIdentifier("meal-\(m.name)")
+                            }
+                            .onDelete { offsets in
+                                for i in offsets { context.delete(meals[i]) }
+                                try? context.save()
+                            }
+                            if meals.isEmpty {
+                                Text("Log two or more foods in a meal, then tap the bookmark on that meal to save it here.")
+                                    .font(.footnote).foregroundStyle(Color.inkMuted)
+                            }
+                        } else {
+                            ForEach(list) { s in if let item = s.item { row(item, source: s.isCustom ? .saved : .recent) } }
+                            if list.isEmpty {
+                                Text(tab == 0 ? "Foods you log appear here." : tab == 1 ? "Tap the star on a food to keep it here." : "Foods you create appear here.")
+                                    .font(.footnote).foregroundStyle(Color.inkMuted)
+                            }
                         }
                     }
                 }
@@ -251,6 +318,7 @@ struct AddFoodSheet: View {
                 }
             }
             .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { dismiss() } }
+            .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { dismiss() } }
             .sheet(isPresented: $creating) {
                 CustomFoodForm(barcode: newBarcode) { item in
                     creating = false
@@ -263,6 +331,15 @@ struct AddFoodSheet: View {
                 }
             }
         }
+    }
+
+    /// Adds every food in a saved meal to this meal, now if the day is today, otherwise at midday.
+    private func add(_ m: SavedMeal) {
+        let when = FoodTiming.defaultEatenAt(for: day)
+        for item in m.items { context.insert(FoodEntry(mealItem: item, eatenAt: when, meal: meal)) }
+        m.lastUsed = .now
+        try? context.save()
+        dismiss()
     }
 
     private var list: [SavedFood] {
@@ -430,6 +507,75 @@ struct PortionSheet: View {
         try? context.save()
         dismiss()
         onDone()
+    }
+}
+
+enum FoodTiming {
+    /// Now for today; midday for another day.
+    static func defaultEatenAt(for day: Date, now: Date = .now, calendar: Calendar = .current) -> Date {
+        if calendar.isDate(day, inSameDayAs: now) { return now }
+        return calendar.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
+    }
+}
+
+/// Log calories (and macros if you know them) without choosing a food.
+struct QuickAddSheet: View {
+    let meal: MealSlot
+    let day: Date
+    let onDone: () -> Void
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var kcal: Double?
+    @State private var protein: Double?
+    @State private var carbs: Double?
+    @State private var fat: Double?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    field("Calories (kcal)", $kcal)
+                        .accessibilityIdentifier("quickKcal")
+                    TextField("What was it? (optional)", text: $name)
+                }
+                Section {
+                    field("Protein (g)", $protein); field("Carbohydrate (g)", $carbs); field("Fat (g)", $fat)
+                } header: { Text("Macros, if you know them") } footer: {
+                    Text("Left blank, they count as zero towards today's protein, carbs and fat.")
+                }
+            }
+            .themedList()
+            .navigationTitle("Quick add")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add") { save() }.disabled((kcal ?? 0) <= 0)
+                        .accessibilityIdentifier("quickSave")
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func save() {
+        let label = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Stored as a 100 g portion so the numbers come out exactly as typed.
+        let item = FoodItem(id: "quick-" + UUID().uuidString, name: label.isEmpty ? "Quick add" : label, brand: nil, barcode: nil,
+                            per100: Per100(kcal: kcal ?? 0, protein: protein ?? 0, carbs: carbs ?? 0, fat: fat ?? 0),
+                            servingGrams: nil, servingLabel: nil)
+        context.insert(FoodEntry(item: item, grams: 100, meal: meal, source: .manual, eatenAt: FoodTiming.defaultEatenAt(for: day)))
+        try? context.save()
+        dismiss()
+        onDone()
+    }
+
+    private func field(_ label: String, _ v: Binding<Double?>) -> some View {
+        HStack {
+            Text(label)
+            TextField("0", value: v, format: .number).keyboardType(.decimalPad).multilineTextAlignment(.trailing)
+        }
     }
 }
 

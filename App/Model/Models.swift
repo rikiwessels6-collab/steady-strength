@@ -109,6 +109,8 @@ final class NutritionPlan {
     var createdAt: Date
     /// While set, the targets are at maintenance and switch to the goal's targets on this date.
     var easeInUntil: Date? = nil
+    /// When a calorie suggestion from the weekly summary was last applied.
+    var lastCoachAdjustAt: Date? = nil
 
     init(calories: Int, protein: Int, carbs: Int, fat: Int, fibre: Int, maintenance: Int,
          presetName: String, proteinPerKg: Double, startAtMaintenance: Bool) {
@@ -169,6 +171,8 @@ final class AppSettings {
     var warmupStyleRaw: String = "percent"
     /// Optional YouTube channel to prefer in technique searches (empty = any channel).
     var videoChannel: String = ""
+    /// When "Export my data" last made a backup file.
+    var lastBackupAt: Date? = nil
 
     init() {
         onboardingComplete = false
@@ -344,6 +348,24 @@ final class FoodEntry {
         self.confidence = e.confidence
     }
 
+    /// An entry from a saved meal's item, with the amounts it was saved with.
+    init(mealItem i: MealItem, eatenAt: Date, meal: MealSlot) {
+        self.loggedAt = .now
+        self.eatenAt = eatenAt
+        self.mealRaw = meal.rawValue
+        self.sourceRaw = i.sourceRaw
+        self.name = i.name
+        self.brand = i.brand
+        self.barcode = i.barcode
+        self.foodId = i.foodId
+        self.grams = i.grams
+        self.kcal = i.kcal
+        self.protein = i.protein
+        self.carbs = i.carbs
+        self.fat = i.fat
+        self.fibre = i.fibre
+    }
+
     var meal: MealSlot { MealSlot(rawValue: mealRaw) ?? .snacks }
     var source: FoodSource { FoodSource(rawValue: sourceRaw) ?? .manual }
     var macros: Macros { Macros(kcal: kcal, protein: protein, carbs: carbs, fat: fat, fibre: fibre) }
@@ -481,4 +503,46 @@ final class CustomExercise {
                                    equipment: Self.kinds.first { $0.id == kind }?.equipment ?? [],
                                    loadable: loadable, unilateral: unilateral, timed: timed)
     }
+}
+
+
+// MARK: - Saved meals
+
+/// One food inside a saved meal, with the amount it was saved with.
+struct MealItem: Codable, Hashable {
+    var name: String
+    var brand: String?
+    var barcode: String?
+    var foodId: String
+    var grams: Double
+    var kcal: Double
+    var protein: Double
+    var carbs: Double
+    var fat: Double
+    var fibre: Double
+    var sourceRaw: String
+
+    init(_ e: FoodEntry) {
+        name = e.name; brand = e.brand; barcode = e.barcode; foodId = e.foodId; grams = e.grams
+        kcal = e.kcal; protein = e.protein; carbs = e.carbs; fat = e.fat; fibre = e.fibre; sourceRaw = e.sourceRaw
+    }
+}
+
+/// A named group of foods you eat together, added to a meal in one tap.
+@Model
+final class SavedMeal {
+    var name: String
+    var itemsData: Data
+    var createdAt: Date
+    var lastUsed: Date
+
+    init(name: String, items: [MealItem]) {
+        self.name = name
+        self.itemsData = (try? JSONEncoder().encode(items)) ?? Data()
+        self.createdAt = .now
+        self.lastUsed = .now
+    }
+
+    var items: [MealItem] { (try? JSONDecoder().decode([MealItem].self, from: itemsData)) ?? [] }
+    var kcal: Double { items.reduce(0) { $0 + $1.kcal } }
 }
