@@ -81,6 +81,20 @@ enum HealthService {
         let kcal: Int?
     }
 
+    /// Steps so far today. Nil if Health has nothing for today or access wasn't given.
+    static func stepsToday() async -> Int? {
+        guard isAvailable, let type = stepType else { return nil }
+        let start = Calendar.current.startOfDay(for: .now)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: .now)
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, result, _ in
+                let sum = result?.sumQuantity()?.doubleValue(for: HKUnit.count())
+                continuation.resume(returning: sum.map { Int($0.rounded()) })
+            }
+            store.execute(query)
+        }
+    }
+
     /// Steps for each of the last `days` full days, oldest first. Days with no data show as 0.
     static func dailySteps(days: Int = 7) async -> [DailySteps] {
         guard isAvailable, let type = stepType else { return [] }

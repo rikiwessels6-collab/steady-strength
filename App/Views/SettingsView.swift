@@ -152,9 +152,27 @@ struct SettingsView: View {
                                     Task { await rescheduleReminders(s) }
                                 }), displayedComponents: .hourAndMinute)
                         }
+                        Toggle("Alert me when rest ends", isOn: Binding(
+                            get: { s.restAlerts },
+                            set: { on in
+                                if on {
+                                    Task {
+                                        if await ReminderService.enable() {
+                                            s.restAlerts = true; reminderMessage = nil
+                                        } else {
+                                            s.restAlerts = false
+                                            reminderMessage = "Notifications are off for Steady Strength. You can allow them in the iPhone Settings app."
+                                        }
+                                    }
+                                } else {
+                                    s.restAlerts = false
+                                    RestAlert.cancel()
+                                }
+                            }))
+                            .accessibilityIdentifier("restAlertsToggle")
                         if let reminderMessage { Text(reminderMessage).font(.footnote).foregroundStyle(.secondary) }
                     } header: { Text("Reminders") } footer: {
-                        Text("A reminder on your training days and your check-in day. They're set on this phone only.")
+                        Text("A reminder on your training days and your check-in day, and an alert when a rest timer ends so you can lock your phone between sets. They're set on this phone only.")
                     }
                     Section("Security") {
                         Toggle("Lock with \(AppLock.biometryName)", isOn: Binding(get: { s.lockEnabled }, set: { s.lockEnabled = $0 }))

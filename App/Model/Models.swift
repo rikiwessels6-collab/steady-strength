@@ -173,6 +173,8 @@ final class AppSettings {
     var videoChannel: String = ""
     /// When "Export my data" last made a backup file.
     var lastBackupAt: Date? = nil
+    /// Send a notification when a rest timer ends (needs notification permission).
+    var restAlerts: Bool = false
 
     init() {
         onboardingComplete = false

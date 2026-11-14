@@ -37,6 +37,7 @@ struct FreeWorkoutView: View {
     @State private var confirmFinish = false
     @State private var confirmDiscard = false
     @State private var showRecap = false
+    @Query private var appSettings: [AppSettings]
     @FocusState private var focused: Bool
 
     private func planned(_ id: String, order: Int, content: BundledContent) -> PlannedExercise {
@@ -115,6 +116,15 @@ struct FreeWorkoutView: View {
                 }
             }
             .animation(.snappy, value: restEndsAt)
+            .task(id: restEndsAt) {
+                // A notification for a locked phone (if switched on), and a tap on the wrist or hand when rest ends in the app.
+                guard let end = restEndsAt else { RestAlert.cancel(); return }
+                if appSettings.first?.restAlerts == true { await RestAlert.schedule(at: end) }
+                let wait = end.timeIntervalSinceNow
+                if wait > 0 { try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000)) }
+                guard !Task.isCancelled else { return }
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)

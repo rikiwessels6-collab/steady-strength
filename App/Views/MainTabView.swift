@@ -108,6 +108,9 @@ struct TodayView: View {
                         let range = Calendar.current.dayRange(.now)
                         FoodCard(plan: n, totals: totals(foodEntries.filter { $0.eatenAt >= range.0 && $0.eatenAt < range.1 }))
                     }
+                    if let c = checkIns.first, appSettings.first?.consents[DataType.appleHealth.rawValue] != nil {
+                        TodayActivityCard(settings: c)
+                    }
                     if let c = checkIns.first { CheckInCard(settings: c) }
                     if backupDue {
                         VStack(alignment: .leading, spacing: 10) {
@@ -321,6 +324,52 @@ struct MacroBar: View {
             }
             BrandProgress(value: Double(value) / Double(max(target, 1)))
         }
+    }
+}
+
+/// Today's steps and last night's sleep from Apple Health, against the goals set at check-in. Read-only.
+struct TodayActivityCard: View {
+    let settings: CheckInSettings
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var steps: Int?
+    @State private var sleepHours: Double?
+    @State private var loaded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("TODAY FROM APPLE HEALTH").font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
+            if loaded && steps == nil && sleepHours == nil {
+                Text("Nothing from Apple Health yet today.").font(.subheadline).foregroundStyle(Color.inkMuted)
+            } else {
+                row("Steps", value: steps.map { $0.formatted() } ?? "-", goal: settings.stepsGoal.formatted(),
+                    share: Double(steps ?? 0) / Double(max(settings.stepsGoal, 1)))
+                row("Sleep last night", value: sleepHours.map { String(format: "%.1f h", $0) } ?? "-",
+                    goal: String(format: "%g h", settings.sleepGoalHours),
+                    share: (sleepHours ?? 0) / max(settings.sleepGoalHours, 0.1))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            async let s = HealthService.stepsToday()
+            async let n = HealthService.nightlySleep(days: 1)
+            steps = await s
+            sleepHours = await n.last?.hours
+            loaded = true
+        }
+    }
+
+    private func row(_ label: String, value: String, goal: String, share: Double) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(label).font(.subheadline.weight(.medium)).foregroundStyle(Color.ink)
+                Spacer()
+                Text("\(value) / \(goal)").font(.subheadline.monospacedDigit()).foregroundStyle(Color.inkMuted)
+            }
+            BrandProgress(value: min(max(share, 0), 1))
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
