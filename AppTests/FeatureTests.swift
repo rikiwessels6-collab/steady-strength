@@ -207,6 +207,43 @@ final class FeatureTests: XCTestCase {
         XCTAssertEqual(cal.component(.hour, from: FoodTiming.defaultEatenAt(for: yesterday, now: now)), 12)
     }
 
+    func testExtrasAddedToAProgramSessionKeepTheirOwnSlots() throws {
+        let c = try container()
+        let log = WorkoutLog(programId: "p", weekNumber: 1, workoutPosition: 1, workoutName: "Full Body A",
+                             version: .standard, swaps: [:])
+        log.freeExerciseIds = ["curl", "pushdown", "raise"]
+        c.mainContext.insert(log)
+        // A program set (slot 2) and a set on the third extra exercise.
+        let programSet = SetLog(exerciseId: "x", slotOrder: 2, setIndex: 0, weight: 50, reps: 8, rpe: nil,
+                                targetSets: 1, targetReps: 12, minReps: 8, maxRPE: nil)
+        let extraSet = SetLog(exerciseId: "raise", slotOrder: FreeWorkout.extraBase + 2, setIndex: 0, weight: 6, reps: 12, rpe: nil,
+                              targetSets: 3, targetReps: 12, minReps: 8, maxRPE: nil)
+        for s in [programSet, extraSet] { c.mainContext.insert(s); s.workout = log }
+        FreeWorkout.remove(at: 1, from: log, base: FreeWorkout.extraBase)
+        XCTAssertEqual(log.freeExerciseIds, ["curl", "raise"])
+        XCTAssertEqual(extraSet.slotOrder, FreeWorkout.extraBase + 1)
+        XCTAssertEqual(programSet.slotOrder, 2)                // program slots never move
+    }
+
+    func testExtraSetsSurviveABackup() throws {
+        let c = try container()
+        let ctx = c.mainContext
+        ctx.insert(profile())
+        let log = WorkoutLog(programId: "p", weekNumber: 1, workoutPosition: 1, workoutName: "A", version: .standard, swaps: [:])
+        log.extraSets = [1: 2]
+        log.freeExerciseIds = ["curl"]
+        log.finishedAt = .now
+        ctx.insert(log)
+        try ctx.save()
+        let url = try DataExport.write(ctx)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let other = try container()
+        _ = try DataImport.restore(from: url, into: other.mainContext)
+        let restored = try XCTUnwrap(other.mainContext.fetch(FetchDescriptor<WorkoutLog>()).first)
+        XCTAssertEqual(restored.extraSets[1], 2)
+        XCTAssertEqual(restored.freeExerciseIds, ["curl"])
+    }
+
     func testNotABackupIsRejected() {
         XCTAssertThrowsError(try DataImport.decode(Data("{\"hello\": 1}".utf8)))
     }

@@ -241,7 +241,10 @@ final class WorkoutLog {
     var declinedSuggestions: [String] = []
     /// An open workout (no program): the exercises added so far, in order.
     var isFreestyle: Bool = false
+    /// Exercises you added yourself, in order: all of an open workout, or extras added to a program session.
     var freeExerciseIds: [String] = []
+    /// Sets added beyond the program's prescription: slot order -> how many extra.
+    var extraSets: [Int: Int] = [:]
     @Relationship(deleteRule: .cascade, inverse: \SetLog.workout) var sets: [SetLog] = []
 
     init(programId: String, weekNumber: Int, workoutPosition: Int, workoutName: String, version: SessionVersion, swaps: [Int: String]) {

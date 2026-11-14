@@ -48,6 +48,7 @@ enum DataExport {
             var readinessChoice: String? = nil, readinessCode: String? = nil
             var accepted: [String]? = nil, declined: [String]? = nil
             var isFreestyle: Bool? = nil, freeExerciseIds: [String]? = nil
+            var extraSets: [String: Int]? = nil
         }
         struct CustomRecord: Codable {
             let exerciseId: String, name: String, primaryMuscle: String, secondaryMuscle: String?
@@ -136,7 +137,8 @@ enum DataExport {
                                        swaps: Dictionary(uniqueKeysWithValues: w.swaps.map { (String($0.key), $0.value) }),
                                        loadFactor: w.loadFactor, readinessChoice: w.readinessChoiceRaw, readinessCode: w.readinessCode,
                                        accepted: w.acceptedSuggestions, declined: w.declinedSuggestions,
-                                       isFreestyle: w.isFreestyle, freeExerciseIds: w.freeExerciseIds)
+                                       isFreestyle: w.isFreestyle, freeExerciseIds: w.freeExerciseIds,
+                                       extraSets: Dictionary(uniqueKeysWithValues: w.extraSets.map { (String($0.key), $0.value) }))
             },
             exerciseNotes: notes.map { Snapshot.NoteRecord(exerciseId: $0.exerciseId, text: $0.text) },
             progressPhotos: photos.map { Snapshot.PhotoRecord(date: $0.date, angle: $0.angleRaw) },

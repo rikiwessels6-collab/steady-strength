@@ -139,6 +139,7 @@ enum DataImport {
             log.declinedSuggestions = r.declined ?? []
             log.isFreestyle = r.isFreestyle ?? false
             log.freeExerciseIds = r.freeExerciseIds ?? []
+            for (k, v) in r.extraSets ?? [:] { if let i = Int(k) { log.extraSets[i] = v } }
             context.insert(log)
             let perExercise = Dictionary(grouping: r.sets, by: \.exerciseId).mapValues(\.count)
             for s in r.sets {

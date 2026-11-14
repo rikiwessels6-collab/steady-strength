@@ -219,6 +219,7 @@ struct ActiveWorkoutView: View {
     @State private var confirmFinish = false
     @State private var confirmDiscard = false
     @State private var showRecap = false
+    @State private var addingExercise = false
     @State private var nextUp: String?
     @Query private var appSettings: [AppSettings]
     @FocusState private var focused: Bool
@@ -227,15 +228,21 @@ struct ActiveWorkoutView: View {
         if let content = store.content, let trainingPlan = plans.first {
             let built = WorkoutPlanner.plan(program: program, workout: workout, version: log.version, content: content,
                                             equipment: Set(trainingPlan.equipment), chosenSwaps: log.swaps, week: log.weekNumber)
-            let totalSets = built.plan.reduce(0) { $0 + $1.sets }
+            let extras = log.freeExerciseIds.enumerated().map {
+                FreeWorkout.item($1, order: FreeWorkout.extraBase + $0, log: log, content: content)
+            }
+            let all = built.plan + extras
+            let totalSets = built.plan.reduce(0) { $0 + $1.sets + (log.extraSets[$1.id] ?? 0) } + extras.reduce(0) { $0 + $1.sets }
             ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 16) {
                     WorkoutHeader(name: log.workoutName, version: log.version, week: log.weekNumber,
                                   done: log.sets.count, total: totalSets, started: log.startedAt)
                     RoutineCard(kind: .warmup, version: log.version)
-                    ForEach(Array(built.plan.enumerated()), id: \.element.id) { index, item in
+                    ForEach(Array(all.enumerated()), id: \.element.id) { index, item in
                         let ex = content.library[item.exerciseId]
+                        let isExtra = item.id >= FreeWorkout.extraBase
+                        VStack(spacing: 6) {
                         ExerciseCard(item: item, log: log, exercise: ex,
                                      suggestion: Progression.suggest(for: item, exercise: ex,
                                                                      history: WorkoutPlanner.history(item.exerciseId, logs: logs.filter { $0 !== log }),
@@ -243,22 +250,52 @@ struct ActiveWorkoutView: View {
                                                                      increment: (ex?.pattern.hasPrefix("squat") == true || ex?.pattern.hasPrefix("hinge") == true) && ex?.tier == "main"
                                                                          ? trainingPlan.lowerIncrement : trainingPlan.upperIncrement),
                                      isSwapped: item.exerciseId != item.originalExerciseId,
+                                     canSwap: !isExtra,
                                      lastTime: WorkoutPlanner.lastTime(item.exerciseId, logs: logs.filter { $0 !== log }),
+                                     extraSets: isExtra ? 0 : (log.extraSets[item.id] ?? 0),
+                                     onAddSet: isExtra ? nil : { log.extraSets[item.id, default: 0] += 1; try? context.save() },
+                                     onRemoveSet: isExtra ? nil : {
+                                         let n = (log.extraSets[item.id] ?? 0) - 1
+                                         log.extraSets[item.id] = n > 0 ? n : nil
+                                         try? context.save()
+                                     },
                                      focused: $focused,
-                                     onSetDone: { setDone(item, index: index, plan: built.plan, proxy: proxy) },
+                                     onSetDone: { setDone(item, index: index, plan: all, proxy: proxy) },
                                      onSwap: { swapFor = item },
                                      onInfo: { infoFor = item })
-                            .id("ex-\(item.id)")
+                            if isExtra, !log.sets.contains(where: { $0.slotOrder == item.id }) {
+                                Button("Remove \(item.name)", role: .destructive) {
+                                    FreeWorkout.remove(at: item.id - FreeWorkout.extraBase, from: log, base: FreeWorkout.extraBase)
+                                    try? context.save()
+                                }
+                                .font(.footnote)
+                            }
+                        }
+                        .id("ex-\(item.id)")
                     }
+                    Button { addingExercise = true } label: {
+                        Label("Add exercise", systemImage: "plus").font(.headline).frame(maxWidth: .infinity, minHeight: 48)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("addExerciseToSession")
                     RoutineCard(kind: .cooldown, version: log.version)
                     VStack(spacing: 10) {
-                        Button { confirmFinish = true } label: {
-                            Text("Finish workout").font(.headline).frame(maxWidth: .infinity, minHeight: 52)
+                        if log.finishedAt != nil {
+                            // Reopened after finishing: saving never moves the program on a second time.
+                            Button { try? context.save(); dismiss() } label: {
+                                Text("Save changes").font(.headline).frame(maxWidth: .infinity, minHeight: 52)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("saveChanges")
+                        } else {
+                            Button { confirmFinish = true } label: {
+                                Text("Finish workout").font(.headline).frame(maxWidth: .infinity, minHeight: 52)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("finishWorkout")
+                            Button("Discard workout", role: .destructive) { confirmDiscard = true }
+                                .font(.subheadline)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .accessibilityIdentifier("finishWorkout")
-                        Button("Discard workout", role: .destructive) { confirmDiscard = true }
-                            .font(.subheadline)
                     }
                     .padding(.top, 8)
                     .id("finish")
@@ -318,9 +355,15 @@ struct ActiveWorkoutView: View {
                 }
             } message: { Text("Sets you didn't tick count as not done, and your next session moves on.") }
             .fullScreenCover(isPresented: $showRecap) {
-                WorkoutRecapView(log: log) {
+                WorkoutRecapView(log: log, onDone: {
                     showRecap = false
                     dismiss()
+                }, onAddMore: { showRecap = false })
+            }
+            .sheet(isPresented: $addingExercise) {
+                ExercisePicker { id in
+                    log.freeExerciseIds.append(id)
+                    try? context.save()
                 }
             }
             .confirmationDialog("Discard this workout?", isPresented: $confirmDiscard, titleVisibility: .visible) {
@@ -337,7 +380,8 @@ struct ActiveWorkoutView: View {
     private func setDone(_ item: PlannedExercise, index: Int, plan: [PlannedExercise], proxy: ScrollViewProxy) {
         focused = false
         // Work out what comes next, and move the screen there once this exercise is finished.
-        let rows = plan.map { p in (name: p.name, done: log.sets.filter { $0.slotOrder == p.id }.count, total: p.sets) }
+        let rows = plan.map { p in (name: p.name, done: log.sets.filter { $0.slotOrder == p.id }.count,
+                                    total: p.sets + (p.id >= FreeWorkout.extraBase ? 0 : (log.extraSets[p.id] ?? 0))) }
         nextUp = NextUp.text(remaining: rows, current: index)
         if rows.indices.contains(index), rows[index].done >= rows[index].total {
             let later = rows.indices.first { $0 > index && rows[$0].done < rows[$0].total }
@@ -401,6 +445,10 @@ struct ExerciseCard: View {
     var canSwap = true
     /// The previous session's sets for this exercise, if any.
     var lastTime: String? = nil
+    /// Sets added beyond the prescription, and the buttons that add or remove one (nil hides them).
+    var extraSets = 0
+    var onAddSet: (() -> Void)? = nil
+    var onRemoveSet: (() -> Void)? = nil
     var focused: FocusState<Bool>.Binding
     let onSetDone: () -> Void
     let onSwap: () -> Void
@@ -428,7 +476,7 @@ struct ExerciseCard: View {
     }
     /// Judged from the set just done: lighter is applied straight away, heavier only once you tap to accept it.
     private var advice: SetAdvice? {
-        guard loadable, exercise?.timed != true, let last = done.last, done.count < item.sets else { return nil }
+        guard loadable, exercise?.timed != true, let last = done.last, done.count < item.sets + extraSets else { return nil }
         let a = SetAdvisor.next(lastWeight: last.weight, lastReps: last.reps,
                                 minReps: last.minReps ?? item.minimumReps(set: last.setIndex),
                                 topReps: last.targetReps ?? item.targetReps(set: last.setIndex),
@@ -544,7 +592,7 @@ struct ExerciseCard: View {
                     Color.clear.frame(width: 44)
                 }
                 .font(.caption2.weight(.semibold)).tracking(1.2).foregroundStyle(Color.inkMuted.opacity(0.7))
-                ForEach(0..<item.sets, id: \.self) { i in
+                ForEach(0..<(item.sets + extraSets), id: \.self) { i in
                     SetRow(index: i, item: item, logged: done.first { $0.setIndex == i },
                            startWeight: startWeight, loadable: loadable, focused: focused) { weight, reps in
                         let set = SetLog(exerciseId: item.exerciseId, slotOrder: item.id, setIndex: i, weight: weight,
@@ -562,6 +610,23 @@ struct ExerciseCard: View {
                         set.rpe = value
                         try? context.save()
                     }
+                }
+                if onAddSet != nil || onRemoveSet != nil {
+                    HStack(spacing: 10) {
+                        if let onAddSet {
+                            Button(action: onAddSet) { Label("Add set", systemImage: "plus") }
+                                .accessibilityIdentifier("addSet-\(item.id)")
+                        }
+                        if extraSets > 0, let onRemoveSet,
+                           !done.contains(where: { $0.setIndex == item.sets + extraSets - 1 }) {
+                            Button(role: .destructive, action: onRemoveSet) { Label("Remove set", systemImage: "minus") }
+                        }
+                        Spacer()
+                        if extraSets > 0 {
+                            Text("+\(extraSets) extra").font(.caption).foregroundStyle(Color.inkMuted)
+                        }
+                    }
+                    .font(.footnote.weight(.semibold)).buttonStyle(.bordered).tint(Color.gold)
                 }
                 if let a = advice, let note = a.note {
                     if a.kind == .lighter {
@@ -755,6 +820,7 @@ struct RestTimerBar: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
             let left = max(0, Int(endsAt.timeIntervalSince(ctx.date).rounded(.up)))
+            VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 14) {
                 ZStack {
                     Circle().stroke(Color.white.opacity(0.12), lineWidth: 4)
@@ -767,9 +833,6 @@ struct RestTimerBar: View {
                     Text(left > 0 ? "REST" : "GO").font(.caption2.weight(.bold)).tracking(1.2).opacity(0.75)
                     Text(left > 0 ? "\(left / 60):\(String(format: "%02d", left % 60))" : "Next set")
                         .font(.title2.weight(.bold).monospacedDigit())
-                    if let nextText {
-                        Text(nextText).font(.caption2).opacity(0.75).lineLimit(1)
-                    }
                 }
                 Spacer()
                 if left > 0 {
@@ -785,6 +848,12 @@ struct RestTimerBar: View {
                 Button(left > 0 ? "Skip" : "OK", action: onDone).font(.subheadline.weight(.semibold))
                     .padding(.horizontal, 12).padding(.vertical, 8)
                     .background(Color.white.opacity(0.10), in: Capsule())
+            }
+            if let nextText {
+                Text(nextText).font(.footnote.weight(.medium)).opacity(0.8)
+                    .lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("nextUp")
+            }
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 18).padding(.vertical, 14)

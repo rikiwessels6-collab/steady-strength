@@ -74,6 +74,11 @@ struct TodayView: View {
         logs.first { $0.finishedAt == nil && ($0.isFreestyle || $0.programId == plans.first?.programId) }
     }
 
+    /// The most recent workout finished today, to add sets or exercises to it afterwards.
+    private var doneToday: WorkoutLog? {
+        logs.first { $0.finishedAt != nil && Calendar.current.isDateInToday($0.startedAt) }
+    }
+
     /// True once there is something worth keeping and no backup file has been made for 30 days.
     private var backupDue: Bool {
         let finished = logs.filter { $0.finishedAt != nil }
@@ -103,6 +108,24 @@ struct TodayView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .accessibilityIdentifier("streak")
                         }
+                    }
+                    if let d = doneToday {
+                        Button { activeLog = d } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "checkmark.circle.fill").font(.title2).foregroundStyle(Color.emerald)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("DONE TODAY").font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
+                                    Text(d.workoutName).font(.headline).foregroundStyle(Color.ink).lineLimit(1)
+                                    Text("Tap to add sets or exercises").font(.footnote).foregroundStyle(Color.inkMuted)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color.inkMuted)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .card()
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("doneToday")
                     }
                     if let n = food.first {
                         let range = Calendar.current.dayRange(.now)

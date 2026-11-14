@@ -6,6 +6,8 @@ import SteadyCore
 struct WorkoutRecapView: View {
     let log: WorkoutLog
     let onDone: () -> Void
+    /// Keeps the workout open to add sets or exercises.
+    var onAddMore: (() -> Void)? = nil
     @Environment(ContentStore.self) private var store
     @Query private var logs: [WorkoutLog]
 
@@ -69,6 +71,12 @@ struct WorkoutRecapView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("recapDone")
+                if let onAddMore {
+                    Button("Add more sets or exercises", action: onAddMore)
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(Color.gold)
+                        .frame(minHeight: 44)
+                        .accessibilityIdentifier("recapAddMore")
+                }
             }
             .padding(.horizontal)
             .padding(.bottom, 24)

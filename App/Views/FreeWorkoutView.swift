@@ -14,12 +14,24 @@ enum FreeWorkout {
         return log
     }
 
-    /// Removes an exercise that has no sets yet, and closes the gap in the sets recorded for the ones after it.
-    static func remove(at index: Int, from log: WorkoutLog) {
+    /// Slot numbers for exercises added to a program session start here, clear of the program's own slots.
+    static let extraBase = 3000
+
+    /// An added exercise as a card: 3 sets to start, and always one more empty row once those are done.
+    static func item(_ id: String, order: Int, log: WorkoutLog, content: BundledContent) -> PlannedExercise {
+        let ex = content.library[id]
+        let done = log.sets.filter { $0.slotOrder == order }.count
+        return PlannedExercise(moduleExerciseId: id, name: ex?.name ?? "Exercise", id: order, sets: max(3, done + 1),
+                               repMin: 8, repMax: 12, restSeconds: 90, perSide: ex?.unilateral ?? false)
+    }
+
+    /// Removes an added exercise that has no sets yet, and closes the gap in the sets recorded for the ones after it.
+    /// `base` is 0 in an open workout and `extraBase` in a program session.
+    static func remove(at index: Int, from log: WorkoutLog, base: Int = 0) {
         guard log.freeExerciseIds.indices.contains(index),
-              !log.sets.contains(where: { $0.slotOrder == index }) else { return }
+              !log.sets.contains(where: { $0.slotOrder == base + index }) else { return }
         log.freeExerciseIds.remove(at: index)
-        for s in log.sets where s.slotOrder > index { s.slotOrder -= 1 }
+        for s in log.sets where s.slotOrder > base + index && s.slotOrder < base + 1000 { s.slotOrder -= 1 }
     }
 }
 
@@ -40,16 +52,9 @@ struct FreeWorkoutView: View {
     @Query private var appSettings: [AppSettings]
     @FocusState private var focused: Bool
 
-    private func planned(_ id: String, order: Int, content: BundledContent) -> PlannedExercise {
-        let ex = content.library[id]
-        let done = log.sets.filter { $0.slotOrder == order }.count
-        return PlannedExercise(moduleExerciseId: id, name: ex?.name ?? "Exercise", id: order, sets: max(3, done + 1),
-                               repMin: 8, repMax: 12, restSeconds: 90, perSide: ex?.unilateral ?? false)
-    }
-
     var body: some View {
         if let content = store.content {
-            let items = log.freeExerciseIds.enumerated().map { planned($1, order: $0, content: content) }
+            let items = log.freeExerciseIds.enumerated().map { FreeWorkout.item($1, order: $0, log: log, content: content) }
             ScrollView {
                 VStack(spacing: 16) {
                     WorkoutHeader(name: log.workoutName, version: .standard, week: 0, done: log.sets.count,
@@ -92,12 +97,20 @@ struct FreeWorkoutView: View {
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("addExercise")
                     VStack(spacing: 10) {
-                        Button { if log.sets.isEmpty { confirmDiscard = true } else { confirmFinish = true } } label: {
-                            Text("Finish workout").font(.headline).frame(maxWidth: .infinity, minHeight: 52)
+                        if log.finishedAt != nil {
+                            Button { try? context.save(); dismiss() } label: {
+                                Text("Save changes").font(.headline).frame(maxWidth: .infinity, minHeight: 52)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("saveChanges")
+                        } else {
+                            Button { if log.sets.isEmpty { confirmDiscard = true } else { confirmFinish = true } } label: {
+                                Text("Finish workout").font(.headline).frame(maxWidth: .infinity, minHeight: 52)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("finishWorkout")
+                            Button("Discard workout", role: .destructive) { confirmDiscard = true }.font(.subheadline)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .accessibilityIdentifier("finishWorkout")
-                        Button("Discard workout", role: .destructive) { confirmDiscard = true }.font(.subheadline)
                     }
                     .padding(.top, 8)
                 }
@@ -152,10 +165,10 @@ struct FreeWorkoutView: View {
                 }
             } message: { Text("It is saved to your history. Your program stays where it was.") }
             .fullScreenCover(isPresented: $showRecap) {
-                WorkoutRecapView(log: log) {
+                WorkoutRecapView(log: log, onDone: {
                     showRecap = false
                     dismiss()
-                }
+                }, onAddMore: { showRecap = false })
             }
             .confirmationDialog("Discard this workout?", isPresented: $confirmDiscard, titleVisibility: .visible) {
                 Button("Discard", role: .destructive) {
