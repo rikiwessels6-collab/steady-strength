@@ -326,7 +326,7 @@ struct HealthActivitySection: View {
                 }
             }
         } header: { Text("This week from Apple Health") } footer: {
-            if enabled { Text("Read from Apple Health on this phone. It includes workouts recorded by your watch and other apps. Nothing is written back or shared.") }
+            if enabled { Text("Read from Apple Health on this phone. It includes workouts recorded by your watch and other apps; sessions this app saved to Health are left out so nothing is counted twice. Nothing is shared.") }
         }
         .task(id: enabled) {
             guard enabled else { return }

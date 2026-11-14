@@ -119,9 +119,28 @@ struct SettingsView: View {
                             }
                             .accessibilityIdentifier("reviewHealth")
                         }
+                        if s.consents[DataType.appleHealth.rawValue] != nil {
+                            Toggle("Save my workouts to Apple Health", isOn: Binding(
+                                get: { s.saveWorkoutsToHealth },
+                                set: { on in
+                                    if on {
+                                        Task {
+                                            if await HealthService.requestWorkoutWriteAccess() {
+                                                s.saveWorkoutsToHealth = true; healthMessage = nil
+                                            } else {
+                                                s.saveWorkoutsToHealth = false
+                                                healthMessage = "Apple Health didn't allow saving workouts. Allow it in the iPhone Settings app, then Health, then Data Access, then Steady Strength."
+                                            }
+                                        }
+                                    } else {
+                                        s.saveWorkoutsToHealth = false
+                                    }
+                                }))
+                                .accessibilityIdentifier("saveToHealthToggle")
+                        }
                         if let healthMessage { Text(healthMessage).font(.footnote).foregroundStyle(.secondary) }
                     } header: { Text("Apple Health") } footer: {
-                        Text("Reads your daily steps, workouts and body weight so your check-in can fill itself in and Progress can show your week. Nothing is written to Health or shared. To change what the app can read, open the iPhone Settings app, then Health, then Data Access.")
+                        Text("Reads your daily steps, workouts and body weight so your check-in can fill itself in and Progress can show your week. Finished workouts are saved to Health only if you switch that on, so they count towards your Activity rings. Nothing is shared. To change what the app can read, open the iPhone Settings app, then Health, then Data Access.")
                     }
                     Section {
                         Toggle("Remind me", isOn: Binding(

@@ -254,6 +254,9 @@ struct AddFoodSheet: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \SavedFood.lastUsed, order: .reverse) private var saved: [SavedFood]
     @Query(sort: \SavedMeal.lastUsed, order: .reverse) private var meals: [SavedMeal]
+    @Query(sort: \Recipe.lastUsed, order: .reverse) private var recipes: [Recipe]
+    @State private var newRecipe = false
+    @State private var loggingRecipe: Recipe?
     @State private var quickAdding = false
     @State private var query = ""
     @State private var results: [FoodItem] = []
@@ -317,6 +320,28 @@ struct AddFoodSheet: View {
                                 Text("Log two or more foods in a meal, then tap the bookmark on that meal to save it here.")
                                     .font(.footnote).foregroundStyle(Color.inkMuted)
                             }
+                            Text("RECIPES").font(.caption2.weight(.semibold)).tracking(1.2).foregroundStyle(Color.inkMuted)
+                                .listRowBackground(Color.clear)
+                            ForEach(recipes) { r in
+                                Button { loggingRecipe = r } label: {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(r.name).foregroundStyle(Color.ink).lineLimit(2)
+                                            Text("Makes \(NumberText.format(r.servings)) · \(r.ingredients.count) ingredients")
+                                                .font(.caption).foregroundStyle(Color.inkMuted)
+                                        }
+                                        Spacer()
+                                        Text("\(Int(r.kcalPerServing.rounded())) kcal/serve").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
+                                    }
+                                }
+                                .accessibilityIdentifier("recipe-\(r.name)")
+                            }
+                            .onDelete { offsets in
+                                for i in offsets { context.delete(recipes[i]) }
+                                try? context.save()
+                            }
+                            Button { newRecipe = true } label: { Label("New recipe", systemImage: "frying.pan") }
+                                .accessibilityIdentifier("newRecipe")
                         } else {
                             ForEach(list) { s in if let item = s.item { row(item, source: s.isCustom ? .saved : .recent) } }
                             if list.isEmpty {
@@ -357,6 +382,8 @@ struct AddFoodSheet: View {
             }
             .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { dismiss() } }
             .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { dismiss() } }
+            .sheet(isPresented: $newRecipe) { RecipeEditor() }
+            .sheet(item: $loggingRecipe) { r in RecipePortionSheet(recipe: r, meal: meal, day: day) { dismiss() } }
             .sheet(isPresented: $creating) {
                 CustomFoodForm(barcode: newBarcode) { item in
                     creating = false

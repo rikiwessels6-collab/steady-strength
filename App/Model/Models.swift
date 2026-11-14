@@ -175,6 +175,8 @@ final class AppSettings {
     var lastBackupAt: Date? = nil
     /// Send a notification when a rest timer ends (needs notification permission).
     var restAlerts: Bool = false
+    /// Save finished workouts to Apple Health as strength training (start and end time only).
+    var saveWorkoutsToHealth: Bool = false
 
     init() {
         onboardingComplete = false
@@ -209,7 +211,7 @@ enum DataType: String, CaseIterable, Identifiable {
         case .checkIns: return "Weekly check-ins and optional daily notes. Private to this phone."
         case .photos: return "Front, side and rear photos, kept in the app, behind Face ID, never analysed."
         case .plateAnalysis: return "Off by default. When on, a plate photo you choose to analyse is sent once to estimate its food and macros, then discarded. Nothing is stored or linked to you."
-        case .appleHealth: return "Reads your daily steps and body weight to fill in check-ins. Never writes to Health. Turn it on in Settings > Apple Health."
+        case .appleHealth: return "Reads your steps, workouts, sleep and body weight to fill in check-ins. Saves your finished workouts to Health only if you switch that on. Turn it on in Settings > Apple Health."
         }
     }
 
@@ -245,6 +247,8 @@ final class WorkoutLog {
     var freeExerciseIds: [String] = []
     /// Sets added beyond the program's prescription: slot order -> how many extra.
     var extraSets: [Int: Int] = [:]
+    /// True once this workout has been saved to Apple Health, so it is never saved twice.
+    var savedToHealth: Bool = false
     @Relationship(deleteRule: .cascade, inverse: \SetLog.workout) var sets: [SetLog] = []
 
     init(programId: String, weekNumber: Int, workoutPosition: Int, workoutName: String, version: SessionVersion, swaps: [Int: String]) {
@@ -550,4 +554,42 @@ final class SavedMeal {
 
     var items: [MealItem] { (try? JSONDecoder().decode([MealItem].self, from: itemsData)) ?? [] }
     var kcal: Double { items.reduce(0) { $0 + $1.kcal } }
+}
+
+
+// MARK: - Recipes
+
+/// A home-cooked dish: its raw ingredients, how many servings it makes, and (optionally) its cooked weight.
+@Model
+final class Recipe {
+    var name: String
+    var ingredientsData: Data
+    var servings: Double
+    var cookedWeightGrams: Double?
+    var createdAt: Date
+    var lastUsed: Date
+
+    init(name: String, ingredients: [RecipeIngredient], servings: Double, cookedWeightGrams: Double?) {
+        self.name = name
+        self.ingredientsData = (try? JSONEncoder().encode(ingredients)) ?? Data()
+        self.servings = servings
+        self.cookedWeightGrams = cookedWeightGrams
+        self.createdAt = .now
+        self.lastUsed = .now
+    }
+
+    var ingredients: [RecipeIngredient] {
+        get { (try? JSONDecoder().decode([RecipeIngredient].self, from: ingredientsData)) ?? [] }
+        set { ingredientsData = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
+    var totalWeight: Double { RecipeMath.totalWeight(ingredients, cookedWeight: cookedWeightGrams) }
+    var kcalPerServing: Double { servings > 0 ? RecipeMath.totals(ingredients).kcal / servings : 0 }
+
+    /// The dish as a food you can log by the gram.
+    var asFood: FoodItem {
+        let perServing = servings > 0 ? totalWeight / servings : nil
+        return FoodItem(id: "recipe-\(createdAt.timeIntervalSince1970)", name: name, brand: "Recipe", barcode: nil,
+                        per100: RecipeMath.per100(ingredients, cookedWeight: cookedWeightGrams),
+                        servingGrams: perServing, servingLabel: "1 serving")
+    }
 }

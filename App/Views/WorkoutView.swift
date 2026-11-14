@@ -351,6 +351,7 @@ struct ActiveWorkoutView: View {
                     log.finishedAt = .now
                     trainingPlan.nextSessionIndex += 1
                     try? context.save()
+                    HealthSync.saveIfWanted(log, settings: appSettings.first, context: context)
                     showRecap = true
                 }
             } message: { Text("Sets you didn't tick count as not done, and your next session moves on.") }

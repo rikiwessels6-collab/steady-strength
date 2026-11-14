@@ -170,15 +170,7 @@ struct TodayView: View {
                     }
                 }
             }
-            .navigationDestination(item: $activeLog) { log in
-                if log.isFreestyle {
-                    FreeWorkoutView(log: log)
-                } else if let program = store.content?.program(log.programId),
-                   let week = program.weeks.first(where: { $0.number == log.weekNumber }),
-                   let workout = week.workouts.first(where: { $0.position == log.workoutPosition }) {
-                    ActiveWorkoutView(log: log, program: program, workout: workout)
-                }
-            }
+            .navigationDestination(item: $activeLog) { log in WorkoutLogEditor(log: log) }
         }
     }
 

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import SteadyCore
 
 /// "Export my data": everything the app holds about you, as one JSON file you
 /// can save or share from the share sheet. Nothing is uploaded anywhere.
@@ -60,6 +61,10 @@ enum DataExport {
         struct SavedMealRecord: Codable {
             let name: String, itemsData: Data, createdAt: Date, lastUsed: Date
         }
+        struct RecipeRecord: Codable {
+            let name: String, ingredients: [RecipeIngredient], servings: Double, cookedWeightGrams: Double?
+            let createdAt: Date, lastUsed: Date
+        }
         struct SettingsRecord: Codable {
             let barWeightKg: Double, plateStock: [String: Int], warmupStyle: String
             let remindersEnabled: Bool, reminderHour: Int, reminderMinute: Int
@@ -83,6 +88,7 @@ enum DataExport {
         var savedFoods: [SavedFoodRecord]? = nil
         var settings: SettingsRecord? = nil
         var savedMeals: [SavedMealRecord]? = nil
+        var recipes: [RecipeRecord]? = nil
     }
 
     @MainActor
@@ -100,6 +106,7 @@ enum DataExport {
         let customs = try context.fetch(FetchDescriptor<CustomExercise>(sortBy: [SortDescriptor(\.createdAt)]))
         let saved = try context.fetch(FetchDescriptor<SavedFood>())
         let meals = try context.fetch(FetchDescriptor<SavedMeal>(sortBy: [SortDescriptor(\.createdAt)]))
+        let recipes = try context.fetch(FetchDescriptor<Recipe>(sortBy: [SortDescriptor(\.createdAt)]))
         let snapshot = Snapshot(
             exportedAt: .now,
             profile: p.map { Snapshot.Profile(name: $0.name, birthYear: $0.birthYear, sex: $0.sexRaw, heightCm: $0.heightCm,
@@ -150,7 +157,9 @@ enum DataExport {
             settings: s.map { Snapshot.SettingsRecord(barWeightKg: $0.barWeightKg, plateStock: $0.plateStock, warmupStyle: $0.warmupStyleRaw,
                                                       remindersEnabled: $0.remindersEnabled, reminderHour: $0.reminderHour,
                                                       reminderMinute: $0.reminderMinute) },
-            savedMeals: meals.map { Snapshot.SavedMealRecord(name: $0.name, itemsData: $0.itemsData, createdAt: $0.createdAt, lastUsed: $0.lastUsed) })
+            savedMeals: meals.map { Snapshot.SavedMealRecord(name: $0.name, itemsData: $0.itemsData, createdAt: $0.createdAt, lastUsed: $0.lastUsed) },
+            recipes: recipes.map { Snapshot.RecipeRecord(name: $0.name, ingredients: $0.ingredients, servings: $0.servings,
+                                                         cookedWeightGrams: $0.cookedWeightGrams, createdAt: $0.createdAt, lastUsed: $0.lastUsed) })
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601

@@ -118,6 +118,8 @@ struct ExerciseProgressView: View {
 struct WorkoutHistoryView: View {
     @Query(filter: #Predicate<WorkoutLog> { $0.finishedAt != nil }, sort: \WorkoutLog.startedAt, order: .reverse)
     private var logs: [WorkoutLog]
+    @Environment(\.modelContext) private var context
+    @State private var deleting: WorkoutLog?
     @State private var month = Date.now
 
     private var cal: Calendar { Calendar.current }
@@ -175,7 +177,7 @@ struct WorkoutHistoryView: View {
                     }
                 }
             }
-            Section("Sessions this month: \(monthLogs.count)") {
+            Section {
                 if monthLogs.isEmpty { Text("No finished workouts this month.").font(.footnote).foregroundStyle(Color.inkMuted) }
                 ForEach(monthLogs) { log in
                     NavigationLink { WorkoutDetailView(log: log) } label: {
@@ -188,12 +190,28 @@ struct WorkoutHistoryView: View {
                             Text("\(log.sets.count) sets").font(.caption).foregroundStyle(Color.inkMuted)
                         }
                     }
+                    .swipeActions {
+                        Button("Delete", role: .destructive) { deleting = log }
+                    }
                 }
+            } header: {
+                Text("Sessions this month: \(monthLogs.count)")
+            } footer: {
+                if !monthLogs.isEmpty { Text("Tap a workout to see it, then Edit to change sets or add exercises. Swipe left to delete one.") }
             }
         }
         .themedList()
         .navigationTitle("Workout history")
         .navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog("Delete this workout?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+                            titleVisibility: .visible) {
+            Button("Delete workout", role: .destructive) {
+                if let d = deleting { context.delete(d); try? context.save() }
+                deleting = nil
+            }
+        } message: {
+            Text("Its sets are removed from your history, records and volume. Your program position doesn't change. This can't be undone.")
+        }
     }
 }
 
@@ -240,5 +258,11 @@ struct WorkoutDetailView: View {
         .themedList()
         .navigationTitle(log.workoutName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink("Edit") { WorkoutLogEditor(log: log) }
+                    .accessibilityIdentifier("editWorkout")
+            }
+        }
     }
 }

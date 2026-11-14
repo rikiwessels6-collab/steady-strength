@@ -244,6 +244,32 @@ final class FeatureTests: XCTestCase {
         XCTAssertEqual(restored.freeExerciseIds, ["curl"])
     }
 
+    func testRecipeLogsAPortionAndSurvivesABackup() throws {
+        let c = try container()
+        let ctx = c.mainContext
+        ctx.insert(profile())
+        let recipe = Recipe(name: "Bolognese",
+                            ingredients: [RecipeIngredient(name: "Mince", grams: 500, kcal: 1250, protein: 100, carbs: 0, fat: 90),
+                                          RecipeIngredient(name: "Pasta", grams: 400, kcal: 1400, protein: 50, carbs: 280, fat: 6)],
+                            servings: 4, cookedWeightGrams: 1200)
+        ctx.insert(recipe)
+        try ctx.save()
+        // One serving is a quarter of the dish.
+        let grams = RecipeMath.grams(servings: 1, servingsInRecipe: recipe.servings, totalWeight: recipe.totalWeight)
+        XCTAssertEqual(grams, 300)
+        XCTAssertEqual(recipe.asFood.macros(grams: grams).kcal, 662.5, accuracy: 0.01)
+        XCTAssertEqual(recipe.kcalPerServing, 662.5, accuracy: 0.01)
+
+        let url = try DataExport.write(ctx)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let other = try container()
+        _ = try DataImport.restore(from: url, into: other.mainContext)
+        let restored = try XCTUnwrap(other.mainContext.fetch(FetchDescriptor<Recipe>()).first)
+        XCTAssertEqual(restored.name, "Bolognese")
+        XCTAssertEqual(restored.ingredients.count, 2)
+        XCTAssertEqual(restored.cookedWeightGrams, 1200)
+    }
+
     func testNotABackupIsRejected() {
         XCTAssertThrowsError(try DataImport.decode(Data("{\"hello\": 1}".utf8)))
     }

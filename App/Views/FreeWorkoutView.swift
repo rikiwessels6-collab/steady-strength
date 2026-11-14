@@ -35,6 +35,25 @@ enum FreeWorkout {
     }
 }
 
+/// Opens any workout, finished or not, in the right screen. Used by Today and by Workout history.
+struct WorkoutLogEditor: View {
+    let log: WorkoutLog
+    @Environment(ContentStore.self) private var store
+
+    var body: some View {
+        if log.isFreestyle {
+            FreeWorkoutView(log: log)
+        } else if let program = store.content?.program(log.programId),
+                  let week = program.weeks.first(where: { $0.number == log.weekNumber }),
+                  let workout = week.workouts.first(where: { $0.position == log.workoutPosition }) {
+            ActiveWorkoutView(log: log, program: program, workout: workout)
+        } else {
+            ContentUnavailableView("Can't open this workout", systemImage: "exclamationmark.triangle",
+                                   description: Text("The program it came from isn't available. Its sets are still in your history."))
+        }
+    }
+}
+
 struct FreeWorkoutView: View {
     @Bindable var log: WorkoutLog
     @Environment(ContentStore.self) private var store
@@ -161,6 +180,7 @@ struct FreeWorkoutView: View {
                 Button("Finish") {
                     log.finishedAt = .now
                     try? context.save()
+                    HealthSync.saveIfWanted(log, settings: appSettings.first, context: context)
                     showRecap = true
                 }
             } message: { Text("It is saved to your history. Your program stays where it was.") }

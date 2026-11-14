@@ -50,6 +50,7 @@ enum DataImport {
         try context.delete(model: ExerciseNote.self)
         try context.delete(model: CustomExercise.self)
         try context.delete(model: SavedMeal.self)
+        try context.delete(model: Recipe.self)
         // Deleted one by one: a batch delete is refused because every set must belong to a workout.
         for log in try context.fetch(FetchDescriptor<WorkoutLog>()) { context.delete(log) }
         for set in try context.fetch(FetchDescriptor<SetLog>()) { context.delete(set) }
@@ -122,6 +123,11 @@ enum DataImport {
             let m = SavedMeal(name: r.name, items: [])
             m.itemsData = r.itemsData; m.createdAt = r.createdAt; m.lastUsed = r.lastUsed
             context.insert(m)
+        }
+        for r in snap.recipes ?? [] {
+            let recipe = Recipe(name: r.name, ingredients: r.ingredients, servings: r.servings, cookedWeightGrams: r.cookedWeightGrams)
+            recipe.createdAt = r.createdAt; recipe.lastUsed = r.lastUsed
+            context.insert(recipe)
         }
         for r in snap.exerciseNotes { context.insert(ExerciseNote(exerciseId: r.exerciseId, text: r.text)) }
         for r in snap.workouts {

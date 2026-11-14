@@ -47,8 +47,8 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIApplicationSupportsIndirectInputEvents: true
         NSCameraUsageDescription: Steady Strength uses the camera to scan food barcodes and read nutrition labels (on your phone, the photo is not kept) and, if you choose, to photograph your plate or take progress photos that stay in the app.
-        NSHealthUpdateUsageDescription: Steady Strength does not save anything to Apple Health. It only reads your daily steps and body weight.
-        NSHealthShareUsageDescription: Steady Strength can read your daily steps and body weight from Apple Health to fill in your weekly check-in. Nothing is written to Health or shared.
+        NSHealthUpdateUsageDescription: If you switch it on in Settings, Steady Strength saves each finished workout to Apple Health as strength training (start and end time). Nothing else is written.
+        NSHealthShareUsageDescription: Steady Strength reads your steps, workouts, active energy, sleep and body weight from Apple Health to fill in your weekly check-in and show your week. Nothing is shared.
         NSFaceIDUsageDescription: Steady Strength uses Face ID to keep your health and training data private on this iPhone.
         ITSAppUsesNonExemptEncryption: false
         HideUnreviewedContent: false

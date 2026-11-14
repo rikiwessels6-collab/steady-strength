@@ -2,7 +2,8 @@ import Foundation
 import HealthKit
 import SteadyCore
 
-/// Apple Health, read only: daily steps, workouts, sleep and body weight. Nothing is written to Health and nothing leaves the phone.
+/// Apple Health: reads daily steps, workouts, sleep and body weight. Writes only one thing, and only if switched on in
+/// Settings: each finished workout as a strength-training session (start and end time). Nothing leaves the phone.
 /// iOS never tells an app whether read access was granted, so a missing value just means "nothing found".
 enum HealthService {
     private static let store = HKHealthStore()
@@ -20,6 +21,35 @@ enum HealthService {
         if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) { types.insert(sleep) }
         do {
             try await store.requestAuthorization(toShare: [], read: types)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    /// Asks to save workouts. Returns true if saving is allowed afterwards.
+    static func requestWorkoutWriteAccess() async -> Bool {
+        guard isAvailable else { return false }
+        do {
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType()], read: [])
+        } catch {
+            return false
+        }
+        return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
+    }
+
+    /// Saves one strength-training workout. Returns true when Health accepted it.
+    static func saveStrengthWorkout(start: Date, end: Date) async -> Bool {
+        guard isAvailable, store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized,
+              end > start else { return false }
+        let config = HKWorkoutConfiguration()
+        config.activityType = .traditionalStrengthTraining
+        config.locationType = .indoor
+        let builder = HKWorkoutBuilder(healthStore: store, configuration: config, device: .local())
+        do {
+            try await builder.beginCollection(at: start)
+            try await builder.endCollection(at: end)
+            _ = try await builder.finishWorkout()
             return true
         } catch {
             return false
@@ -127,7 +157,9 @@ enum HealthService {
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: 60,
                                       sortDescriptors: [newestFirst]) { _, samples, _ in
-                let workouts = (samples as? [HKWorkout] ?? []).map { w in
+                // Leave out the sessions this app saved, so they aren't counted twice next to your own logs.
+                let ours = Bundle.main.bundleIdentifier
+                let workouts = (samples as? [HKWorkout] ?? []).filter { $0.sourceRevision.source.bundleIdentifier != ours }.map { w in
                     Workout(id: w.uuid, name: activityName(w.workoutActivityType), start: w.startDate,
                             minutes: max(1, Int((w.duration / 60).rounded())), kcal: activeEnergy(w))
                 }
@@ -188,6 +220,24 @@ enum HealthService {
                 continuation.resume(returning: Array(SleepMath.nights(intervals).suffix(days)))
             }
             store.execute(query)
+        }
+    }
+}
+
+
+import SwiftData
+
+enum HealthSync {
+    /// Saves a finished workout to Apple Health once, if the person has switched that on.
+    @MainActor
+    static func saveIfWanted(_ log: WorkoutLog, settings: AppSettings?, context: ModelContext) {
+        guard settings?.saveWorkoutsToHealth == true, !log.savedToHealth, let end = log.finishedAt else { return }
+        let start = log.startedAt
+        Task {
+            if await HealthService.saveStrengthWorkout(start: start, end: end) {
+                log.savedToHealth = true
+                try? context.save()
+            }
         }
     }
 }
