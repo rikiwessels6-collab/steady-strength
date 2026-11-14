@@ -13,6 +13,25 @@ enum ProgramSwitch {
     }
 }
 
+extension ProgramSwitch {
+    /// Closes sessions left open from a program you have since left. Sets you logged are kept in your history;
+    /// a session with nothing logged is removed. Open (no-program) workouts are left alone.
+    @MainActor
+    static func closeStaleSessions(in context: ModelContext, currentProgramId: String, now: Date = .now) {
+        guard let logs = try? context.fetch(FetchDescriptor<WorkoutLog>()) else { return }
+        var changed = false
+        for log in logs where log.finishedAt == nil && !log.isFreestyle && log.programId != currentProgramId {
+            if log.sets.isEmpty {
+                context.delete(log)
+            } else {
+                log.finishedAt = log.sets.map(\.completedAt).max() ?? now
+            }
+            changed = true
+        }
+        if changed { try? context.save() }
+    }
+}
+
 struct ChangeProgramView: View {
     @Environment(ContentStore.self) private var store
     @Environment(\.modelContext) private var context
@@ -56,6 +75,7 @@ struct ChangeProgramView: View {
                 SwitchConfirmSheet(program: program, oneRepMaxes: $oneRepMaxes) {
                     if let plan = plans.first {
                         ProgramSwitch.apply(plan, to: program, oneRepMaxes: oneRepMaxes)
+                        ProgramSwitch.closeStaleSessions(in: context, currentProgramId: program.id)
                         try? context.save()
                     }
                     chosen = nil

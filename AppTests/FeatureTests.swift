@@ -143,6 +143,29 @@ final class FeatureTests: XCTestCase {
         XCTAssertEqual(try other.mainContext.fetch(FetchDescriptor<WorkoutLog>()).count, 1)
     }
 
+    func testSwitchingProgramClosesSessionsLeftOpenFromTheOldOne() throws {
+        let c = try container()
+        let ctx = c.mainContext
+        let withSets = WorkoutLog(programId: "old", weekNumber: 1, workoutPosition: 1, workoutName: "Upper A", version: .standard, swaps: [:])
+        let empty = WorkoutLog(programId: "old", weekNumber: 1, workoutPosition: 2, workoutName: "Lower A", version: .standard, swaps: [:])
+        let current = WorkoutLog(programId: "new", weekNumber: 1, workoutPosition: 1, workoutName: "Full Body", version: .standard, swaps: [:])
+        let open = WorkoutLog(programId: "open", weekNumber: 0, workoutPosition: 0, workoutName: "Open workout", version: .standard, swaps: [:])
+        open.isFreestyle = true
+        for l in [withSets, empty, current, open] { ctx.insert(l) }
+        let set = SetLog(exerciseId: "x", slotOrder: 0, setIndex: 0, weight: 50, reps: 8, rpe: nil,
+                         targetSets: 3, targetReps: 10, minReps: 8, maxRPE: nil)
+        ctx.insert(set)
+        set.workout = withSets
+        try ctx.save()
+
+        ProgramSwitch.closeStaleSessions(in: ctx, currentProgramId: "new")
+        let logs = try ctx.fetch(FetchDescriptor<WorkoutLog>())
+        XCTAssertEqual(logs.count, 3)                                  // the empty old session is gone
+        XCTAssertNotNil(logs.first { $0.workoutName == "Upper A" }?.finishedAt)   // kept, with its set
+        XCTAssertNil(logs.first { $0.workoutName == "Full Body" }?.finishedAt)    // current program untouched
+        XCTAssertNil(logs.first { $0.isFreestyle }?.finishedAt)                   // open workout untouched
+    }
+
     func testNotABackupIsRejected() {
         XCTAssertThrowsError(try DataImport.decode(Data("{\"hello\": 1}".utf8)))
     }

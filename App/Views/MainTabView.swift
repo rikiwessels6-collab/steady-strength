@@ -45,7 +45,10 @@ struct TodayView: View {
     @State private var startSheet = false
     @State private var activeLog: WorkoutLog?
 
-    private var unfinished: WorkoutLog? { logs.first { $0.finishedAt == nil } }
+    /// The session in progress: an open workout, or one from the program you are on now.
+    private var unfinished: WorkoutLog? {
+        logs.first { $0.finishedAt == nil && ($0.isFreestyle || $0.programId == plans.first?.programId) }
+    }
 
     var body: some View {
         NavigationStack {
@@ -76,6 +79,9 @@ struct TodayView: View {
             .task {
                 if let p = profiles.first, let n = food.first, GoalSwitch.finishEaseInIfDue(profile: p, nutrition: n) {
                     try? context.save()
+                }
+                if let plan = plans.first {
+                    ProgramSwitch.closeStaleSessions(in: context, currentProgramId: plan.programId)
                 }
             }
             .sheet(isPresented: $startSheet) {
