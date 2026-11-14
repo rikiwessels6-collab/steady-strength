@@ -11,3 +11,4 @@ Config/Info.plist
 node_modules/
 .wrangler/
 Config/RestTimerWidget-Info.plist
+Config/RestTimerWidget.entitlements

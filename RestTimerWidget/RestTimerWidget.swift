@@ -6,6 +6,7 @@ import WidgetKit
 struct RestTimerBundle: WidgetBundle {
     var body: some Widget {
         RestTimerLiveActivity()
+        TodayWidget()
     }
 }
 

@@ -72,7 +72,12 @@ jobs:
           test -f Config/SteadyStrength.entitlements || { echo "::error::Config/SteadyStrength.entitlements was not generated"; exit 1; }
           # Extensions inside the app (the lock-screen rest timer) are signed first, or signing the app fails.
           for X in "$APP"/PlugIns/*.appex; do
-            [ -e "$X" ] && codesign --force --sign - "$X"
+            [ -e "$X" ] || continue
+            if [ -f Config/RestTimerWidget.entitlements ]; then
+              codesign --force --sign - --entitlements Config/RestTimerWidget.entitlements "$X"
+            else
+              codesign --force --sign - "$X"
+            fi
           done
           # A plain codesign (not Xcode's build system) embeds the entitlements; export then re-signs for distribution.
           codesign --force --sign - --entitlements Config/SteadyStrength.entitlements "$APP"
@@ -82,6 +87,7 @@ jobs:
           codesign -d --entitlements - "$APP" > "$RUNNER_TEMP/ent.txt" 2>&1 || true
           cat "$RUNNER_TEMP/ent.txt"
           grep -q "com.apple.developer.healthkit" "$RUNNER_TEMP/ent.txt" || { echo "::error::The Apple Health entitlement is missing from the archive"; exit 1; }
+          grep -q "com.apple.security.application-groups" "$RUNNER_TEMP/ent.txt" || { echo "::error::The app group (for widgets) is missing from the archive"; exit 1; }
       - name: Upload to TestFlight
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}

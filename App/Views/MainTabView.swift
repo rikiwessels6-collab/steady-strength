@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import SteadyCore
 import Charts
+import WidgetKit
 
 enum AppTab: Hashable { case today, train, food, progress, settings }
 
@@ -66,13 +67,54 @@ struct TodayView: View {
     @Query(sort: \WorkoutLog.startedAt, order: .reverse) private var logs: [WorkoutLog]
     @Query private var foodEntries: [FoodEntry]
     @Query private var appSettings: [AppSettings]
+    @Query(sort: \WaterEntry.date, order: .reverse) private var water: [WaterEntry]
     @Environment(\.showTab) private var showTab
+    @Environment(\.scenePhase) private var scenePhase
     @State private var startSheet = false
     @State private var activeLog: WorkoutLog?
 
     /// The session in progress: an open workout, or one from the program you are on now.
     private var unfinished: WorkoutLog? {
         logs.first { $0.finishedAt == nil && ($0.isFreestyle || $0.programId == plans.first?.programId) }
+    }
+
+    /// Everything the widgets show, as one key: when it changes, the snapshot is rewritten.
+    private var widgetKey: String {
+        let today = foodEntries.filter { Calendar.current.isDateInToday($0.eatenAt) }
+        let t = totals(today)
+        let w = water.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.ml }
+        let plan = plans.first
+        return "\(plan?.programId ?? "")-\(plan?.nextSessionIndex ?? 0)-\(Int(t.kcal))-\(Int(t.protein))-\(w)-\(food.first?.calories ?? 0)-\(scenePhase == .active)-\(logs.count)"
+    }
+
+    /// Writes what the home and lock screen widgets show, and asks them to redraw if it changed.
+    private func refreshWidgets() async {
+        guard scenePhase == .active else { return }
+        let today = foodEntries.filter { Calendar.current.isDateInToday($0.eatenAt) }
+        let t = totals(today)
+        var next: String?, week: String?, minutes: Int?
+        var streak = 0
+        if let plan = plans.first, let program = store.content?.program(plan.programId) {
+            if let n = program.session(at: plan.nextSessionIndex, includeOptional: plan.daysPerWeek >= 3) {
+                next = n.workout.name
+                week = "Week \(n.week.number) of \(program.weeks.count)"
+                minutes = n.workout.estimatedMinutes
+            }
+            streak = Consistency.weekStreak(sessionDates: logs.compactMap(\.finishedAt), planned: plan.daysPerWeek)
+        }
+        var sleep: Double?
+        if appSettings.first?.consents[DataType.appleHealth.rawValue] != nil,
+           let n = await HealthService.nightlySleep(days: 1).last,
+           let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.startOfDay(for: .now)),
+           n.night >= yesterday {
+            sleep = n.hours
+        }
+        let snapshot = WidgetSnapshot(updated: .now, nextSession: next, weekLabel: week, sessionMinutes: minutes,
+                                      kcalTarget: food.first?.calories ?? 0, kcalEaten: Int(t.kcal.rounded()),
+                                      proteinTarget: food.first?.protein ?? 0, proteinEaten: Int(t.protein.rounded()),
+                                      waterMl: water.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.ml },
+                                      waterGoalMl: checkIns.first?.waterGoalMl ?? 2500, sleepHours: sleep, streakWeeks: streak)
+        if snapshot.save() { WidgetCenter.shared.reloadAllTimelines() }
     }
 
     /// The most recent workout finished today, to add sets or exercises to it afterwards.
@@ -178,6 +220,7 @@ struct TodayView: View {
                 }
             }
             .navigationDestination(item: $activeLog) { log in WorkoutLogEditor(log: log) }
+            .task(id: widgetKey) { await refreshWidgets() }
         }
     }
 

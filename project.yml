@@ -36,10 +36,14 @@ targets:
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
+        com.apple.security.application-groups: [group.au.com.rwfitness.steadystrength]
     info:
       path: Config/Info.plist
       properties:
         CFBundleDisplayName: Steady Strength
+        CFBundleURLTypes:
+          - CFBundleURLName: au.com.rwfitness.steadystrength
+            CFBundleURLSchemes: [steadystrength]
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSRequiresIPhoneOS: true
@@ -69,6 +73,10 @@ targets:
     sources:
       - path: RestTimerWidget
       - path: Shared
+    entitlements:
+      path: Config/RestTimerWidget.entitlements
+      properties:
+        com.apple.security.application-groups: [group.au.com.rwfitness.steadystrength]
     info:
       path: Config/RestTimerWidget-Info.plist
       properties:
