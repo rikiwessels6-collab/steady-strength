@@ -9,17 +9,33 @@ struct RestTimerBundle: WidgetBundle {
     }
 }
 
-/// Night, emerald and gold, matching the app.
+/// Tide, matching the app: deep ocean, coral highlights, aqua progress.
 private enum Palette {
-    static let night = Color(red: 0.04, green: 0.08, blue: 0.07)
-    static let gold = Color(red: 0.85, green: 0.70, blue: 0.35)
-    static let emerald = Color(red: 0.18, green: 0.75, blue: 0.56)
+    static let night = Color(red: 0x0B / 255, green: 0x22 / 255, blue: 0x30 / 255)
+    static let gold = Color(red: 0xFF / 255, green: 0x7A / 255, blue: 0x59 / 255)
+    static let emerald = Color(red: 0x2E / 255, green: 0xC4 / 255, blue: 0xB6 / 255)
 }
 
-struct RestTimerLiveActivity: Widget {
-    var body: some WidgetConfiguration {
-        ActivityConfiguration(for: RestActivityAttributes.self) { context in
-            let range = context.state.start...max(context.state.end, context.state.start)
+/// The lock screen layout, with a smaller one for the Apple Watch Smart Stack.
+private struct RestLockScreen: View {
+    let context: ActivityViewContext<RestActivityAttributes>
+    @Environment(\.activityFamily) private var family
+
+    var body: some View {
+        let range = context.state.start...max(context.state.end, context.state.start)
+        if family == .small {
+            // Apple Watch: the countdown, big and alone, with what's next underneath.
+            VStack(alignment: .leading, spacing: 2) {
+                Label("REST", systemImage: "timer").font(.caption2.weight(.bold)).foregroundStyle(Palette.gold)
+                Text(timerInterval: range, countsDown: true)
+                    .font(.system(size: 30, weight: .bold).monospacedDigit())
+                    .foregroundStyle(.white)
+                if let next = context.state.next {
+                    Text(next).font(.caption2).foregroundStyle(.white.opacity(0.75)).lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
             HStack(alignment: .center, spacing: 16) {
                 ProgressView(timerInterval: range, countsDown: true) { EmptyView() } currentValueLabel: { EmptyView() }
                     .progressViewStyle(.circular)
@@ -38,8 +54,16 @@ struct RestTimerLiveActivity: Widget {
                 Spacer(minLength: 0)
             }
             .padding(16)
-            .activityBackgroundTint(Palette.night)
-            .activitySystemActionForegroundColor(.white)
+        }
+    }
+}
+
+struct RestTimerLiveActivity: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: RestActivityAttributes.self) { context in
+            RestLockScreen(context: context)
+                .activityBackgroundTint(Palette.night)
+                .activitySystemActionForegroundColor(.white)
         } dynamicIsland: { context in
             let range = context.state.start...max(context.state.end, context.state.start)
             return DynamicIsland {
@@ -66,5 +90,7 @@ struct RestTimerLiveActivity: Widget {
                 Image(systemName: "timer").foregroundStyle(Palette.gold)
             }
         }
+        // Also shown in the Apple Watch Smart Stack, using the small layout above.
+        .supplementalActivityFamilies([.small, .medium])
     }
 }

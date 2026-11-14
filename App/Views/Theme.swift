@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Boundary Line palette: night sky, emerald, gold. Dark-first.
+/// Tide palette, dark-first: deep ocean ground (night), aqua for progress and actions (emerald), coral for highlights (gold).
+/// The asset names are kept from the first palette so nothing else has to change.
 extension Color {
     static let night = Color("Night")
     static let surface = Color("Surface")
@@ -11,11 +12,13 @@ extension Color {
     static let goldDeep = Color("GoldDeep")
     static let ink = Color("Ink")
     static let inkMuted = Color("InkMuted")
+    /// A lighter aqua, for the far end of the main gradient.
+    static let mint = Color(red: 0x7B / 255, green: 0xE3 / 255, blue: 0xD6 / 255)
 }
 
 extension LinearGradient {
-    /// The arc in the Boundary Line mark: emerald into gold.
-    static let brand = LinearGradient(colors: [.emerald, .gold], startPoint: .leading, endPoint: .trailing)
+    /// Main buttons and progress: aqua into a lighter aqua.
+    static let brand = LinearGradient(colors: [.emerald, .mint], startPoint: .leading, endPoint: .trailing)
     static let night = LinearGradient(colors: [Color("SurfaceRaised"), Color("Night")], startPoint: .top, endPoint: .bottom)
 }
 

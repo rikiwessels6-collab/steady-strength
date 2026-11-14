@@ -80,6 +80,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: au.com.rwfitness.steadystrength.resttimer
+        # iOS 18 adds the Apple Watch layout. On iOS 17 the app still runs; only the lock-screen timer is missing.
+        IPHONEOS_DEPLOYMENT_TARGET: "18.0"
         TARGETED_DEVICE_FAMILY: "1"
         SKIP_INSTALL: YES
         SWIFT_EMIT_LOC_STRINGS: YES
