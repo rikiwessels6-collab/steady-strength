@@ -67,7 +67,8 @@ final class ProgramDraftTests: XCTestCase {
     }
 
     func testDraftsSurviveEncoding() throws {
-        let data = try JSONEncoder().encode(draft())
-        XCTAssertEqual(try JSONDecoder().decode(ProgramDraft.self, from: data), draft())
+        let original = draft()
+        let data = try JSONEncoder().encode(original)
+        XCTAssertEqual(try JSONDecoder().decode(ProgramDraft.self, from: data), original)
     }
 }
