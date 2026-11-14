@@ -220,6 +220,7 @@ struct ActiveWorkoutView: View {
     @State private var confirmDiscard = false
     @State private var showRecap = false
     @State private var addingExercise = false
+    @State private var loggingCardio = false
     @State private var nextUp: String?
     private var nextUpText: String? { nextUp }
     @Query private var appSettings: [AppSettings]
@@ -279,6 +280,10 @@ struct ActiveWorkoutView: View {
                     }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("addExerciseToSession")
+                    Button { loggingCardio = true } label: {
+                        Label("Log cardio", systemImage: "heart.circle").font(.subheadline.weight(.semibold))
+                    }
+                    .buttonStyle(.borderless)
                     RoutineCard(kind: .cooldown, version: log.version)
                     VStack(spacing: 10) {
                         if log.finishedAt != nil {
@@ -368,6 +373,7 @@ struct ActiveWorkoutView: View {
                     dismiss()
                 }, onAddMore: { showRecap = false })
             }
+            .sheet(isPresented: $loggingCardio) { CardioLogSheet() }
             .sheet(isPresented: $addingExercise) {
                 ExercisePicker { id in
                     log.freeExerciseIds.append(id)

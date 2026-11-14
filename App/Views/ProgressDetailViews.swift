@@ -120,6 +120,7 @@ struct WorkoutHistoryView: View {
     private var logs: [WorkoutLog]
     @Environment(\.modelContext) private var context
     @State private var deleting: WorkoutLog?
+    @Query(sort: \CardioSession.date, order: .reverse) private var cardio: [CardioSession]
     @State private var month = Date.now
 
     private var cal: Calendar { Calendar.current }
@@ -198,6 +199,16 @@ struct WorkoutHistoryView: View {
                 Text("Sessions this month: \(monthLogs.count)")
             } footer: {
                 if !monthLogs.isEmpty { Text("Tap a workout to see it, then Edit to change sets or add exercises. Swipe left to delete one.") }
+            }
+            let monthCardio = cardio.filter { cal.isDate($0.date, equalTo: month, toGranularity: .month) }
+            if !monthCardio.isEmpty {
+                Section("Cardio this month: \(monthCardio.reduce(0) { $0 + $1.minutes }) min") {
+                    ForEach(monthCardio) { CardioRow(session: $0) }
+                        .onDelete { offsets in
+                            for i in offsets { context.delete(monthCardio[i]) }
+                            try? context.save()
+                        }
+                }
             }
         }
         .themedList()

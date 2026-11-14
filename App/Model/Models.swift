@@ -141,6 +141,8 @@ final class CheckInSettings {
     var weekday: Int
     var sleepGoalHours: Double
     var stepsGoal: Int
+    /// Daily water goal in millilitres.
+    var waterGoalMl: Int = 2500
     var metrics: [String]
     var dailyCheckIns: Bool
 
@@ -319,6 +321,10 @@ final class FoodEntry {
     var fibre: Double
     /// Photo estimates: "high", "medium" or "low". Nil for exact sources.
     var confidence: String?
+    /// Detail, when the food listed it: sugars and saturated fat in grams, sodium in milligrams.
+    var sugar: Double? = nil
+    var satFat: Double? = nil
+    var sodiumMg: Double? = nil
 
     init(item: FoodItem, grams: Double, meal: MealSlot, source: FoodSource, eatenAt: Date) {
         let m = item.macros(grams: grams)
@@ -336,6 +342,9 @@ final class FoodEntry {
         self.carbs = m.carbs
         self.fat = m.fat
         self.fibre = m.fibre
+        self.sugar = m.sugar
+        self.satFat = m.satFat
+        self.sodiumMg = m.sodium
     }
 
     /// A copy of another entry, for repeating a meal on another day. Keeps the exact amounts.
@@ -355,6 +364,9 @@ final class FoodEntry {
         self.fat = e.fat
         self.fibre = e.fibre
         self.confidence = e.confidence
+        self.sugar = e.sugar
+        self.satFat = e.satFat
+        self.sodiumMg = e.sodiumMg
     }
 
     /// An entry from a saved meal's item, with the amounts it was saved with.
@@ -373,11 +385,16 @@ final class FoodEntry {
         self.carbs = i.carbs
         self.fat = i.fat
         self.fibre = i.fibre
+        self.sugar = i.sugar
+        self.satFat = i.satFat
+        self.sodiumMg = i.sodiumMg
     }
 
     var meal: MealSlot { MealSlot(rawValue: mealRaw) ?? .snacks }
     var source: FoodSource { FoodSource(rawValue: sourceRaw) ?? .manual }
-    var macros: Macros { Macros(kcal: kcal, protein: protein, carbs: carbs, fat: fat, fibre: fibre) }
+    var macros: Macros {
+        Macros(kcal: kcal, protein: protein, carbs: carbs, fat: fat, fibre: fibre, sugar: sugar, satFat: satFat, sodium: sodiumMg)
+    }
 }
 
 /// Foods kept for quick logging: everything scanned or searched is cached here
@@ -530,10 +547,14 @@ struct MealItem: Codable, Hashable {
     var fat: Double
     var fibre: Double
     var sourceRaw: String
+    var sugar: Double? = nil
+    var satFat: Double? = nil
+    var sodiumMg: Double? = nil
 
     init(_ e: FoodEntry) {
         name = e.name; brand = e.brand; barcode = e.barcode; foodId = e.foodId; grams = e.grams
         kcal = e.kcal; protein = e.protein; carbs = e.carbs; fat = e.fat; fibre = e.fibre; sourceRaw = e.sourceRaw
+        sugar = e.sugar; satFat = e.satFat; sodiumMg = e.sodiumMg
     }
 }
 
@@ -618,4 +639,34 @@ final class CustomProgram {
         draftData = (try? JSONEncoder().encode(d)) ?? draftData
         updatedAt = .now
     }
+}
+
+
+// MARK: - Water and cardio
+
+/// One drink of water, logged with a tap on Today.
+@Model
+final class WaterEntry {
+    var date: Date
+    var ml: Int
+    init(date: Date = .now, ml: Int) { self.date = date; self.ml = ml }
+}
+
+/// A cardio or conditioning session logged in the app.
+@Model
+final class CardioSession {
+    var date: Date
+    var kindRaw: String
+    var minutes: Int
+    var distanceKm: Double?
+    var kcal: Int?
+    var notes: String
+    var savedToHealth: Bool = false
+
+    init(date: Date, kind: CardioKind, minutes: Int, distanceKm: Double?, kcal: Int?, notes: String) {
+        self.date = date; self.kindRaw = kind.rawValue; self.minutes = minutes
+        self.distanceKm = distanceKm; self.kcal = kcal; self.notes = notes
+    }
+
+    var kind: CardioKind { CardioKind(rawValue: kindRaw) ?? .other }
 }

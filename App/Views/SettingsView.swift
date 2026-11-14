@@ -202,6 +202,21 @@ struct SettingsView: View {
                         .disabled(!s.lockEnabled)
                     }
                 }
+                if let c = checkInSettings.first {
+                    Section {
+                        Stepper(value: Binding(get: { c.waterGoalMl }, set: { c.waterGoalMl = $0 }), in: 500...6000, step: 250) {
+                            LabeledContent("Water", value: "\(NumberText.format(Double(c.waterGoalMl) / 1000)) L")
+                        }
+                        Stepper(value: Binding(get: { c.stepsGoal }, set: { c.stepsGoal = $0 }), in: 1000...30000, step: 500) {
+                            LabeledContent("Steps", value: c.stepsGoal.formatted())
+                        }
+                        Stepper(value: Binding(get: { c.sleepGoalHours }, set: { c.sleepGoalHours = $0 }), in: 5...10, step: 0.5) {
+                            LabeledContent("Sleep", value: "\(NumberText.format(c.sleepGoalHours)) h")
+                        }
+                    } header: { Text("Daily goals") } footer: {
+                        Text("Used by Daily habits on Today. Protein comes from your food targets.")
+                    }
+                }
                 Section("Privacy") {
                     NavigationLink("Privacy policy") { PrivacyPolicyView() }
                     if let s = settings.first {

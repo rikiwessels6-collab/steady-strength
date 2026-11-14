@@ -11,6 +11,7 @@ struct WeeklySummaryView: View {
     @Query private var nutrition: [NutritionPlan]
     @Query private var plans: [TrainingPlan]
     @Query private var profiles: [UserProfile]
+    @Query private var cardio: [CardioSession]
     @Environment(\.modelContext) private var context
     @State private var weeksBack = 0
 
@@ -49,6 +50,9 @@ struct WeeklySummaryView: View {
         let weekSets = weekLogs.flatMap(\.sets)
         f.sets = weekSets.count
         f.volumeKg = weekSets.reduce(0) { $0 + $1.weight * Double($1.reps) }
+        let weekCardio = cardio.filter { $0.date >= start && $0.date < end }
+        f.cardioSessions = weekCardio.count
+        f.cardioMinutes = weekCardio.reduce(0) { $0 + $1.minutes }
 
         // Records: a better top weight or estimated 1RM than anything before this week.
         let library = store.content?.library ?? [:]
@@ -117,6 +121,7 @@ struct WeeklySummaryView: View {
                 stat("Sessions", f.plannedSessions > 0 ? "\(f.sessions) of \(f.plannedSessions)" : "\(f.sessions)")
                 stat("Sets logged", "\(f.sets)")
                 stat("Volume lifted", f.volumeKg > 0 ? "\(Int(f.volumeKg.rounded()).formatted()) kg" : "-")
+                if f.cardioSessions > 0 { stat("Cardio", "\(f.cardioMinutes) min") }
             }
             Section("Food") {
                 stat("Days logged", "\(f.foodDays) of 7")

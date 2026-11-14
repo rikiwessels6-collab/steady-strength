@@ -30,6 +30,9 @@ public struct WeekFacts: Equatable, Sendable {
     public var sets = 0
     public var volumeKg = 0.0
     public var records: [String] = []
+    /// Cardio logged in the app this week.
+    public var cardioMinutes = 0
+    public var cardioSessions = 0
     public var foodDays = 0
     public var avgKcal: Double?
     public var avgProtein: Double?
@@ -64,6 +67,10 @@ public enum WeekSummary {
             out.append("You trained \(f.sessions) of \(f.plannedSessions) planned days. If the week was busy, a shorter version keeps progress moving.")
         } else if f.plannedSessions > 0 {
             out.append("Every planned session done. That consistency is what drives progress.")
+        }
+
+        if f.cardioSessions > 0 {
+            out.append("Cardio: \(f.cardioMinutes) min across \(f.cardioSessions) session\(f.cardioSessions == 1 ? "" : "s").")
         }
 
         if !f.records.isEmpty {

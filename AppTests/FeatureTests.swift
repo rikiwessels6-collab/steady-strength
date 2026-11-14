@@ -305,6 +305,32 @@ final class FeatureTests: XCTestCase {
         XCTAssertEqual(merged.programs.count, content.programs.count + 1)
     }
 
+    func testWaterCardioAndFoodDetailSurviveABackup() throws {
+        let c = try container()
+        let ctx = c.mainContext
+        ctx.insert(profile())
+        ctx.insert(WaterEntry(ml: 500))
+        ctx.insert(CardioSession(date: .now, kind: .rower, minutes: 20, distanceKm: 4.2, kcal: 180, notes: "Steady"))
+        let bar = FoodItem(id: "bar", name: "Muesli bar", brand: nil, barcode: nil,
+                           per100: Per100(kcal: 420, protein: 7, carbs: 60, fat: 15, sugar: 28, satFat: 6, sodium: 200),
+                           servingGrams: 50, servingLabel: nil)
+        let entry = FoodEntry(item: bar, grams: 50, meal: .snacks, source: .barcode, eatenAt: .now)
+        XCTAssertEqual(entry.sugar ?? 0, 14, accuracy: 0.01)
+        ctx.insert(entry)
+        try ctx.save()
+        let url = try DataExport.write(ctx)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let other = try container()
+        _ = try DataImport.restore(from: url, into: other.mainContext)
+        XCTAssertEqual(try other.mainContext.fetch(FetchDescriptor<WaterEntry>()).first?.ml, 500)
+        let cardio = try XCTUnwrap(other.mainContext.fetch(FetchDescriptor<CardioSession>()).first)
+        XCTAssertEqual(cardio.kind, .rower)
+        XCTAssertEqual(cardio.distanceKm, 4.2)
+        let food = try XCTUnwrap(other.mainContext.fetch(FetchDescriptor<FoodEntry>()).first)
+        XCTAssertEqual(food.sodiumMg ?? 0, 100, accuracy: 0.01)
+        XCTAssertEqual(food.macros.satFat ?? 0, 3, accuracy: 0.01)
+    }
+
     func testNotABackupIsRejected() {
         XCTAssertThrowsError(try DataImport.decode(Data("{\"hello\": 1}".utf8)))
     }

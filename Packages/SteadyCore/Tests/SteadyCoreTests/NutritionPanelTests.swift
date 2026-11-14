@@ -16,6 +16,9 @@ final class NutritionPanelTests: XCTestCase {
         XCTAssertEqual(r.fat, 10)
         XCTAssertEqual(r.carbs, 50)
         XCTAssertEqual(r.fibre, 10)
+        XCTAssertEqual(r.sugar, 6.7)
+        XCTAssertEqual(r.satFat, 1.7)
+        XCTAssertEqual(r.sodium, 300)
         XCTAssertTrue(r.foundBothColumns)
     }
 

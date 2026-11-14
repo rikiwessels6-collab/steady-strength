@@ -40,10 +40,15 @@ enum HealthService {
 
     /// Saves one strength-training workout. Returns true when Health accepted it.
     static func saveStrengthWorkout(start: Date, end: Date) async -> Bool {
+        await saveWorkout(.traditionalStrengthTraining, start: start, end: end)
+    }
+
+    /// Saves one workout of any kind (start and end time only). Returns true when Health accepted it.
+    static func saveWorkout(_ activity: HKWorkoutActivityType, start: Date, end: Date) async -> Bool {
         guard isAvailable, store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized,
               end > start else { return false }
         let config = HKWorkoutConfiguration()
-        config.activityType = .traditionalStrengthTraining
+        config.activityType = activity
         config.locationType = .indoor
         let builder = HKWorkoutBuilder(healthStore: store, configuration: config, device: .local())
         do {
@@ -227,7 +232,36 @@ enum HealthService {
 
 import SwiftData
 
+extension CardioKind {
+    var healthActivity: HKWorkoutActivityType {
+        switch self {
+        case .run: return .running
+        case .walk: return .walking
+        case .bike: return .cycling
+        case .rower: return .rowing
+        case .elliptical: return .elliptical
+        case .stairs: return .stairClimbing
+        case .swim: return .swimming
+        case .intervals: return .highIntensityIntervalTraining
+        case .other: return .mixedCardio
+        }
+    }
+}
+
 enum HealthSync {
+    /// Saves a logged cardio session to Apple Health once, if the person has switched that on.
+    @MainActor
+    static func saveIfWanted(_ s: CardioSession, settings: AppSettings?, context: ModelContext) {
+        guard settings?.saveWorkoutsToHealth == true, !s.savedToHealth, s.minutes > 0 else { return }
+        let end = s.date, start = s.date.addingTimeInterval(-Double(s.minutes) * 60), kind = s.kind
+        Task {
+            if await HealthService.saveWorkout(kind.healthActivity, start: start, end: end) {
+                s.savedToHealth = true
+                try? context.save()
+            }
+        }
+    }
+
     /// Saves a finished workout to Apple Health once, if the person has switched that on.
     @MainActor
     static func saveIfWanted(_ log: WorkoutLog, settings: AppSettings?, context: ModelContext) {

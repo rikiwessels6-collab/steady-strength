@@ -28,6 +28,7 @@ final class WeekSummaryTests: XCTestCase {
         var f = WeekFacts()
         f.plannedSessions = 4; f.sessions = 3
         f.records = ["Bench press"]
+        f.cardioMinutes = 45; f.cardioSessions = 2
         f.foodDays = 5; f.avgProtein = 140; f.proteinTarget = 150; f.daysProteinHit = 3
         f.avgKcal = 2200; f.kcalTarget = 2000
         f.goal = .fatLoss
@@ -35,6 +36,7 @@ final class WeekSummaryTests: XCTestCase {
         let notes = WeekSummary.notes(f)
         XCTAssertTrue(notes.contains { $0.contains("3 of 4") })
         XCTAssertTrue(notes.contains("New best on Bench press."))
+        XCTAssertTrue(notes.contains("Cardio: 45 min across 2 sessions."))
         XCTAssertTrue(notes.contains { $0.contains("Protein averaged 140") && $0.contains("on target for 3 of 5") })
         XCTAssertTrue(notes.contains { $0.contains("200 over") })
         XCTAssertTrue(notes.contains { $0.contains("down 0.5 kg") && $0.contains("aiming for") })

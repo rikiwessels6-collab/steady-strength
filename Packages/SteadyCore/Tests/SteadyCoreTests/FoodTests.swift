@@ -19,6 +19,27 @@ final class FoodTests: XCTestCase {
         XCTAssertEqual(m.protein, 16.32, accuracy: 0.01)
     }
 
+    func testDetailFromOpenFoodFacts() throws {
+        let json = #"{"status":1,"product":{"code":"1","product_name":"Muesli bar","nutriments":{"energy-kcal_100g":420,"proteins_100g":7,"carbohydrates_100g":60,"fat_100g":15,"sugars_100g":28,"saturated-fat_100g":6,"salt_100g":0.5}}}"#
+        let item = try XCTUnwrap(OpenFoodFacts.parseProduct(Data(json.utf8)))
+        XCTAssertEqual(item.per100.sugar, 28)
+        XCTAssertEqual(item.per100.satFat, 6)
+        XCTAssertEqual(item.per100.sodium ?? 0, 200, accuracy: 0.01)     // 0.5 g salt is 200 mg sodium
+        let m = item.macros(grams: 50)
+        XCTAssertEqual(m.sugar ?? 0, 14, accuracy: 0.01)
+        // Foods without detail don't turn the day's total into zero.
+        let plain = Macros(kcal: 100)
+        XCTAssertEqual((m + plain).sugar ?? 0, 14, accuracy: 0.01)
+        XCTAssertNil((plain + plain).sugar)
+    }
+
+    func testOldSavedFoodsStillDecode() throws {
+        let old = #"{"kcal":100,"protein":5,"carbs":10,"fat":2,"fibre":1}"#
+        let p = try JSONDecoder().decode(Per100.self, from: Data(old.utf8))
+        XCTAssertNil(p.sugar)
+        XCTAssertEqual(p.kcal, 100)
+    }
+
     func testMissingProductAndMissingEnergy() throws {
         XCTAssertNil(try OpenFoodFacts.parseProduct(Data(#"{"status":0}"#.utf8)))
         let noEnergy = #"{"status":1,"product":{"product_name":"X","nutriments":{"proteins_100g":1}}}"#

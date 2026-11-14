@@ -136,8 +136,10 @@ struct TodayView: View {
                         let range = Calendar.current.dayRange(.now)
                         FoodCard(plan: n, totals: totals(foodEntries.filter { $0.eatenAt >= range.0 && $0.eatenAt < range.1 }))
                     }
-                    if let c = checkIns.first, appSettings.first?.consents[DataType.appleHealth.rawValue] != nil {
-                        TodayActivityCard(settings: c)
+                    if let c = checkIns.first {
+                        HabitsCard(settings: c, proteinTarget: food.first?.protein ?? 0,
+                                   protein: totals(foodEntries.filter { Calendar.current.isDateInToday($0.eatenAt) }).protein,
+                                   healthOn: appSettings.first?.consents[DataType.appleHealth.rawValue] != nil)
                     }
                     if let c = checkIns.first { CheckInCard(settings: c) }
                     if backupDue {
@@ -429,6 +431,87 @@ struct SleepCard: View {
     }
 }
 
+/// Four daily habits in one place: water (tap to log), protein, steps and sleep, each ticked when its goal is met.
+struct HabitsCard: View {
+    let settings: CheckInSettings
+    let proteinTarget: Int
+    let protein: Double
+    let healthOn: Bool
+    @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
+    @Query(sort: \WaterEntry.date, order: .reverse) private var water: [WaterEntry]
+    @State private var steps: Int?
+    @State private var sleepHours: Double?
+
+    private var waterToday: Int { water.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.ml } }
+
+    var body: some View {
+        let goalsMet = [waterToday >= settings.waterGoalMl,
+                        proteinTarget > 0 && protein >= Double(proteinTarget) * 0.9,
+                        (steps ?? 0) >= settings.stepsGoal,
+                        (sleepHours ?? 0) >= settings.sleepGoalHours].filter { $0 }.count
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("DAILY HABITS").font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
+                Spacer()
+                Text("\(goalsMet) of 4 done").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                habitRow("Water", systemImage: "drop.fill", value: "\(NumberText.format(Double(waterToday) / 1000)) / \(NumberText.format(Double(settings.waterGoalMl) / 1000)) L",
+                         share: Double(waterToday) / Double(max(settings.waterGoalMl, 1)))
+                HStack(spacing: 8) {
+                    ForEach([250, 500], id: \.self) { ml in
+                        Button("+\(ml) ml") { context.insert(WaterEntry(ml: ml)); try? context.save() }
+                            .font(.caption.weight(.semibold)).buttonStyle(.bordered).tint(Color.emerald)
+                            .accessibilityIdentifier("water-\(ml)")
+                    }
+                    if let last = water.first, Calendar.current.isDateInToday(last.date) {
+                        Button("Undo") { context.delete(last); try? context.save() }
+                            .font(.caption).buttonStyle(.borderless).foregroundStyle(Color.inkMuted)
+                    }
+                }
+            }
+            habitRow("Protein", systemImage: "fork.knife", value: "\(Int(protein.rounded())) / \(proteinTarget) g",
+                     share: proteinTarget > 0 ? protein / Double(proteinTarget) : 0)
+            if healthOn {
+                habitRow("Steps", systemImage: "figure.walk", value: "\((steps ?? 0).formatted()) / \(settings.stepsGoal.formatted())",
+                         share: Double(steps ?? 0) / Double(max(settings.stepsGoal, 1)))
+                habitRow("Sleep", systemImage: "moon.fill",
+                         value: "\(sleepHours.map { String(format: "%.1f", $0) } ?? "-") / \(NumberText.format(settings.sleepGoalHours)) h",
+                         share: (sleepHours ?? 0) / max(settings.sleepGoalHours, 0.1))
+            } else {
+                Text("Turn on Apple Health in Settings to tick off steps and sleep automatically.")
+                    .font(.caption).foregroundStyle(Color.inkMuted)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
+        .accessibilityIdentifier("habitsCard")
+        .task(id: "\(scenePhase)-\(healthOn)") {
+            guard healthOn, scenePhase == .active else { return }
+            steps = await HealthService.stepsToday()
+            let nights = await HealthService.nightlySleep(days: 1)
+            if let n = nights.last, let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.startOfDay(for: .now)),
+               n.night >= yesterday { sleepHours = n.hours }
+        }
+    }
+
+    private func habitRow(_ label: String, systemImage: String, value: String, share: Double) -> some View {
+        let done = share >= (label == "Protein" ? 0.9 : 1)
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Image(systemName: done ? "checkmark.circle.fill" : systemImage)
+                    .foregroundStyle(done ? Color.emerald : Color.inkMuted).frame(width: 20)
+                Text(label).font(.subheadline.weight(.medium)).foregroundStyle(Color.ink)
+                Spacer()
+                Text(value).font(.subheadline.monospacedDigit()).foregroundStyle(Color.inkMuted)
+            }
+            BrandProgress(value: min(max(share, 0), 1))
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
 struct TodayActivityCard: View {
     let settings: CheckInSettings
     @Environment(\.scenePhase) private var scenePhase
@@ -503,6 +586,7 @@ struct TrainView: View {
     @Query(filter: #Predicate<WorkoutLog> { $0.finishedAt == nil }) private var openLogs: [WorkoutLog]
     @State private var changingProgram = false
     @State private var openLog: WorkoutLog?
+    @State private var loggingCardio = false
 
     var body: some View {
         NavigationStack {
@@ -516,9 +600,12 @@ struct TrainView: View {
                             Label(openLogs.contains(where: { $0.isFreestyle }) ? "Resume open workout" : "Start an open workout", systemImage: "plus.circle")
                         }
                         .accessibilityIdentifier("openWorkout")
+                        Button { loggingCardio = true } label: { Label("Log cardio", systemImage: "heart.circle") }
+                            .accessibilityIdentifier("logCardio")
                     } footer: {
                         Text("Train off-plan: pick any exercises, including your own. It doesn't move your program on.")
                     }
+                    MobilitySection()
                     Section {
                         LabeledContent("Program", value: program.name)
                         LabeledContent("Sessions a week", value: program.sessionsPerWeekText)
@@ -549,6 +636,7 @@ struct TrainView: View {
                 }
                 .sheet(isPresented: $changingProgram) { ChangeProgramView() }
                 .navigationDestination(item: $openLog) { FreeWorkoutView(log: $0) }
+                .sheet(isPresented: $loggingCardio) { CardioLogSheet() }
             } else {
                 ContentUnavailableView("No program yet", systemImage: "dumbbell")
                     .navigationTitle("Train")

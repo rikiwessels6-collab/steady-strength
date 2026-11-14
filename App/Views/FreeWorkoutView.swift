@@ -68,6 +68,7 @@ struct FreeWorkoutView: View {
     @State private var confirmFinish = false
     @State private var confirmDiscard = false
     @State private var showRecap = false
+    @State private var loggingCardio = false
     private var nextUpText: String? { nil }
     @Query private var appSettings: [AppSettings]
     @FocusState private var focused: Bool
@@ -116,6 +117,10 @@ struct FreeWorkoutView: View {
                     }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("addExercise")
+                    Button { loggingCardio = true } label: {
+                        Label("Log cardio", systemImage: "heart.circle").font(.subheadline.weight(.semibold))
+                    }
+                    .buttonStyle(.borderless)
                     VStack(spacing: 10) {
                         if log.finishedAt != nil {
                             Button { try? context.save(); dismiss() } label: {
@@ -174,6 +179,7 @@ struct FreeWorkoutView: View {
                     Button("Done") { focused = false }.fontWeight(.semibold)
                 }
             }
+            .sheet(isPresented: $loggingCardio) { CardioLogSheet() }
             .sheet(isPresented: $picking) {
                 ExercisePicker { id in
                     log.freeExerciseIds.append(id)

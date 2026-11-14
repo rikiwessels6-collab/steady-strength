@@ -8,6 +8,10 @@ public struct PanelReading: Equatable, Sendable {
     public var fat: Double?
     public var fibre: Double?
     public var servingGrams: Double?
+    /// Detail rows, when the panel has them: grams of sugars and saturated fat, milligrams of sodium.
+    public var sugar: Double?
+    public var satFat: Double?
+    public var sodium: Double?
     /// True when the panel had a per-serve and a per-100 g column, so the per-100 g one could be picked out.
     public var foundBothColumns = false
 
@@ -48,6 +52,20 @@ public enum NutritionPanel {
                 cal = numbers(l, units: ["kcal", "cal"])
                 continue
             }
+            if l.contains("sugar") && !l.contains("carbohydrate") {
+                if reading.sugar == nil { reading.sugar = pick(numbers(l, units: ["g"])) }
+                continue
+            }
+            if l.contains("sodium") {
+                if reading.sodium == nil {
+                    reading.sodium = pick(numbers(l, units: ["mg"])) ?? pick(numbers(l, units: ["g"])).map { $0 * 1000 }
+                }
+                continue
+            }
+            if l.contains("saturated") && !l.contains("unsat") && !l.contains("trans") {
+                if reading.satFat == nil { reading.satFat = pick(numbers(l, units: ["g"])) }
+                continue
+            }
             let isSub = l.hasPrefix("-") || l.hasPrefix("•") || l.contains("saturated") || l.contains("trans")
                 || l.contains("polyunsat") || l.contains("monounsat") || l.contains("omega")
             if l.contains("protein") {
@@ -74,6 +92,9 @@ public enum NutritionPanel {
         if let c = reading.carbs, c > 100 { reading.carbs = nil }
         if let f = reading.fat, f > 100 { reading.fat = nil }
         if let f = reading.fibre, f > 100 { reading.fibre = nil }
+        if let x = reading.sugar, x > 100 { reading.sugar = nil }
+        if let x = reading.satFat, x > 100 { reading.satFat = nil }
+        if let x = reading.sodium, x > 40_000 { reading.sodium = nil }
         return reading
     }
 

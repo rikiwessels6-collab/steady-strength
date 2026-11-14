@@ -52,6 +52,8 @@ enum DataImport {
         try context.delete(model: SavedMeal.self)
         try context.delete(model: Recipe.self)
         try context.delete(model: CustomProgram.self)
+        try context.delete(model: WaterEntry.self)
+        try context.delete(model: CardioSession.self)
         // Deleted one by one: a batch delete is refused because every set must belong to a workout.
         for log in try context.fetch(FetchDescriptor<WorkoutLog>()) { context.delete(log) }
         for set in try context.fetch(FetchDescriptor<SetLog>()) { context.delete(set) }
@@ -86,8 +88,10 @@ enum DataImport {
             context.insert(plan)
         }
         if let c = snap.checkInSettings {
-            context.insert(CheckInSettings(weekday: c.weekday, sleepGoalHours: c.sleepGoalHours, stepsGoal: c.stepsGoal,
-                                           metrics: c.metrics, dailyCheckIns: c.dailyCheckIns))
+            let settings = CheckInSettings(weekday: c.weekday, sleepGoalHours: c.sleepGoalHours, stepsGoal: c.stepsGoal,
+                                           metrics: c.metrics, dailyCheckIns: c.dailyCheckIns)
+            if let w = c.waterGoalMl { settings.waterGoalMl = w }
+            context.insert(settings)
         }
         for r in snap.customExercises ?? [] {
             let e = CustomExercise(name: r.name, primaryMuscle: r.primaryMuscle, secondaryMuscle: r.secondaryMuscle, kind: r.kind,
@@ -111,6 +115,7 @@ enum DataImport {
             e.loggedAt = r.loggedAt
             e.kcal = r.kcal; e.protein = r.protein; e.carbs = r.carbs; e.fat = r.fat; e.fibre = r.fibre
             e.confidence = r.confidence
+            e.sugar = r.sugar; e.satFat = r.satFat; e.sodiumMg = r.sodiumMg
             context.insert(e)
             summary.foodEntries += 1
         }
@@ -131,6 +136,11 @@ enum DataImport {
             context.insert(recipe)
         }
         for d in snap.customPrograms ?? [] { context.insert(CustomProgram(draft: d)) }
+        for w in snap.water ?? [] { context.insert(WaterEntry(date: w.date, ml: w.ml)) }
+        for c in snap.cardio ?? [] {
+            context.insert(CardioSession(date: c.date, kind: CardioKind(rawValue: c.kind) ?? .other, minutes: c.minutes,
+                                         distanceKm: c.distanceKm, kcal: c.kcal, notes: c.notes))
+        }
         for r in snap.exerciseNotes { context.insert(ExerciseNote(exerciseId: r.exerciseId, text: r.text)) }
         for r in snap.workouts {
             var swaps: [Int: String] = [:]

@@ -7,8 +7,14 @@ public struct Per100: Codable, Equatable, Sendable {
     public var carbs: Double
     public var fat: Double
     public var fibre: Double
-    public init(kcal: Double, protein: Double, carbs: Double, fat: Double, fibre: Double = 0) {
+    /// Optional detail, when the label or database gives it: sugars and saturated fat in grams, sodium in milligrams.
+    public var sugar: Double? = nil
+    public var satFat: Double? = nil
+    public var sodium: Double? = nil
+    public init(kcal: Double, protein: Double, carbs: Double, fat: Double, fibre: Double = 0,
+                sugar: Double? = nil, satFat: Double? = nil, sodium: Double? = nil) {
         self.kcal = kcal; self.protein = protein; self.carbs = carbs; self.fat = fat; self.fibre = fibre
+        self.sugar = sugar; self.satFat = satFat; self.sodium = sodium
     }
 }
 
@@ -18,12 +24,20 @@ public struct Macros: Equatable, Sendable {
     public var carbs: Double
     public var fat: Double
     public var fibre: Double
-    public init(kcal: Double = 0, protein: Double = 0, carbs: Double = 0, fat: Double = 0, fibre: Double = 0) {
+    /// Detail totals (nil when no food in the total listed it).
+    public var sugar: Double?
+    public var satFat: Double?
+    public var sodium: Double?
+    public init(kcal: Double = 0, protein: Double = 0, carbs: Double = 0, fat: Double = 0, fibre: Double = 0,
+                sugar: Double? = nil, satFat: Double? = nil, sodium: Double? = nil) {
         self.kcal = kcal; self.protein = protein; self.carbs = carbs; self.fat = fat; self.fibre = fibre
+        self.sugar = sugar; self.satFat = satFat; self.sodium = sodium
     }
     public static func + (a: Macros, b: Macros) -> Macros {
-        Macros(kcal: a.kcal + b.kcal, protein: a.protein + b.protein, carbs: a.carbs + b.carbs,
-               fat: a.fat + b.fat, fibre: a.fibre + b.fibre)
+        func add(_ x: Double?, _ y: Double?) -> Double? { x == nil && y == nil ? nil : (x ?? 0) + (y ?? 0) }
+        return Macros(kcal: a.kcal + b.kcal, protein: a.protein + b.protein, carbs: a.carbs + b.carbs,
+                      fat: a.fat + b.fat, fibre: a.fibre + b.fibre,
+                      sugar: add(a.sugar, b.sugar), satFat: add(a.satFat, b.satFat), sodium: add(a.sodium, b.sodium))
     }
 }
 
@@ -46,7 +60,8 @@ public struct FoodItem: Codable, Equatable, Sendable, Identifiable {
     public func macros(grams: Double) -> Macros {
         let f = grams / 100
         return Macros(kcal: per100.kcal * f, protein: per100.protein * f, carbs: per100.carbs * f,
-                      fat: per100.fat * f, fibre: per100.fibre * f)
+                      fat: per100.fat * f, fibre: per100.fibre * f,
+                      sugar: per100.sugar.map { $0 * f }, satFat: per100.satFat.map { $0 * f }, sodium: per100.sodium.map { $0 * f })
     }
 
     public var defaultGrams: Double { servingGrams ?? 100 }
@@ -130,8 +145,11 @@ public enum OpenFoodFacts {
         // Energy: prefer kcal; otherwise convert kJ (Australian labels are kJ-first).
         let kcal = v("energy-kcal_100g") ?? v("energy_100g").map { $0 / 4.184 } ?? v("energy-kj_100g").map { $0 / 4.184 }
         guard let kcal else { return nil }
+        // Sodium is given in grams; salt is 2.5 times sodium.
+        let sodiumMg = v("sodium_100g").map { $0 * 1000 } ?? v("salt_100g").map { $0 / 2.5 * 1000 }
         let per = Per100(kcal: kcal, protein: v("proteins_100g") ?? 0, carbs: v("carbohydrates_100g") ?? 0,
-                         fat: v("fat_100g") ?? 0, fibre: v("fiber_100g") ?? 0)
+                         fat: v("fat_100g") ?? 0, fibre: v("fiber_100g") ?? 0,
+                         sugar: v("sugars_100g"), satFat: v("saturated-fat_100g"), sodium: sodiumMg)
         let code = p.code ?? UUID().uuidString
         let brand = p.brands?.split(separator: ",").first.map { $0.trimmingCharacters(in: .whitespaces) }
         let serving = p.serving_quantity?.value.flatMap { $0 > 0 ? $0 : nil }

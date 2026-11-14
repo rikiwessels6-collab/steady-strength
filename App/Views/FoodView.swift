@@ -58,6 +58,7 @@ struct FoodView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     dayHeader
                     if let plan = plans.first { FoodCard(plan: plan, totals: totals(dayEntries)) }
+                    NutritionDetailCard(totals: totals(dayEntries))
                     ForEach(MealSlot.allCases) { meal in mealCard(meal) }
                 }
                 .padding(.horizontal)
@@ -575,6 +576,40 @@ struct PortionSheet: View {
     }
 }
 
+/// Fibre, sugars, saturated fat and sodium for the day, from the foods that list them.
+struct NutritionDetailCard: View {
+    let totals: Macros
+
+    var body: some View {
+        if totals.kcal > 0 {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("MORE DETAIL").font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
+                HStack(spacing: 0) {
+                    item(NumberText.format(totals.fibre.rounded()) + " g", "fibre")
+                    item(totals.sugar.map { NumberText.format($0.rounded()) + " g" } ?? "-", "sugars")
+                    item(totals.satFat.map { NumberText.format($0.rounded()) + " g" } ?? "-", "sat. fat")
+                    item(totals.sodium.map { Int($0.rounded()).formatted() + " mg" } ?? "-", "sodium")
+                }
+                Text("From the foods that list these. Many home and quick-added foods don't, so treat them as a minimum.")
+                    .font(.caption2).foregroundStyle(Color.inkMuted)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card()
+            .accessibilityIdentifier("nutritionDetail")
+        }
+    }
+
+    private func item(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value).font(.subheadline.weight(.semibold).monospacedDigit()).foregroundStyle(Color.ink)
+                .lineLimit(1).minimumScaleFactor(0.7)
+            Text(label).font(.caption2).foregroundStyle(Color.inkMuted)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+}
+
 enum FoodTiming {
     /// Now for today; midday for another day.
     static func defaultEatenAt(for day: Date, now: Date = .now, calendar: Calendar = .current) -> Date {
@@ -701,6 +736,9 @@ struct CustomFoodForm: View {
     @State private var carbs: Double?
     @State private var fat: Double?
     @State private var fibre: Double?
+    @State private var sugar: Double?
+    @State private var satFat: Double?
+    @State private var sodium: Double?
     @State private var serving: Double?
     @State private var scanningBarcode = false
     @State private var reading = false
@@ -739,6 +777,8 @@ struct CustomFoodForm: View {
                 Section("Per 100 g, from the label") {
                     field("Energy (kcal)", $kcal); field("Protein (g)", $protein)
                     field("Carbohydrate (g)", $carbs); field("Fat (g)", $fat); field("Fibre (g, optional)", $fibre)
+                    field("Sugars (g, optional)", $sugar); field("Saturated fat (g, optional)", $satFat)
+                    field("Sodium (mg, optional)", $sodium)
                 }
                 Section { field("Serving size (g, optional)", $serving) } footer: {
                     Text("Australian labels list kJ: divide by 4.184 for kcal.")
@@ -754,7 +794,8 @@ struct CustomFoodForm: View {
                         let code = barcode.trimmingCharacters(in: .whitespaces)
                         onSave(FoodItem(id: code.isEmpty ? "custom-" + UUID().uuidString : code, name: name, brand: brand.isEmpty ? nil : brand,
                                         barcode: code.isEmpty ? nil : code,
-                                        per100: Per100(kcal: kcal ?? 0, protein: protein ?? 0, carbs: carbs ?? 0, fat: fat ?? 0, fibre: fibre ?? 0),
+                                        per100: Per100(kcal: kcal ?? 0, protein: protein ?? 0, carbs: carbs ?? 0, fat: fat ?? 0, fibre: fibre ?? 0,
+                                                       sugar: sugar, satFat: satFat, sodium: sodium),
                                         servingGrams: serving, servingLabel: serving.map { "\(NumberText.format($0)) g" }))
                     }
                     .disabled(name.isEmpty || kcal == nil)
@@ -789,6 +830,9 @@ struct CustomFoodForm: View {
         if let v = r.carbs { carbs = v }
         if let v = r.fat { fat = v }
         if let v = r.fibre { fibre = v }
+        if let v = r.sugar { sugar = v }
+        if let v = r.satFat { satFat = v }
+        if let v = r.sodium { sodium = v }
         if let v = r.servingGrams { serving = v }
         let missing = [("energy", r.kcal), ("protein", r.protein), ("carbs", r.carbs), ("fat", r.fat)].filter { $0.1 == nil }.map(\.0)
         var text = "Filled in from the photo. Check each number against the label."

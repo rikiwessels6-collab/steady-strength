@@ -26,6 +26,7 @@ enum DataExport {
         }
         struct CheckIn: Codable {
             let weekday: Int, sleepGoalHours: Double, stepsGoal: Int, metrics: [String], dailyCheckIns: Bool
+            var waterGoalMl: Int? = nil
         }
         struct CheckInRecord: Codable {
             let date: Date, weightKg: Double?, sleepHours: Double?, steps: Int?
@@ -36,6 +37,7 @@ enum DataExport {
             let loggedAt: Date, eatenAt: Date, meal: String, source: String, name: String, brand: String?, barcode: String?
             let grams: Double, kcal: Double, protein: Double, carbs: Double, fat: Double, fibre: Double, confidence: String?
             var foodId: String? = nil
+            var sugar: Double? = nil, satFat: Double? = nil, sodiumMg: Double? = nil
         }
         struct SetRecord: Codable {
             let exerciseId: String, setIndex: Int, weight: Double, reps: Int, rpe: Double?
@@ -65,6 +67,10 @@ enum DataExport {
             let name: String, ingredients: [RecipeIngredient], servings: Double, cookedWeightGrams: Double?
             let createdAt: Date, lastUsed: Date
         }
+        struct WaterRecord: Codable { let date: Date, ml: Int }
+        struct CardioRecord: Codable {
+            let date: Date, kind: String, minutes: Int, distanceKm: Double?, kcal: Int?, notes: String
+        }
         struct SettingsRecord: Codable {
             let barWeightKg: Double, plateStock: [String: Int], warmupStyle: String
             let remindersEnabled: Bool, reminderHour: Int, reminderMinute: Int
@@ -90,6 +96,8 @@ enum DataExport {
         var savedMeals: [SavedMealRecord]? = nil
         var recipes: [RecipeRecord]? = nil
         var customPrograms: [ProgramDraft]? = nil
+        var water: [WaterRecord]? = nil
+        var cardio: [CardioRecord]? = nil
     }
 
     @MainActor
@@ -109,6 +117,8 @@ enum DataExport {
         let meals = try context.fetch(FetchDescriptor<SavedMeal>(sortBy: [SortDescriptor(\.createdAt)]))
         let recipes = try context.fetch(FetchDescriptor<Recipe>(sortBy: [SortDescriptor(\.createdAt)]))
         let programs = try context.fetch(FetchDescriptor<CustomProgram>(sortBy: [SortDescriptor(\.createdAt)]))
+        let water = try context.fetch(FetchDescriptor<WaterEntry>(sortBy: [SortDescriptor(\.date)]))
+        let cardio = try context.fetch(FetchDescriptor<CardioSession>(sortBy: [SortDescriptor(\.date)]))
         let snapshot = Snapshot(
             exportedAt: .now,
             profile: p.map { Snapshot.Profile(name: $0.name, birthYear: $0.birthYear, sex: $0.sexRaw, heightCm: $0.heightCm,
@@ -126,7 +136,7 @@ enum DataExport {
                                          proteinPerKg: $0.proteinPerKg, startAtMaintenance: $0.startAtMaintenance,
                                          easeInUntil: $0.easeInUntil, lastCoachAdjustAt: $0.lastCoachAdjustAt) },
             checkInSettings: c.map { Snapshot.CheckIn(weekday: $0.weekday, sleepGoalHours: $0.sleepGoalHours, stepsGoal: $0.stepsGoal,
-                                           metrics: $0.metrics, dailyCheckIns: $0.dailyCheckIns) },
+                                           metrics: $0.metrics, dailyCheckIns: $0.dailyCheckIns, waterGoalMl: $0.waterGoalMl) },
             consents: s?.consents ?? [:],
             checkIns: checkIns.map { Snapshot.CheckInRecord(date: $0.date, weightKg: $0.weightKg, sleepHours: $0.sleepHours, steps: $0.steps,
                                                             ratings: $0.ratings, measurements: $0.measurements, note: $0.note,
@@ -134,7 +144,7 @@ enum DataExport {
             foodEntries: food.map { Snapshot.FoodRecord(loggedAt: $0.loggedAt, eatenAt: $0.eatenAt, meal: $0.mealRaw, source: $0.sourceRaw,
                                                         name: $0.name, brand: $0.brand, barcode: $0.barcode, grams: $0.grams, kcal: $0.kcal,
                                                         protein: $0.protein, carbs: $0.carbs, fat: $0.fat, fibre: $0.fibre, confidence: $0.confidence,
-                                                        foodId: $0.foodId) },
+                                                        foodId: $0.foodId, sugar: $0.sugar, satFat: $0.satFat, sodiumMg: $0.sodiumMg) },
             workouts: workouts.map { w in
                 Snapshot.WorkoutRecord(programId: w.programId, week: w.weekNumber, name: w.workoutName, version: w.versionRaw,
                                        startedAt: w.startedAt, finishedAt: w.finishedAt, notes: w.notes,
@@ -162,7 +172,10 @@ enum DataExport {
             savedMeals: meals.map { Snapshot.SavedMealRecord(name: $0.name, itemsData: $0.itemsData, createdAt: $0.createdAt, lastUsed: $0.lastUsed) },
             recipes: recipes.map { Snapshot.RecipeRecord(name: $0.name, ingredients: $0.ingredients, servings: $0.servings,
                                                          cookedWeightGrams: $0.cookedWeightGrams, createdAt: $0.createdAt, lastUsed: $0.lastUsed) },
-            customPrograms: programs.compactMap(\.draft))
+            customPrograms: programs.compactMap(\.draft),
+            water: water.map { Snapshot.WaterRecord(date: $0.date, ml: $0.ml) },
+            cardio: cardio.map { Snapshot.CardioRecord(date: $0.date, kind: $0.kindRaw, minutes: $0.minutes, distanceKm: $0.distanceKm,
+                                                       kcal: $0.kcal, notes: $0.notes) })
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
