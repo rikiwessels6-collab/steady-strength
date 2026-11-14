@@ -6,8 +6,13 @@ public struct SleepNight: Equatable, Sendable, Identifiable {
     /// The day the night STARTED (the evening you went to bed).
     public var night: Date
     public var hours: Double
+    /// When the first asleep period of the night began, and the last one ended.
+    public var bedtime: Date?
+    public var wake: Date?
     public var id: Date { night }
-    public init(night: Date, hours: Double) { self.night = night; self.hours = hours }
+    public init(night: Date, hours: Double, bedtime: Date? = nil, wake: Date? = nil) {
+        self.night = night; self.hours = hours; self.bedtime = bedtime; self.wake = wake
+    }
 }
 
 public enum SleepMath {
@@ -23,12 +28,23 @@ public enum SleepMath {
                 merged.append(interval)
             }
         }
-        var buckets: [Date: TimeInterval] = [:]
+        var buckets: [Date: (total: TimeInterval, start: Date, end: Date)] = [:]
         for m in merged {
             let key = calendar.startOfDay(for: m.end.addingTimeInterval(-12 * 3600))
-            buckets[key, default: 0] += m.duration
+            if let b = buckets[key] {
+                buckets[key] = (b.total + m.duration, min(b.start, m.start), max(b.end, m.end))
+            } else {
+                buckets[key] = (m.duration, m.start, m.end)
+            }
         }
-        return buckets.map { SleepNight(night: $0.key, hours: $0.value / 3600) }.sorted { $0.night < $1.night }
+        return buckets.map { SleepNight(night: $0.key, hours: $0.value.total / 3600, bedtime: $0.value.start, wake: $0.value.end) }
+            .sorted { $0.night < $1.night }
+    }
+
+    /// "7 h 24 m"
+    public static func text(_ hours: Double) -> String {
+        let minutes = Int((hours * 60).rounded())
+        return "\(minutes / 60) h \(String(format: "%02d", minutes % 60)) m"
     }
 
     /// Average hours over nights of at least `minHours` (so a short nap doesn't drag the average down). Nil if none.

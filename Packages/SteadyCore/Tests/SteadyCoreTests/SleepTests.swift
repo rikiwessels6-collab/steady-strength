@@ -31,4 +31,17 @@ final class SleepTests: XCTestCase {
         XCTAssertEqual(n.count, 1)
         XCTAssertEqual(n[0].hours, 7, accuracy: 0.001)
     }
+
+    func testBedtimeAndWakeSpanTheNight() {
+        let cal = Calendar(identifier: .gregorian)
+        let bed = Date(timeIntervalSince1970: 1_700_000_000)
+        let parts = [DateInterval(start: bed, duration: 3 * 3600),
+                     DateInterval(start: bed.addingTimeInterval(3.5 * 3600), duration: 4 * 3600)]
+        let night = SleepMath.nights(parts, calendar: cal).last
+        XCTAssertEqual(night?.bedtime, bed)
+        XCTAssertEqual(night?.wake, bed.addingTimeInterval(7.5 * 3600))
+        XCTAssertEqual(night?.hours ?? 0, 7, accuracy: 0.001)       // the half-hour awake isn't counted
+        XCTAssertEqual(SleepMath.text(7.4), "7 h 24 m")
+        XCTAssertEqual(SleepMath.text(6), "6 h 00 m")
+    }
 }
