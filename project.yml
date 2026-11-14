@@ -24,11 +24,13 @@ targets:
     platform: iOS
     sources:
       - path: App
+      - path: Shared
       - path: Resources/Generated
         buildPhase: resources
         excludes: ["*.md"]
     dependencies:
       - package: SteadyCore
+      - target: RestTimerWidget
     entitlements:
       path: Config/SteadyStrength.entitlements
       properties:
@@ -51,6 +53,7 @@ targets:
         NSHealthShareUsageDescription: Steady Strength reads your steps, workouts, active energy, sleep and body weight from Apple Health to fill in your weekly check-in and show your week. Nothing is shared.
         NSFaceIDUsageDescription: Steady Strength uses Face ID to keep your health and training data private on this iPhone.
         ITSAppUsesNonExemptEncryption: false
+        NSSupportsLiveActivities: true
         HideUnreviewedContent: false
         PlateRelayURL: $(PLATE_RELAY_URL)
         PlateRelayToken: $(PLATE_RELAY_TOKEN)
@@ -60,6 +63,26 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1"
+  RestTimerWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: RestTimerWidget
+      - path: Shared
+    info:
+      path: Config/RestTimerWidget-Info.plist
+      properties:
+        CFBundleDisplayName: Steady Strength Rest Timer
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: au.com.rwfitness.steadystrength.resttimer
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
   SteadyStrengthTests:
     type: bundle.unit-test
     platform: iOS

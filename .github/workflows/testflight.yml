@@ -70,6 +70,10 @@ jobs:
         run: |
           APP=$(ls -d "$RUNNER_TEMP"/SteadyStrength.xcarchive/Products/Applications/*.app | head -1)
           test -f Config/SteadyStrength.entitlements || { echo "::error::Config/SteadyStrength.entitlements was not generated"; exit 1; }
+          # Extensions inside the app (the lock-screen rest timer) are signed first, or signing the app fails.
+          for X in "$APP"/PlugIns/*.appex; do
+            [ -e "$X" ] && codesign --force --sign - "$X"
+          done
           # A plain codesign (not Xcode's build system) embeds the entitlements; export then re-signs for distribution.
           codesign --force --sign - --entitlements Config/SteadyStrength.entitlements "$APP"
       - name: Check the entitlements survived the archive

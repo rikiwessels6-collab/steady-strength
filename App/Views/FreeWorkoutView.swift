@@ -68,6 +68,7 @@ struct FreeWorkoutView: View {
     @State private var confirmFinish = false
     @State private var confirmDiscard = false
     @State private var showRecap = false
+    private var nextUpText: String? { nil }
     @Query private var appSettings: [AppSettings]
     @FocusState private var focused: Bool
 
@@ -150,12 +151,18 @@ struct FreeWorkoutView: View {
             .animation(.snappy, value: restEndsAt)
             .task(id: restEndsAt) {
                 // A notification for a locked phone (if switched on), and a tap on the wrist or hand when rest ends in the app.
-                guard let end = restEndsAt else { RestAlert.cancel(); return }
+                guard let end = restEndsAt else { RestAlert.cancel(); await RestLiveActivity.end(); return }
                 if appSettings.first?.restAlerts == true { await RestAlert.schedule(at: end) }
+                await RestLiveActivity.show(workout: log.workoutName, start: .now, end: end, next: nextUpText)
                 let wait = end.timeIntervalSinceNow
                 if wait > 0 { try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000)) }
                 guard !Task.isCancelled else { return }
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
+                await RestLiveActivity.end()
+            }
+            .onDisappear {
+                // Leaving the workout clears the lock-screen timer; locking the phone does not.
+                Task { await RestLiveActivity.end() }
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
