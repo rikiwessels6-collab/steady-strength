@@ -30,7 +30,7 @@ final class ProgramSwitchUITests: XCTestCase {
         let name = app.textFields["nameField"]
         XCTAssertTrue(name.waitForExistence(timeout: 5))
         name.tap(); name.typeText("Sam")
-        for _ in 0..<10 { tapNext() }                           // Profile ... Review -> Start my plan
+        for _ in 0..<9 { tapNext() }                            // Profile ... Review -> Start my plan
 
         let nextSession = app.buttons["nextSession"]
         XCTAssertTrue(nextSession.waitForExistence(timeout: 10))
