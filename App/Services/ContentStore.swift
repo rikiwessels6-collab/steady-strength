@@ -12,6 +12,7 @@ final class ContentStore {
     private(set) var state: State = .loading
     /// The user's own exercises, merged into `content.library`.
     private var custom: [Exercise] = []
+    private var customPrograms: [Program] = []
     private(set) var content: BundledContent?
     private var base: BundledContent?
 
@@ -21,8 +22,14 @@ final class ContentStore {
         rebuild()
     }
 
+    /// Replaces the programs you built (called at launch and after one is saved or deleted).
+    func setCustomPrograms(_ programs: [Program]) {
+        customPrograms = programs
+        rebuild()
+    }
+
     private func rebuild() {
-        content = base?.adding(custom)
+        content = base?.adding(custom, programs: customPrograms)
     }
 
     func load() async {

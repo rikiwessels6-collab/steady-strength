@@ -39,9 +39,19 @@ struct ChangeProgramView: View {
     @Environment(\.showTab) private var showTab
     @Query private var plans: [TrainingPlan]
     @Query private var profiles: [UserProfile]
+    @Query(sort: \CustomProgram.createdAt) private var mine: [CustomProgram]
     @State private var chosen: Program?
     @State private var confirming = false
     @State private var oneRepMaxes: [String: Double] = [:]
+    @State private var building: BuildRequest?
+    @State private var deleting: CustomProgram?
+    @State private var blocked: String?
+
+    struct BuildRequest: Identifiable {
+        let id = UUID()
+        let draft: ProgramDraft
+        let isNew: Bool
+    }
 
     var body: some View {
         NavigationStack {
@@ -52,7 +62,30 @@ struct ChangeProgramView: View {
                         ProgramAdvisor.recommend(experience: $0.experience, daysPerWeek: plan.daysPerWeek, programs: all)
                     } ?? []
                     let recIds = recs.map(\.programId)
+                    let mineIds = Set(mine.map(\.programId))
                     List {
+                        Section {
+                            ForEach(mine) { cp in
+                                if let p = content.program(cp.programId) {
+                                    row(p, plan: plan, reason: nil)
+                                        .swipeActions {
+                                            Button("Delete", role: .destructive) {
+                                                if plan.programId == cp.programId {
+                                                    blocked = "You're on this program now. Switch to another one first, then delete it."
+                                                } else { deleting = cp }
+                                            }
+                                            Button("Edit") { if let d = cp.draft { building = BuildRequest(draft: d, isNew: false) } }
+                                                .tint(Color.gold)
+                                        }
+                                }
+                            }
+                            Button { building = BuildRequest(draft: ProgramDraft(), isNew: true) } label: {
+                                Label("Build a program", systemImage: "plus.circle")
+                            }
+                            .accessibilityIdentifier("buildProgram")
+                        } header: { Text("Your programs") } footer: {
+                            Text("Build your own, or press and hold any program below and choose Copy and edit. Swipe left on one of yours to edit or delete it.")
+                        }
                         if !recs.isEmpty {
                             Section("Suggested for you") {
                                 ForEach(recs, id: \.programId) { rec in
@@ -61,7 +94,7 @@ struct ChangeProgramView: View {
                             }
                         }
                         Section("All programs") {
-                            ForEach(all.filter { !recIds.contains($0.id) }) { row($0, plan: plan, reason: nil) }
+                            ForEach(all.filter { !recIds.contains($0.id) && !mineIds.contains($0.id) }) { row($0, plan: plan, reason: nil) }
                         }
                     }
                     .themedList()
@@ -72,6 +105,21 @@ struct ChangeProgramView: View {
             .navigationTitle("Change program")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+            .sheet(item: $building) { req in ProgramBuilderView(draft: req.draft, isNew: req.isNew) }
+            .confirmationDialog("Delete this program?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+                                titleVisibility: .visible) {
+                Button("Delete program", role: .destructive) {
+                    if let d = deleting {
+                        context.delete(d)
+                        try? context.save()
+                        if let all = try? context.fetch(FetchDescriptor<CustomProgram>()) { ProgramBuilderSync.refresh(all, store: store) }
+                    }
+                    deleting = nil
+                }
+            } message: { Text("Workouts you logged with it stay in your history.") }
+            .alert("Can't delete it yet", isPresented: Binding(get: { blocked != nil }, set: { if !$0 { blocked = nil } })) {
+                Button("OK") { blocked = nil }
+            } message: { Text(blocked ?? "") }
             .sheet(item: $chosen) { program in
                 SwitchConfirmSheet(program: program, oneRepMaxes: $oneRepMaxes) {
                     if let plan = plans.first {
@@ -104,6 +152,11 @@ struct ChangeProgramView: View {
             }
         }
         .accessibilityIdentifier("switch-\(p.id)")
+        .contextMenu {
+            Button { building = BuildRequest(draft: ProgramDraft.copy(of: p, name: "\(p.name) (my copy)"), isNew: true) } label: {
+                Label("Copy and edit", systemImage: "doc.on.doc")
+            }
+        }
     }
 }
 

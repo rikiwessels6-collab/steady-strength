@@ -6,6 +6,7 @@ struct RootView: View {
     @Environment(\.modelContext) private var context
     @Query private var settings: [AppSettings]
     @Query private var customExercises: [CustomExercise]
+    @Query private var customPrograms: [CustomProgram]
     @State private var lock = AppLock()
     @State private var content = ContentStore()
 
@@ -53,6 +54,9 @@ struct RootView: View {
         }
         .task(id: customExercises.map { "\($0.exerciseId)|\($0.name)|\($0.primaryMuscle)|\($0.secondaryMuscle ?? "")|\($0.kind)|\($0.loadable)|\($0.unilateral)|\($0.timed)" }) {
             content.setCustom(customExercises.map(\.asExercise))
+        }
+        .task(id: customPrograms.map { "\($0.programId)|\($0.updatedAt.timeIntervalSince1970)" }) {
+            ProgramBuilderSync.refresh(customPrograms, store: content)
         }
         .onChange(of: current?.lockEnabled) { _, _ in syncLock() }
         .onChange(of: current?.lockTimeoutSeconds) { _, _ in syncLock() }

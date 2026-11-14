@@ -270,6 +270,41 @@ final class FeatureTests: XCTestCase {
         XCTAssertEqual(restored.cookedWeightGrams, 1200)
     }
 
+    func testCustomProgramSurvivesABackup() throws {
+        let c = try container()
+        let ctx = c.mainContext
+        ctx.insert(profile())
+        let draft = ProgramDraft(id: "mine-abc", name: "My Split", weeks: 4, workouts: [
+            WorkoutDraft(name: "Upper", slots: [SlotDraft(exerciseId: "bench_press", exerciseName: "Bench press")]),
+        ])
+        ctx.insert(CustomProgram(draft: draft))
+        try ctx.save()
+        let url = try DataExport.write(ctx)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let other = try container()
+        _ = try DataImport.restore(from: url, into: other.mainContext)
+        let restored = try XCTUnwrap(other.mainContext.fetch(FetchDescriptor<CustomProgram>()).first)
+        XCTAssertEqual(restored.draft, draft)
+        XCTAssertEqual(try restored.draft?.makeProgram().weeks.count, 4)
+    }
+
+    func testCustomProgramJoinsTheCatalogue() throws {
+        let bundle = Bundle(for: AppLock.self)
+        func data(_ name: String) throws -> Data {
+            let url = try XCTUnwrap(bundle.url(forResource: name, withExtension: "json") ?? Bundle.main.url(forResource: name, withExtension: "json"))
+            return try Data(contentsOf: url)
+        }
+        let content = try BundledContent(programs: data("programs"), library: data("exercise_library"),
+                                         equipment: data("equipment"), checkIn: data("checkin_defaults"))
+        let p = try ProgramDraft(id: "mine-xyz", name: "Mine", weeks: 2, workouts: [
+            WorkoutDraft(name: "A", slots: [SlotDraft(exerciseId: "goblet_squat", exerciseName: "Goblet squat")]),
+        ]).makeProgram()
+        let merged = content.adding([], programs: [p])
+        XCTAssertNotNil(merged.program("mine-xyz"))
+        XCTAssertTrue(merged.catalogue(showDraft: false).contains { $0.id == "mine-xyz" })
+        XCTAssertEqual(merged.programs.count, content.programs.count + 1)
+    }
+
     func testNotABackupIsRejected() {
         XCTAssertThrowsError(try DataImport.decode(Data("{\"hello\": 1}".utf8)))
     }

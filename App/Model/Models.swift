@@ -593,3 +593,29 @@ final class Recipe {
                         servingGrams: perServing, servingLabel: "1 serving")
     }
 }
+
+
+// MARK: - Your own programs
+
+/// A program built in the app. The draft is stored as JSON and turned into a full program at launch (see ContentStore).
+@Model
+final class CustomProgram {
+    @Attribute(.unique) var programId: String
+    var draftData: Data
+    var createdAt: Date
+    var updatedAt: Date
+
+    init(draft: ProgramDraft) {
+        self.programId = draft.id
+        self.draftData = (try? JSONEncoder().encode(draft)) ?? Data()
+        self.createdAt = .now
+        self.updatedAt = .now
+    }
+
+    var draft: ProgramDraft? { try? JSONDecoder().decode(ProgramDraft.self, from: draftData) }
+
+    func update(_ d: ProgramDraft) {
+        draftData = (try? JSONEncoder().encode(d)) ?? draftData
+        updatedAt = .now
+    }
+}

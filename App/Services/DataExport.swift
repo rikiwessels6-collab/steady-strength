@@ -89,6 +89,7 @@ enum DataExport {
         var settings: SettingsRecord? = nil
         var savedMeals: [SavedMealRecord]? = nil
         var recipes: [RecipeRecord]? = nil
+        var customPrograms: [ProgramDraft]? = nil
     }
 
     @MainActor
@@ -107,6 +108,7 @@ enum DataExport {
         let saved = try context.fetch(FetchDescriptor<SavedFood>())
         let meals = try context.fetch(FetchDescriptor<SavedMeal>(sortBy: [SortDescriptor(\.createdAt)]))
         let recipes = try context.fetch(FetchDescriptor<Recipe>(sortBy: [SortDescriptor(\.createdAt)]))
+        let programs = try context.fetch(FetchDescriptor<CustomProgram>(sortBy: [SortDescriptor(\.createdAt)]))
         let snapshot = Snapshot(
             exportedAt: .now,
             profile: p.map { Snapshot.Profile(name: $0.name, birthYear: $0.birthYear, sex: $0.sexRaw, heightCm: $0.heightCm,
@@ -159,7 +161,8 @@ enum DataExport {
                                                       reminderMinute: $0.reminderMinute) },
             savedMeals: meals.map { Snapshot.SavedMealRecord(name: $0.name, itemsData: $0.itemsData, createdAt: $0.createdAt, lastUsed: $0.lastUsed) },
             recipes: recipes.map { Snapshot.RecipeRecord(name: $0.name, ingredients: $0.ingredients, servings: $0.servings,
-                                                         cookedWeightGrams: $0.cookedWeightGrams, createdAt: $0.createdAt, lastUsed: $0.lastUsed) })
+                                                         cookedWeightGrams: $0.cookedWeightGrams, createdAt: $0.createdAt, lastUsed: $0.lastUsed) },
+            customPrograms: programs.compactMap(\.draft))
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601

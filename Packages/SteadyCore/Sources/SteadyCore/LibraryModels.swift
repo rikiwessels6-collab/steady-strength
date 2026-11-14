@@ -159,12 +159,14 @@ public struct BundledContent: Sendable {
         self.equipment = equipment; self.checkIn = checkIn
     }
 
-    /// The same content with the user's own exercises added to the library. Built-in ids always win.
-    public func adding(_ extra: [Exercise]) -> BundledContent {
-        guard !extra.isEmpty else { return self }
+    /// The same content with the user's own exercises and programs added. Built-in ids always win.
+    public func adding(_ extra: [Exercise], programs extraPrograms: [Program] = []) -> BundledContent {
+        guard !extra.isEmpty || !extraPrograms.isEmpty else { return self }
         var lib = library
         for e in extra where lib[e.id] == nil { lib[e.id] = e }
-        return BundledContent(programs: programs, library: lib, patterns: patterns, equipment: equipment, checkIn: checkIn)
+        let ids = Set(programs.map(\.id))
+        return BundledContent(programs: programs + extraPrograms.filter { !ids.contains($0.id) }, library: lib,
+                              patterns: patterns, equipment: equipment, checkIn: checkIn)
     }
 
     /// Muscle ids used by the built-in exercises, sorted by name.
