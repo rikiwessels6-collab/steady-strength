@@ -450,3 +450,55 @@ class SessionVersions(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class EmilyWorkout(unittest.TestCase):
+    """Emily's workout comes from the owner's workbook; every number below is a cell in that file."""
+
+    @classmethod
+    def setUpClass(cls):
+        GeneratedOutput.setUpClass.__func__(cls)
+        cls.p = cls.programs["emily-workout"]
+
+    def test_shape(self):
+        self.assertEqual(self.p["name"], "Emily's workout")
+        self.assertEqual(len(self.p["weeks"]), 12)
+        for w in self.p["weeks"]:
+            self.assertEqual([len(wo["slots"]) for wo in w["workouts"]], [5, 5, 6])
+        self.assertEqual([wo["name"] for wo in self.p["weeks"][0]["workouts"]],
+                         ["Workout A (Monday)", "Workout B (Thursday)", "Workout C (Saturday)"])
+        self.assertNotEqual(self.p["contentStatus"], "draft")
+        self.assertEqual(self.p["catalogue"], "personal")
+
+    def test_sets_reps_and_effort_follow_the_weeks(self):
+        def slot(week, workout, i):
+            return self.p["weeks"][week - 1]["workouts"][workout]["slots"][i]
+        self.assertEqual((slot(1, 0, 0)["sets"]["count"], slot(1, 0, 0)["reps"]["raw"], slot(1, 0, 0)["effort"]["raw"]), (1, "10-15", "3-4"))
+        self.assertEqual((slot(4, 0, 0)["sets"]["count"], slot(4, 0, 0)["reps"]["raw"], slot(4, 0, 0)["effort"]["raw"]), (3, "8-12", "2-3"))
+        self.assertEqual((slot(4, 0, 3)["sets"]["count"], slot(4, 0, 3)["reps"]["raw"]), (2, "8-12"))
+        self.assertEqual((slot(10, 0, 0)["sets"]["count"], slot(10, 0, 0)["reps"]["raw"], slot(10, 0, 0)["effort"]["raw"]), (3, "6-10", "1-3"))
+        self.assertEqual(slot(10, 0, 3)["reps"]["raw"], "10-15")
+        self.assertEqual((slot(12, 0, 0)["sets"]["count"], slot(12, 0, 0)["effort"]["raw"]), (2, "3-4"))
+        self.assertEqual(slot(12, 0, 3)["sets"]["count"], 1)
+
+    def test_per_leg_reps_and_phases(self):
+        step_up = self.p["weeks"][0]["workouts"][1]["slots"][3]
+        self.assertEqual(step_up["reps"]["raw"], "10-15 each side")
+        self.assertEqual([w["phase"] for w in self.p["weeks"]],
+                         ["Foundation"] * 3 + ["Build"] * 3 + ["Progress"] * 3 + ["Strength"] * 2 + ["Recovery"])
+        self.assertTrue(self.p["weeks"][11]["isDeload"])
+
+    def test_every_exercise_and_alternative_is_in_the_library(self):
+        ids = {e["id"] for e in json.loads((GEN / "exercise_library.json").read_text())["exercises"]}
+        for w in self.p["weeks"]:
+            for wo in w["workouts"]:
+                for s in wo["slots"]:
+                    self.assertIn(s["exerciseId"], ids)
+                    for a in s["alternativeIds"]:
+                        self.assertIn(a, ids)
+
+    def test_unmatched_alternative_is_kept_as_a_note(self):
+        row = self.p["weeks"][0]["workouts"][2]["slots"][4]
+        self.assertEqual(row["exerciseId"], "triceps_pushdown")
+        self.assertEqual(row["alternativeIds"], [])
+        self.assertIn("Triceps Press Machine", row["notes"])

@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # works under python -
 import equipment as equip  # noqa: E402
 import library_catalogue  # noqa: E402
 import steady_programs  # noqa: E402
+import emily_program  # noqa: E402
 import catalogue_meta  # noqa: E402
 import substitution  # noqa: E402
 import versions  # noqa: E402
@@ -57,6 +58,7 @@ FILES = {
     "checkin": "Copy_of_New_Done_For_You_Client_Check-In_System_MASTER_COPY.xlsx",
     "beginner": "Beginner_12_Week_Strength_Program.xlsx",
     "guide": "Steady_Strength_Program_Guide.pdf",
+    "emily": "12_Week_Gym_Weight_Tracker.xlsx",
 }
 
 WORK_SEC, WARMUP_MIN, COOLDOWN_MIN = versions.WORK_SEC, versions.WARMUP_MIN, versions.COOLDOWN_MIN
@@ -1113,6 +1115,7 @@ def main():
     library, index = build_catalogue(seed, cues, issues)
     by_id = {e["id"]: e for e in library}
     programs += steady_programs.build(index, by_id)
+    programs.append(emily_program.build(src_dir / FILES["emily"], index, by_id, issues))
     merges = resolve_exercises(programs, index, by_id, issues)
     apply_main_lift_rule(programs, decisions, by_id, issues)
     catalogue_meta.annotate(programs, library, issues)

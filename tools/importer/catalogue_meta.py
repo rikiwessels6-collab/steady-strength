@@ -24,6 +24,8 @@ def catalogue_of(pid: str) -> str:
         return "core"
     if pid.startswith("beginner-"):
         return "legacy"
+    if pid.startswith("emily-"):
+        return "personal"
     return "coach"
 
 
@@ -32,7 +34,7 @@ def annotate(programs, library, issues):
     for p in programs:
         cat = catalogue_of(p["id"])
         p["catalogue"] = cat
-        p["contentStatus"] = "reviewed" if cat == "core" else ("coach-authored" if cat == "coach" else "legacy")
+        p["contentStatus"] = {"core": "reviewed", "coach": "coach-authored", "personal": "owner-supplied"}.get(cat, "legacy")
         p["reviewed"] = True if cat == "core" else None
         if cat == "core":
             p["reviewedBy"] = "App owner, qualified personal trainer (marked reviewed at their request)"

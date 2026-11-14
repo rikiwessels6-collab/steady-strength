@@ -32,6 +32,10 @@
   {
    "file": "Steady_Strength_Program_Guide.pdf",
    "sha256": "43bba5e6b866dbd35a45a33bc3a06abf1017a35d6b3fa27f75d6d736a26efd83"
+  },
+  {
+   "file": "12_Week_Gym_Weight_Tracker.xlsx",
+   "sha256": "c92dda16cf835a304c65f5ebb3e92c313490098384e5c22349d86d453d7951f0"
   }
  ],
  "programs": [
@@ -163403,6 +163407,7845 @@
      "swapped": 144,
      "unavailable": 0,
      "total": 180,
+     "gaps": {}
+    }
+   }
+  },
+  {
+   "id": "emily-workout",
+   "name": "Emily's workout",
+   "masterName": "Emily's workout",
+   "author": "Supplied by the app owner",
+   "family": "personal",
+   "intensityType": "rir",
+   "unit": "kg",
+   "weeks": [
+    {
+     "number": 1,
+     "label": "Week 1",
+     "phase": "Foundation",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 3-4. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 7
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 8
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 9
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 10
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 11
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 24
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 7
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 8
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 9
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 10
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 11
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 25
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 7
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 8
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 9
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 10
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 11
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 12
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 26
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "label": "Week 2",
+     "phase": "Foundation",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 3-4. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 15
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 16
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 17
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 18
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 19
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 36
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 15
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 16
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 17
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 18
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 19
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 38
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 16
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 17
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 18
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 19
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 20
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 21
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 39
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "label": "Week 3",
+     "phase": "Foundation",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 3-4. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 23
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 24
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 25
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 26
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 27
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 36
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 23
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 24
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 25
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 26
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 27
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 38
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 25
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 26
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 27
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 28
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 29
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 30
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 39
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "label": "Week 4",
+     "phase": "Build",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 2-3. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 31
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 32
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 33
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 34
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 35
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 44
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 31
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 32
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 33
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 34
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 35
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 45
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 34
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 35
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 36
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 37
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 38
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 39
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 46
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "label": "Week 5",
+     "phase": "Build",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 2-3. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 39
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 40
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 41
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 42
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 43
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 44
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 39
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 40
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 41
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 42
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 43
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 45
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 43
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 44
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 45
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 46
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 47
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 48
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 46
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "label": "Week 6",
+     "phase": "Build",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 2-3. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 47
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 48
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 49
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 50
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 51
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 44
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 47
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 48
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 49
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 50
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 51
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 45
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 52
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 53
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 54
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 55
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 56
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2-3",
+          "min": 2,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 57
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 46
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "label": "Week 7",
+     "phase": "Progress",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 2. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 55
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 56
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 57
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 58
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 59
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 44
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 55
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 56
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 57
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 58
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 59
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 45
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 61
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 62
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 63
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 64
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 65
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 66
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 46
+      }
+     ]
+    },
+    {
+     "number": 8,
+     "label": "Week 8",
+     "phase": "Progress",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 2. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 63
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 64
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 65
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 66
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 67
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 44
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 63
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 64
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 65
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 66
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 67
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 45
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 70
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 71
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 72
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 73
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 74
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 75
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 46
+      }
+     ]
+    },
+    {
+     "number": 9,
+     "label": "Week 9",
+     "phase": "Progress",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 2. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 71
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 72
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 73
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 74
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 75
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 44
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 71
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 72
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 73
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 74
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 75
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 45
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 79
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 80
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 81
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 82
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 83
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "2",
+          "min": 2,
+          "max": 2
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 84
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 46
+      }
+     ]
+    },
+    {
+     "number": 10,
+     "label": "Week 10",
+     "phase": "Strength",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 1-3. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 79
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 80
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 81
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 82
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 83
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 44
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 79
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 80
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 81
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 82
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 83
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 45
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 88
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 89
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 90
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 91
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 92
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 93
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 46
+      }
+     ]
+    },
+    {
+     "number": 11,
+     "label": "Week 11",
+     "phase": "Strength",
+     "isDeload": false,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 1-3. Increase weight only when every set reaches the top of the rep range with the planned reps in reserve and sound technique.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 87
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 88
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 89
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 90
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 91
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 44
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 87
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 88
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 89
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 90
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 91
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 45
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 97
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 98
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "3",
+          "count": 3,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "6-10",
+          "perSide": false,
+          "kind": "range",
+          "min": 6,
+          "max": 10
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 99
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 100
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 101
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "10-15",
+          "perSide": false,
+          "kind": "range",
+          "min": 10,
+          "max": 15
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "1-3",
+          "min": 1,
+          "max": 3
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 102
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 46
+      }
+     ]
+    },
+    {
+     "number": 12,
+     "label": "Week 12",
+     "phase": "Recovery",
+     "isDeload": true,
+     "lowFatigueOptional": false,
+     "phaseNote": "Reps in reserve: 3-4. Lower volume and consolidate. No maximum-effort testing.",
+     "workouts": [
+      {
+       "rawName": "A - Monday",
+       "name": "Workout A (Monday)",
+       "position": 1,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Leg press",
+         "exerciseKey": "leg press",
+         "label": "Leg Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 95
+         },
+         "exerciseId": "leg_press",
+         "alternativeIds": [
+          "goblet_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Machine chest press",
+         "exerciseKey": "machine chest press",
+         "label": "Machine Chest Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 96
+         },
+         "exerciseId": "machine_chest_press",
+         "alternativeIds": [
+          "db_bench_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated cable row",
+         "exerciseKey": "seated cable row",
+         "label": "Seated Cable Row",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 97
+         },
+         "exerciseId": "seated_cable_row",
+         "alternativeIds": [
+          "chest_supported_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Dumbbell Romanian deadlift",
+         "exerciseKey": "dumbbell romanian deadlift",
+         "label": "Dumbbell Romanian Deadlift",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 98
+         },
+         "exerciseId": "db_rdl",
+         "alternativeIds": [
+          "cable_pull_through"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "A - Monday",
+          "row": 99
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout A (Monday)",
+       "estimatedMinutes": 32
+      },
+      {
+       "rawName": "B - Thursday",
+       "name": "Workout B (Thursday)",
+       "position": 2,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Machine hip thrust",
+         "exerciseKey": "machine hip thrust",
+         "label": "Hip Thrust Machine",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 95
+         },
+         "exerciseId": "machine_hip_thrust",
+         "alternativeIds": [
+          "db_glute_bridge"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Lat pulldown",
+         "exerciseKey": "lat pulldown",
+         "label": "Lat Pulldown",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 96
+         },
+         "exerciseId": "lat_pulldown",
+         "alternativeIds": [
+          "assisted_pull_up"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Seated dumbbell shoulder press",
+         "exerciseKey": "seated dumbbell shoulder press",
+         "label": "Seated Dumbbell Shoulder Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 97
+         },
+         "exerciseId": "seated_db_shoulder_press",
+         "alternativeIds": [
+          "machine_shoulder_press"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Step-up",
+         "exerciseKey": "step-up",
+         "label": "Low Step-Up",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12 each side",
+          "perSide": true,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": "Use a low step.",
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 98
+         },
+         "exerciseId": "step_up",
+         "alternativeIds": [
+          "split_squat"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Cable lateral raise",
+         "exerciseKey": "cable lateral raise",
+         "label": "Cable Lateral Raise",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "B - Thursday",
+          "row": 99
+         },
+         "exerciseId": "cable_lateral_raise",
+         "alternativeIds": [
+          "lateral_raise"
+         ],
+         "order": 5
+        }
+       ],
+       "displayName": "Emily's workout · Workout B (Thursday)",
+       "estimatedMinutes": 32
+      },
+      {
+       "rawName": "C - Saturday",
+       "name": "Workout C (Saturday)",
+       "position": 3,
+       "optional": false,
+       "slots": [
+        {
+         "exercise": "Goblet squat",
+         "exerciseKey": "goblet squat",
+         "label": "Goblet Squat",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 106
+         },
+         "exerciseId": "goblet_squat",
+         "alternativeIds": [
+          "hack_squat"
+         ],
+         "order": 1
+        },
+        {
+         "exercise": "Incline dumbbell press",
+         "exerciseKey": "incline dumbbell press",
+         "label": "Incline Dumbbell Chest Press",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 107
+         },
+         "exerciseId": "incline_db_press",
+         "alternativeIds": [
+          "machine_incline_press"
+         ],
+         "order": 2
+        },
+        {
+         "exercise": "Chest-supported row",
+         "exerciseKey": "chest-supported row",
+         "label": "Chest-Supported Row",
+         "sets": {
+          "raw": "2",
+          "count": 2,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "90-120sec",
+          "minSec": 90,
+          "maxSec": 120
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 108
+         },
+         "exerciseId": "chest_supported_row",
+         "alternativeIds": [
+          "seated_cable_row"
+         ],
+         "order": 3
+        },
+        {
+         "exercise": "Seated leg curl",
+         "exerciseKey": "seated leg curl",
+         "label": "Seated Leg Curl",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 109
+         },
+         "exerciseId": "seated_leg_curl",
+         "alternativeIds": [
+          "lying_leg_curl"
+         ],
+         "order": 4
+        },
+        {
+         "exercise": "Triceps rope pushdown",
+         "exerciseKey": "triceps rope pushdown",
+         "label": "Rope Triceps Pushdown",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": "Your sheet's alternative: Triceps Press Machine.",
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 110
+         },
+         "exerciseId": "triceps_pushdown",
+         "alternativeIds": [],
+         "order": 5
+        },
+        {
+         "exercise": "Dumbbell biceps curl",
+         "exerciseKey": "dumbbell biceps curl",
+         "label": "Dumbbell Biceps Curl",
+         "sets": {
+          "raw": "1",
+          "count": 1,
+          "perSide": false
+         },
+         "reps": {
+          "raw": "8-12",
+          "perSide": false,
+          "kind": "range",
+          "min": 8,
+          "max": 12
+         },
+         "effort": {
+          "type": "rir",
+          "raw": "3-4",
+          "min": 3,
+          "max": 4
+         },
+         "rest": {
+          "raw": "60-90sec",
+          "minSec": 60,
+          "maxSec": 90
+         },
+         "notes": null,
+         "source": {
+          "sheet": "C - Saturday",
+          "row": 111
+         },
+         "exerciseId": "db_curl",
+         "alternativeIds": [
+          "cable_curl"
+         ],
+         "order": 6
+        }
+       ],
+       "displayName": "Emily's workout · Workout C (Saturday)",
+       "estimatedMinutes": 33
+      }
+     ]
+    }
+   ],
+   "status": "complete",
+   "experienceLevel": null,
+   "defaultDaysPerWeek": 3,
+   "split": "Full body, three gym days (Mon, Thu, Sat)",
+   "goalTags": [
+    "muscle",
+    "strength"
+   ],
+   "description": "Three gym days a week (Monday, Thursday, Saturday) to build muscle and strength and support fat loss. Pilates on Tuesday and yoga on Wednesday count as other activity; Friday is walking or rest.",
+   "durationWeeks": 12,
+   "maxSwapDifficulty": 2,
+   "programNotes": [
+    "Record weights in kg and reps as whole numbers.",
+    "Only increase weight when all prescribed sets reach the top of the rep range with the planned reps in reserve and sound technique.",
+    "If you are fatigued, repeat the load or reduce sets. Pilates and yoga count towards your weekly activity.",
+    "Week 12 lowers volume to consolidate. No maximum-effort testing.",
+    "This program has no dedicated core exercises."
+   ],
+   "progression": "double progression: reach the top of the rep range on every set at the planned reps in reserve, then add the smallest practical load",
+   "source": {
+    "file": "12_Week_Gym_Weight_Tracker.xlsx",
+    "sheet": "A - Monday, B - Thursday, C - Saturday"
+   },
+   "catalogue": "personal",
+   "contentStatus": "owner-supplied",
+   "reviewed": null,
+   "equipmentNeeded": [
+    "adj_bench",
+    "adj_bench/row_machine",
+    "box",
+    "cable",
+    "chest_press",
+    "dumbbells",
+    "dumbbells/kettlebell",
+    "glute_machine",
+    "lat_pulldown/cable",
+    "leg_curl",
+    "leg_press"
+   ],
+   "equipmentCoverage": {
+    "full_gym": {
+     "asWritten": 192,
+     "swapped": 0,
+     "unavailable": 0,
+     "total": 192,
+     "gaps": {}
+    },
+    "basic_gym": {
+     "asWritten": 132,
+     "swapped": 60,
+     "unavailable": 0,
+     "total": 192,
+     "gaps": {}
+    },
+    "hotel_gym": {
+     "asWritten": 132,
+     "swapped": 60,
+     "unavailable": 0,
+     "total": 192,
+     "gaps": {}
+    },
+    "home_dumbbells": {
+     "asWritten": 84,
+     "swapped": 108,
+     "unavailable": 0,
+     "total": 192,
+     "gaps": {}
+    },
+    "travel": {
+     "asWritten": 12,
+     "swapped": 180,
+     "unavailable": 0,
+     "total": 192,
      "gaps": {}
     }
    }

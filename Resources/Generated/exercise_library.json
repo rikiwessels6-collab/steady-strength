@@ -618,6 +618,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-body-part-split-5day-8wk",
     "rw-intermediate-18wk",
     "rw-upper-lower-4day-8wk",
@@ -845,6 +846,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-12-week",
     "rw-body-part-split-5day-8wk",
     "rw-full-body-3day-8wk",
@@ -1827,6 +1829,7 @@
     }
    ],
    "usedIn": [
+    "emily-workout",
     "rw-intermediate-18wk",
     "ss-strong-for-life"
    ],
@@ -3085,6 +3088,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-full-body-3day-8wk",
     "rw-intermediate-18wk",
     "ss-strength-foundations",
@@ -4312,7 +4316,9 @@
      "samePattern": false
     }
    ],
-   "usedIn": [],
+   "usedIn": [
+    "emily-workout"
+   ],
    "video": {
     "status": "none_approved"
    }
@@ -4637,6 +4643,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-12-week",
     "rw-body-part-split-5day-8wk",
     "rw-full-body-3day-8wk",
@@ -7145,6 +7152,7 @@
     }
    ],
    "usedIn": [
+    "emily-workout",
     "rw-intermediate-18wk",
     "ss-build-and-grow",
     "ss-lower-body-focus",
@@ -7916,6 +7924,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-body-part-split-5day-8wk",
     "rw-full-body-3day-8wk",
     "rw-intermediate-18wk",
@@ -8601,6 +8610,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-body-part-split-5day-8wk",
     "rw-full-body-3day-8wk",
     "rw-intermediate-18wk",
@@ -10020,6 +10030,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-12-week",
     "rw-body-part-split-5day-8wk",
     "rw-full-body-3day-8wk",
@@ -10149,6 +10160,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-12-week",
     "rw-intermediate-18wk",
     "ss-build-and-grow",
@@ -11486,6 +11498,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-12-week",
     "rw-body-part-split-5day-8wk",
     "rw-full-body-3day-8wk",
@@ -12919,6 +12932,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-body-part-split-5day-8wk",
     "rw-full-body-3day-8wk",
     "rw-upper-lower-4day-8wk",
@@ -14548,6 +14562,7 @@
     "beginner-12wk-option-b",
     "beginner-12wk-option-c",
     "beginner-12wk-option-d",
+    "emily-workout",
     "rw-12-week",
     "ss-build-and-grow",
     "ss-lower-body-focus"
@@ -15710,6 +15725,7 @@
     }
    ],
    "usedIn": [
+    "emily-workout",
     "rw-body-part-split-5day-8wk",
     "rw-full-body-3day-8wk",
     "rw-intermediate-18wk",
