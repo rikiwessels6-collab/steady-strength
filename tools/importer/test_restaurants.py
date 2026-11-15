@@ -23,16 +23,22 @@ class RestaurantMenus(unittest.TestCase):
 
     def test_kilojoules_match_calories(self):
         # Each guide prints both; a misread digit in either shows up here.
-        for i in self.items:
-            self.assertAlmostEqual(i["kj"] / 4.184, i["kcal"], delta=max(3, i["kcal"] * 0.02), msg=i["id"])
+        bad = [i["id"] for i in self.items if abs(i["kj"] / 4.184 - i["kcal"]) > max(3, i["kcal"] * 0.02)]
+        self.assertEqual(bad, [])
 
     def test_parts_make_sense(self):
+        problems = []
         for i in self.items:
-            self.assertLessEqual(i.get("satFat", 0), i["fat"] + 0.05, i["id"])
-            self.assertLessEqual(i.get("sugar", 0), i["carbs"] + 0.05, i["id"])
-            # Energy from protein, fat and carbohydrate is close to the total (within 15%).
+            if i.get("satFat", 0) > i["fat"] + 0.05:
+                problems.append(f"{i['id']}: saturated fat above total fat")
+            if i.get("sugar", 0) > i["carbs"] + 0.05:
+                problems.append(f"{i['id']}: sugars above carbohydrate")
+            # Energy from protein, fat and carbohydrate is close to the total (within 15%, or 40 kJ for small items,
+            # where fibre and rounding matter more).
             est = i["protein"] * 17 + i["fat"] * 37 + i["carbs"] * 17
-            self.assertAlmostEqual(est, i["kj"], delta=i["kj"] * 0.15, msg=i["id"])
+            if abs(est - i["kj"]) > max(i["kj"] * 0.15, 40):
+                problems.append(f"{i['id']}: macros give {est:.0f} kJ, label says {i['kj']}")
+        self.assertEqual(problems, [])
 
 
 if __name__ == "__main__":
