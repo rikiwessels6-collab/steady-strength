@@ -536,6 +536,12 @@ struct ExerciseCard: View {
                     .buttonStyle(.plain)
                     .accessibilityHint("Form cues and demo video")
                     Text(prescription).font(.subheadline).foregroundStyle(.secondary)
+                    Button(action: onInfo) {
+                        Label("How to do it", systemImage: "play.circle.fill")
+                            .font(.footnote.weight(.semibold))
+                    }
+                    .buttonStyle(.bordered).tint(Color.emerald).controlSize(.small)
+                    .accessibilityIdentifier("howTo-\(item.id)")
                     if let lastTime {
                         Label(lastTime, systemImage: "clock.arrow.circlepath")
                             .font(.footnote.monospacedDigit()).foregroundStyle(Color.inkMuted)

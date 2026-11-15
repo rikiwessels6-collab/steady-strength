@@ -740,6 +740,9 @@ struct SlotRow: View {
                 }
                 Text(prescription).font(.subheadline).foregroundStyle(.secondary)
             }
+            Spacer(minLength: 8)
+            Image(systemName: "play.circle").font(.title3).foregroundStyle(Color.emerald)
+                .accessibilityLabel("How to do it")
         }
         .accessibilityElement(children: .combine)
     }

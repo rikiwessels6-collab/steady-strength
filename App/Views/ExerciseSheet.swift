@@ -28,8 +28,25 @@ struct ExerciseSheet: View {
                 let choice = Substitution.choose(exerciseId, library: content.library, available: available,
                                                  maxDifficulty: maxDifficulty, slotAlternatives: slot?.alternativeIds ?? [])
                 List {
+                    Section {
+                        Button {
+                            showSearch = true
+                        } label: {
+                            Label(channel.isEmpty ? "Watch how to do it" : "Watch how to do it (\(channel))", systemImage: "play.rectangle.fill")
+                                .font(.headline).foregroundStyle(Color.night)
+                                .frame(maxWidth: .infinity, minHeight: 48)
+                                .background(LinearGradient.brand, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .accessibilityHint("Opens technique videos for this exercise from YouTube, inside the app")
+                        .accessibilityIdentifier("watchHowTo")
+                    } footer: {
+                        Text("Opens a search for this exercise's technique on YouTube. Nothing is downloaded.")
+                    }
                     Section("How to do it") {
-                        Text(ex.cues)
+                        Text(ex.cues.isEmpty ? "No written cues for this exercise yet. Use the video above, or add your own clip below." : ex.cues)
                         if let note = slot?.notes, !note.isEmpty, note != ex.cues {
                             Text(note).foregroundStyle(.secondary)
                         }
@@ -42,12 +59,6 @@ struct ExerciseSheet: View {
                             Label(tip, systemImage: "arrow.left.and.right")
                                 .font(.footnote).foregroundStyle(Color.inkMuted)
                         }
-                        Button {
-                            showSearch = true
-                        } label: {
-                            Label(channel.isEmpty ? "Watch technique videos (YouTube)" : "Watch technique (\(channel) on YouTube)", systemImage: "play.rectangle")
-                        }
-                        .accessibilityHint("Opens a YouTube search for this exercise's technique in Safari")
                     }
                     MyClipSection(exerciseId: exerciseId)
                     MyNoteSection(exerciseId: exerciseId)
