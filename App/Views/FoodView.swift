@@ -259,6 +259,8 @@ struct AddFoodSheet: View {
     @State private var newRecipe = false
     @State private var loggingRecipe: Recipe?
     @State private var quickAdding = false
+    @State private var browsingRestaurants = false
+    @Environment(ContentStore.self) private var store
     @State private var query = ""
     @State private var results: [FoodItem] = []
     @State private var searching = false
@@ -287,6 +289,8 @@ struct AddFoodSheet: View {
                 Section {
                     Button { quickAdding = true } label: { Label("Quick add calories", systemImage: "bolt") }
                         .accessibilityIdentifier("quickAdd")
+                    Button { browsingRestaurants = true } label: { Label("Restaurants and takeaway", systemImage: "takeoutbag.and.cup.and.straw") }
+                        .accessibilityIdentifier("restaurants")
                 }
                 if let message { Section { Text(message).font(.footnote).foregroundStyle(Color.inkMuted) } }
                 if !results.isEmpty {
@@ -365,7 +369,11 @@ struct AddFoodSheet: View {
                 // Your own foods match as you type; Search adds the wider database.
                 let text = q.trimmingCharacters(in: .whitespaces)
                 if text.isEmpty { results = []; message = nil }
-                else if text.count >= 2 { results = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(text) } }
+                else if text.count >= 2 {
+                    let mine = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(text) }
+                    let menus = (store.restaurants?.search(text) ?? []).map { $0.item.food(chain: $0.chain) }
+                    results = mine + menus.filter { m in !mine.contains { $0.id == m.id } }
+                }
             }
             .navigationTitle("Add to \(meal.label)")
             .navigationBarTitleDisplayMode(.inline)
@@ -383,6 +391,12 @@ struct AddFoodSheet: View {
             }
             .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { dismiss() } }
             .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { dismiss() } }
+            .sheet(isPresented: $browsingRestaurants) {
+                RestaurantBrowser { item in
+                    browsingRestaurants = false
+                    picked = (item, .search)
+                }
+            }
             .sheet(isPresented: $newRecipe) { RecipeEditor() }
             .sheet(item: $loggingRecipe) { r in RecipePortionSheet(recipe: r, meal: meal, day: day) { dismiss() } }
             .sheet(isPresented: $creating) {
@@ -448,6 +462,7 @@ struct AddFoodSheet: View {
         let q = query.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return }
         let local = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(q) }
+            + (store.restaurants?.search(q) ?? []).map { $0.item.food(chain: $0.chain) }
         searching = true; message = nil
         defer { searching = false }
         do {
@@ -937,5 +952,93 @@ struct ScannerRepresentable: UIViewControllerRepresentable {
                 }
             }
         }
+    }
+}
+
+
+/// Browse restaurant and takeaway menus by chain and category, with search.
+struct RestaurantBrowser: View {
+    let onPick: (FoodItem) -> Void
+    @Environment(ContentStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if let menus = store.restaurants {
+                    let q = query.trimmingCharacters(in: .whitespaces)
+                    if q.isEmpty {
+                        ForEach(menus.chains) { chain in
+                            NavigationLink {
+                                ChainMenuView(chain: chain, onPick: onPick)
+                            } label: {
+                                LabeledContent(chain.name, value: "\(chain.items.count) items")
+                            }
+                        }
+                        Section {
+                            Text("Values come from each chain's own Australian nutrition guide. Menus change, so a recent item may be missing; use Quick add or Plate photo for those.")
+                                .font(.footnote).foregroundStyle(Color.inkMuted)
+                        }
+                    } else {
+                        let hits = menus.search(q)
+                        if hits.isEmpty { Text("No matching menu items.").foregroundStyle(Color.inkMuted) }
+                        ForEach(hits, id: \.item.id) { hit in
+                            RestaurantItemRow(chain: hit.chain, item: hit.item, showChain: true) { onPick(hit.item.food(chain: hit.chain)) }
+                        }
+                    }
+                } else {
+                    Text("Restaurant menus couldn't be loaded.").foregroundStyle(Color.inkMuted)
+                }
+            }
+            .themedList()
+            .searchable(text: $query, prompt: "Search menus, e.g. latte")
+            .navigationTitle("Restaurants")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+        }
+    }
+}
+
+struct ChainMenuView: View {
+    let chain: RestaurantChain
+    let onPick: (FoodItem) -> Void
+
+    var body: some View {
+        List {
+            ForEach(chain.categories, id: \.self) { category in
+                Section(category) {
+                    ForEach(chain.items.filter { $0.category == category }) { item in
+                        RestaurantItemRow(chain: chain, item: item, showChain: false) { onPick(item.food(chain: chain)) }
+                    }
+                }
+            }
+        }
+        .themedList()
+        .navigationTitle(chain.name)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct RestaurantItemRow: View {
+    let chain: RestaurantChain
+    let item: RestaurantItem
+    let showChain: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.name).foregroundStyle(Color.ink).lineLimit(2)
+                    Text((showChain ? chain.name + " · " : "") + "P \(NumberText.format(item.protein)) C \(NumberText.format(item.carbs)) F \(NumberText.format(item.fat))")
+                        .font(.caption).foregroundStyle(Color.inkMuted)
+                    if let note = item.note { Text(note).font(.caption2).foregroundStyle(Color.gold) }
+                }
+                Spacer()
+                Text("\(Int(item.kcal.rounded())) kcal").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
+            }
+        }
+        .accessibilityIdentifier("menu-\(item.id)")
     }
 }

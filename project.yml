@@ -28,6 +28,8 @@ targets:
       - path: Resources/Generated
         buildPhase: resources
         excludes: ["*.md"]
+      - path: Resources/Restaurants
+        buildPhase: resources
     dependencies:
       - package: SteadyCore
       - target: RestTimerWidget

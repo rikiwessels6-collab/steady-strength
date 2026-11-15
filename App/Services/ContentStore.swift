@@ -14,6 +14,8 @@ final class ContentStore {
     private var custom: [Exercise] = []
     private var customPrograms: [Program] = []
     private(set) var content: BundledContent?
+    /// Restaurant and takeaway menus, loaded with the rest of the content.
+    private(set) var restaurants: RestaurantMenus?
     private var base: BundledContent?
 
     /// Replaces the user's own exercises (called at launch and after one is added or edited).
@@ -46,6 +48,10 @@ final class ContentStore {
                                           equipment: data("equipment"), checkIn: data("checkin_defaults"))
             }.value
             base = loaded
+            if let url = Bundle.main.url(forResource: "restaurants", withExtension: "json"),
+               let data = try? Data(contentsOf: url) {
+                restaurants = try? RestaurantMenus(data: data)
+            }
             rebuild()
             state = .ready(loaded)
         } catch {
