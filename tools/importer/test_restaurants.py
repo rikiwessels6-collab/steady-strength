@@ -40,9 +40,15 @@ class RestaurantMenus(unittest.TestCase):
             # Energy from protein, fat and carbohydrate is close to the total (within 15%, or 40 kJ for small items,
             # where fibre and rounding matter more).
             est = i["protein"] * 17 + i["fat"] * 37 + i["carbs"] * 17
-            if abs(est - i["kj"]) > max(i["kj"] * 0.15, 40):
+            if abs(est - i["kj"]) > max(i["kj"] * 0.15, 40) and not i.get("publishedMismatch"):
                 problems.append(f"{i['id']}: macros give {est:.0f} kJ, label says {i['kj']}")
         self.assertEqual(problems, [])
+
+    def test_flagged_items_say_so(self):
+        # Items kept despite the chain's own figures not adding up must tell the user.
+        for i in self.items:
+            if i.get("publishedMismatch"):
+                self.assertIn("as published", i.get("note", ""), i["id"])
 
 
 if __name__ == "__main__":
