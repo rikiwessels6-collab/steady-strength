@@ -41,6 +41,13 @@ public struct Macros: Equatable, Sendable {
     }
 }
 
+/// A household portion and its weight, e.g. "1 slice" = 35 g.
+public struct FoodMeasure: Codable, Equatable, Sendable, Hashable {
+    public var label: String
+    public var grams: Double
+    public init(label: String, grams: Double) { self.label = label; self.grams = grams }
+}
+
 /// A food you can log: from a barcode, a search, or entered by hand.
 public struct FoodItem: Codable, Equatable, Sendable, Identifiable {
     public var id: String               // barcode, or a generated id for custom foods
@@ -50,11 +57,14 @@ public struct FoodItem: Codable, Equatable, Sendable, Identifiable {
     public var per100: Per100
     public var servingGrams: Double?    // one serving as printed on the pack
     public var servingLabel: String?
+    /// Household portions from a food database ("1 slice", "1 cup"), when it lists them.
+    public var measures: [FoodMeasure]? = nil
 
     public init(id: String, name: String, brand: String?, barcode: String?, per100: Per100,
-                servingGrams: Double?, servingLabel: String?) {
+                servingGrams: Double?, servingLabel: String?, measures: [FoodMeasure]? = nil) {
         self.id = id; self.name = name; self.brand = brand; self.barcode = barcode
         self.per100 = per100; self.servingGrams = servingGrams; self.servingLabel = servingLabel
+        self.measures = measures
     }
 
     public func macros(grams: Double) -> Macros {

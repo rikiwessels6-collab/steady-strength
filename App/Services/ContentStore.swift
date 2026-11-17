@@ -16,6 +16,8 @@ final class ContentStore {
     private(set) var content: BundledContent?
     /// Restaurant and takeaway menus, loaded with the rest of the content.
     private(set) var restaurants: RestaurantMenus?
+    /// Everyday generic foods (AUSNUT 2023), searchable offline.
+    private(set) var genericFoods: GenericFoods?
     private var base: BundledContent?
 
     /// Replaces the user's own exercises (called at launch and after one is added or edited).
@@ -54,6 +56,11 @@ final class ContentStore {
             }
             rebuild()
             state = .ready(loaded)
+            genericFoods = await Task.detached(priority: .utility) { () -> GenericFoods? in
+                guard let url = Bundle.main.url(forResource: "ausnut_2023", withExtension: "json"),
+                      let data = try? Data(contentsOf: url) else { return nil }
+                return try? GenericFoods(data: data)
+            }.value
         } catch {
             state = .failed(error.localizedDescription)
         }

@@ -365,7 +365,7 @@ struct AddFoodSheet: View {
                     }
                 }
                 Section {
-                    Text("Product data from Open Food Facts (openfoodfacts.org), licensed under the ODbL.")
+                    Text("Product data from Open Food Facts (openfoodfacts.org), licensed under the ODbL. Generic foods from AUSNUT 2023, © Food Standards Australia New Zealand, used under Creative Commons Attribution 4.0.")
                         .font(.caption2).foregroundStyle(Color.inkMuted)
                 }
             }
@@ -380,7 +380,8 @@ struct AddFoodSheet: View {
                 else if text.count >= 2 {
                     let mine = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(text) }
                     let menus = (store.restaurants?.search(text) ?? []).map { $0.item.food(chain: $0.chain) }
-                    results = mine + menus.filter { m in !mine.contains { $0.id == m.id } }
+                    let generic = store.genericFoods?.search(text) ?? []
+                    results = mine + (menus + generic).filter { m in !mine.contains { $0.id == m.id } }
                 }
             }
             .navigationTitle("Add to \(meal.label)")
@@ -471,6 +472,7 @@ struct AddFoodSheet: View {
         guard !q.isEmpty else { return }
         let local = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(q) }
             + (store.restaurants?.search(q) ?? []).map { $0.item.food(chain: $0.chain) }
+            + (store.genericFoods?.search(q) ?? [])
         searching = true; message = nil
         defer { searching = false }
         do {
@@ -549,7 +551,9 @@ struct PortionSheet: View {
                     }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
-                            if let s = item.servingGrams { chip("1 serve (\(NumberText.format(s)) g)") { grams = s }; chip("2 serves") { grams = s * 2 } }
+                            if let ms = item.measures, !ms.isEmpty {
+                                ForEach(ms, id: \.self) { m in chip("\(m.label) (\(NumberText.format(m.grams)) g)") { grams = m.grams } }
+                            } else if let s = item.servingGrams { chip("1 serve (\(NumberText.format(s)) g)") { grams = s }; chip("2 serves") { grams = s * 2 } }
                             chip("50 g") { grams = 50 }; chip("100 g") { grams = 100 }; chip("150 g") { grams = 150 }; chip("200 g") { grams = 200 }
                         }
                     }

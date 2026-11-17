@@ -23,7 +23,8 @@ jobs:
       - name: Regenerate and check the bundled JSON is up to date
         run: |
           python3 tools/importer/import_programs.py
-          git diff --exit-code Resources/Generated
+          python3 tools/importer/import_ausnut.py
+          git diff --exit-code Resources/Generated Resources/Foods
       - run: python3 -m unittest discover -s tools/importer
 
   relay:
