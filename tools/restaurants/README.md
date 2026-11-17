@@ -11,3 +11,4 @@ energy total disagrees with the macros, kept as published with `publishedMismatc
 `tools/importer/test_restaurants.py` checks the result.
 - `parse_subway.py <pdftotext -layout of Subway's AUS guide> <raw.json>` then `build_subway.py <raw.json> <items.json>`
 - `parse_zambrero.py <pdftotext -layout of Zambrero's AUS guide> <items.json>` (logged by the serve: the guide gives no weights)
+- `parse_thisbowl.py <saved thisbowl.com/en-au/pages/nutritional-and-allergen-guides html> <items.json>` (Fishbowl is now THISBOWL)
