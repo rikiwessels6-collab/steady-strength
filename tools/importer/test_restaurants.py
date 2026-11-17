@@ -18,8 +18,12 @@ class RestaurantMenus(unittest.TestCase):
         for i in self.items:
             for key in ("name", "category", "serveAmount", "unit", "kj", "kcal", "protein", "fat", "carbs", "source"):
                 self.assertIn(key, i, i["id"])
-            self.assertIn(i["unit"], ("g", "mL"))
-            self.assertGreater(i["serveAmount"], 0, i["id"])
+            self.assertIn(i["unit"], ("g", "mL", "serve"))
+            if i["unit"] == "serve":
+                self.assertIsNone(i["serveAmount"], i["id"])            # no invented weight
+                self.assertTrue(i.get("servingDescription"), i["id"])  # but it says what a serve is
+            else:
+                self.assertGreater(i["serveAmount"], 0, i["id"])
 
     def test_kilojoules_match_calories(self):
         # Each guide prints both; a misread digit in either shows up here.

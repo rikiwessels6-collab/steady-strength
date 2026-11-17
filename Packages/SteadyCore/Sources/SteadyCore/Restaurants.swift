@@ -22,10 +22,26 @@ public struct RestaurantMenus: Decodable, Sendable {
     }
 }
 
+extension FoodItem {
+    /// Foods logged by the serve: their "per 100" values are for one serve, and 100 means one serve.
+    public static let perServePrefix = "restaurant-serve-"
+    public var isPerServe: Bool { id.hasPrefix(Self.perServePrefix) }
+}
+
 public struct RestaurantChain: Decodable, Sendable, Identifiable {
     public let id: String
     public let name: String
     public let items: [RestaurantItem]
+
+    /// Where this chain's numbers come from, with the date checked, for display.
+    public var sources: [String] {
+        var seen: [String] = []
+        for i in items {
+            let line = i.source + (i.checkedOn.map { " Checked \($0)." } ?? "")
+            if !seen.contains(line) { seen.append(line) }
+        }
+        return seen
+    }
 
     /// Categories in the order they first appear.
     public var categories: [String] {
@@ -39,9 +55,13 @@ public struct RestaurantItem: Decodable, Sendable, Identifiable {
     public let id: String
     public let name: String
     public let category: String
-    /// One serve, in grams or millilitres.
-    public let serveAmount: Double
+    /// One serve, in grams or millilitres. Nil when the guide gives no weight; then `unit` is "serve".
+    public let serveAmount: Double?
     public let unit: String
+    /// What one serve is, when there is no weight, e.g. "1 standard burger".
+    public let servingDescription: String?
+    /// When the values were last checked against the source.
+    public let checkedOn: String?
     public let kj: Double
     public let kcal: Double
     public let protein: Double
@@ -53,12 +73,24 @@ public struct RestaurantItem: Decodable, Sendable, Identifiable {
     public let source: String
     public let note: String?
 
-    /// As a food to log: per-100 values worked out from one serve, with one serve as the default amount.
+    /// True when the item is logged by the serve because the guide gives no weight.
+    public var isPerServe: Bool { (serveAmount ?? 0) <= 0 || unit == "serve" }
+
+    /// As a food to log. With a weight: per-100 values worked out from one serve, one serve as the default amount.
+    /// Without one: the food's "100" is one serve (its id says so, see FoodItem.isPerServe), so nothing is invented.
     public func food(chain: RestaurantChain) -> FoodItem {
-        let f = serveAmount > 0 ? 100 / serveAmount : 0
-        return FoodItem(id: "restaurant-" + id, name: name, brand: chain.name, barcode: nil,
+        let f: Double
+        let serving: Double
+        let label: String
+        if isPerServe {
+            f = 1; serving = 100; label = servingDescription ?? "1 serve"
+        } else {
+            let amount = serveAmount ?? 100
+            f = 100 / amount; serving = amount; label = "1 serve (\(Int(amount.rounded())) \(unit))"
+        }
+        return FoodItem(id: (isPerServe ? FoodItem.perServePrefix : "restaurant-") + id, name: name, brand: chain.name, barcode: nil,
                         per100: Per100(kcal: kcal * f, protein: protein * f, carbs: carbs * f, fat: fat * f, fibre: 0,
                                        sugar: sugar.map { $0 * f }, satFat: satFat.map { $0 * f }, sodium: sodium.map { $0 * f }),
-                        servingGrams: serveAmount, servingLabel: "1 serve (\(Int(serveAmount.rounded())) \(unit))")
+                        servingGrams: serving, servingLabel: label)
     }
 }

@@ -28,6 +28,19 @@ final class RestaurantTests: XCTestCase {
         XCTAssertEqual(food.brand, "McDonald's")
     }
 
+    func testBurgersWithoutAWeightAreLoggedByTheServe() throws {
+        let menus = try bundled()
+        let chain = try XCTUnwrap(menus.chains.first { $0.id == "mcdonalds-au" })
+        let bigMac = try XCTUnwrap(chain.items.first { $0.id == "mcd-au-big-mac-2025" })
+        XCTAssertTrue(bigMac.isPerServe)
+        let food = bigMac.food(chain: chain)
+        XCTAssertTrue(food.isPerServe)
+        XCTAssertEqual(food.macros(grams: 100).kcal, 559, accuracy: 0.01)          // one burger
+        XCTAssertEqual(food.macros(grams: 150).protein, 25.9 * 1.5, accuracy: 0.01) // one and a half
+        XCTAssertEqual(food.servingLabel, "1 standard burger")
+        XCTAssertFalse(chain.sources.isEmpty)
+    }
+
     func testSearchMatchesEveryWord() throws {
         let menus = try bundled()
         XCTAssertFalse(menus.search("tiramisu oat large").isEmpty)

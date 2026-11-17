@@ -1,0 +1,57 @@
+﻿establishment_id,brand_name,category,country_code,catalogue_status,nutrition_data_status,note
+au_mcdonald_s,McDonald’s,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_hungry_jack_s,Hungry Jack’s,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_kfc,KFC,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_red_rooster,Red Rooster,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_oporto,Oporto,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_nando_s,Nando’s,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_subway,Subway,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_grill_d,Grill’d,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_betty_s_burgers,Betty’s Burgers,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_five_guys,Five Guys,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_el_jannah,El Jannah,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_chicken_treat,Chicken Treat,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_chargrill_charlie_s,Chargrill Charlie’s,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_schnitz,Schnitz,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_guzman_y_gomez,Guzman y Gomez,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_zambrero,Zambrero,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_taco_bell,Taco Bell,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_mad_mex,Mad Mex,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_roll_d,Roll’d,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_sushi_hub,Sushi Hub,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_sushi_sushi,Sushi Sushi,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_fishbowl,Fishbowl,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_sumosalad,SumoSalad,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_lord_of_the_fries,Lord of the Fries,Fast food,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_domino_s,Domino’s,Pizza,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_pizza_hut,Pizza Hut,Pizza,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_crust_pizza,Crust Pizza,Pizza,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_pizza_capers,Pizza Capers,Pizza,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_la_porchetta,La Porchetta,Pizza,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_starbucks,Starbucks,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_mccafé,McCafé,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_the_coffee_club,The Coffee Club,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_gloria_jean_s,Gloria Jean’s,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_zarraffa_s_coffee,Zarraffa’s Coffee,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_jamaica_blue,Jamaica Blue,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_muffin_break,Muffin Break,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_michel_s,Michel’s,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_hudsons_coffee,Hudsons Coffee,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_campos_coffee,Campos Coffee,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_merlo_coffee,Merlo Coffee,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_coffee_hit,Coffee Hit,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_soul_origin,Soul Origin,Coffee and cafe,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_bakers_delight,Bakers Delight,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_brumby_s_bakery,Brumby’s Bakery,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_donut_king,Donut King,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_krispy_kreme,Krispy Kreme,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_breadtop,Breadtop,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_san_churro,San Churro,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_gelatissimo,Gelatissimo,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_baskin_robbins,Baskin-Robbins,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_cold_rock_ice_creamery,Cold Rock Ice Creamery,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_boost_juice,Boost Juice,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_chatime,Chatime,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_gong_cha,Gong Cha,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_sharetea,Sharetea,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability
+au_the_cheesecake_shop,The Cheesecake Shop,Bakery and dessert,AU,candidate_not_exhaustive,not_imported,Catalogue entry only; not evidence of menu data availability

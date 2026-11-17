@@ -143,7 +143,15 @@ struct FoodView: View {
     /// "7:30 am · 150 g · P 20 C 30 F 5". Quick adds have no real weight, so the grams are left out.
     private func detail(_ e: FoodEntry) -> String {
         let time = e.eatenAt.formatted(date: .omitted, time: .shortened)
-        let grams = e.foodId.hasPrefix("quick-") ? "" : " · \(Int(e.grams.rounded())) g"
+        let grams: String
+        if e.foodId.hasPrefix("quick-") {
+            grams = ""
+        } else if e.foodId.hasPrefix(FoodItem.perServePrefix) {
+            let serves = NumberText.format(e.grams / 100)
+            grams = " · \(serves) serve\(e.grams == 100 ? "" : "s")"
+        } else {
+            grams = " · \(Int(e.grams.rounded())) g"
+        }
         return "\(time)\(grams) · P \(Int(e.protein.rounded())) C \(Int(e.carbs.rounded())) F \(Int(e.fat.rounded()))"
     }
 
@@ -521,6 +529,18 @@ struct PortionSheet: View {
                         stat("\(Int(m.fat.rounded()))", "fat")
                     }
                 }
+                if item.isPerServe {
+                    // No published weight: count serves instead (100 here means one serve).
+                    Section {
+                        Stepper(value: Binding(get: { grams / 100 }, set: { grams = $0 * 100 }), in: 0.5...10, step: 0.5) {
+                            LabeledContent("Serves", value: NumberText.format(grams / 100))
+                                .font(.title3.weight(.semibold).monospacedDigit())
+                        }
+                        .accessibilityIdentifier("serveStepper")
+                    } header: { Text("Amount") } footer: {
+                        Text("One serve is \(item.servingLabel ?? "the standard serve"). The guide gives no weight, so it's logged by the serve.")
+                    }
+                } else {
                 Section("Amount") {
                     HStack {
                         TextField("Grams", value: $grams, format: .number).keyboardType(.decimalPad)
@@ -533,6 +553,7 @@ struct PortionSheet: View {
                             chip("50 g") { grams = 50 }; chip("100 g") { grams = 100 }; chip("150 g") { grams = 150 }; chip("200 g") { grams = 200 }
                         }
                     }
+                }
                 }
                 Section("When") {
                     Picker("Meal", selection: $slot) { ForEach(MealSlot.allCases) { Text($0.label).tag($0) } }
@@ -1012,6 +1033,9 @@ struct ChainMenuView: View {
                         RestaurantItemRow(chain: chain, item: item, showChain: false) { onPick(item.food(chain: chain)) }
                     }
                 }
+            }
+            Section("Where these numbers come from") {
+                ForEach(chain.sources, id: \.self) { Text($0).font(.footnote).foregroundStyle(Color.inkMuted) }
             }
         }
         .themedList()

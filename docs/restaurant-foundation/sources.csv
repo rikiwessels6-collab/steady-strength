@@ -1,0 +1,3 @@
+﻿source_id,source_name,url,country_code,source_date,source_type,licence_note
+mcd_au_2025,McDonald's Australia Core Food Menu September 2025,https://mcdonalds.com.au/sites/mcdonalds.com.au/files/Aus%20Core%20Food%20Menu_September%202025%20%20%28v3%29.pdf,AU,2025-09,official,Check restaurant terms before redistributing compiled data
+sb_us_2026_secondary,Starbucks US menu nutrition compilation,https://starbucksnutrition.org/starbucks-nutrition-facts-calories,US,2026-11-07,third_party,Verify against Starbucks official menu and reuse terms before production
