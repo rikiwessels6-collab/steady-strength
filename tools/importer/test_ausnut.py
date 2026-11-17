@@ -38,6 +38,13 @@ class GenericFoods(unittest.TestCase):
                 self.assertGreaterEqual(m["grams"], 1, f["id"])
                 self.assertNotIn("density", m["label"], f["id"])
 
+    def test_densities_are_plausible(self):
+        dens = {f["id"]: f["density"] for f in self.foods if "density" in f}
+        self.assertGreater(len(dens), 3000)
+        self.assertTrue(all(0.01 <= d <= 2.5 for d in dens.values()), [k for k, d in dens.items() if not 0.01 <= d <= 2.5][:5])
+        self.assertEqual(dens["F005634"], 1.03)   # regular milk
+        self.assertEqual(dens["F008976"], 0.84)   # white sugar
+
     def test_known_food(self):
         beer = next(f for f in self.foods if f["id"] == "F000996")
         self.assertEqual(beer["kj"], 174)

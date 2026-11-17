@@ -15,6 +15,8 @@ public struct GenericFoods: Decodable, Sendable {
         public let sf: Double?
         public let na: Double?
         public let measures: [FoodMeasure]?
+        /// Grams per millilitre, as published, for converting a volume to a weight.
+        public let density: Double?
     }
 
     public static let idPrefix = "ausnut-"
@@ -24,6 +26,7 @@ public struct GenericFoods: Decodable, Sendable {
     public let checkedOn: String?
     public let foods: [Food]
     private let lowered: [String]
+    private let byId: [String: Int]
 
     enum CodingKeys: String, CodingKey { case source, checkedOn, foods }
 
@@ -33,7 +36,11 @@ public struct GenericFoods: Decodable, Sendable {
         checkedOn = try c.decodeIfPresent(String.self, forKey: .checkedOn)
         foods = try c.decode([Food].self, forKey: .foods)
         lowered = foods.map { $0.name.lowercased() }
+        byId = Dictionary(foods.enumerated().map { ($1.id, $0) }, uniquingKeysWith: { a, _ in a })
     }
+
+    /// A food by its AUSNUT public food key, e.g. "F005634".
+    public func food(id: String) -> Food? { byId[id].map { foods[$0] } }
 
     public init(data: Data) throws { self = try JSONDecoder().decode(GenericFoods.self, from: data) }
 

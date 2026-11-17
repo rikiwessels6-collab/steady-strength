@@ -61,7 +61,7 @@ def measure_label(qty, parts) -> str:
     return f"{q} {words[0]}" + (f", {', '.join(words[1:])}" if len(words) > 1 else "")
 
 
-def measures() -> dict[str, list]:
+def measures() -> tuple[dict[str, list], dict[str, float]]:
     wb = openpyxl.load_workbook(SRC / "AUSNUT 2023 - Food measures.xlsx", read_only=True)
     ws = wb.worksheets[-1]
     start, heads = header_row(ws, "Public food key")
@@ -69,19 +69,25 @@ def measures() -> dict[str, list]:
     k, qty, grams = idx["Public food key"], idx["Quantity"], idx["Gram amount"]
     desc = [i for h, i in idx.items() if h.startswith("Descriptor")]
     out: dict[str, list] = defaultdict(list)
+    density: dict[str, float] = {}
     for row in ws.iter_rows(min_row=start + 1, values_only=True):
         if not row[k] or row[grams] is None:
             continue
         first = row[desc[0]]
-        if first is None or str(first).strip().lower() == "density":
+        if first is not None and str(first).strip().lower() == "density":
+            # "1 density": the gram amount is grams per millilitre (the volume column is blank or 0 for solids)
+            if float(row[grams]) > 0 and (row[qty] in (None, 1)):
+                density[row[k]] = rnd(float(row[grams]))
             continue  # a conversion factor, not a portion
+        if first is None:
+            continue
         g = float(row[grams])
         if g < 1:
             continue  # e.g. "1 seed": too small to be a useful portion
         label = measure_label(row[qty], [row[i] for i in desc])
         if len(out[row[k]]) < MAX_MEASURES and all(m["label"] != label for m in out[row[k]]):
             out[row[k]].append({"label": label, "grams": rnd(g)})
-    return out
+    return out, density
 
 
 def main() -> None:
@@ -93,7 +99,7 @@ def main() -> None:
         if h not in heads:
             raise SystemExit(f"Missing column: {h}")
         idx[key] = heads.index(h)
-    portions = measures()
+    portions, densities = measures()
     foods = []
     for row in ws.iter_rows(min_row=start + 1, values_only=True):
         if not row[idx["key"]]:
@@ -105,6 +111,8 @@ def main() -> None:
                 food[key] = rnd(v)   # blanks stay out (unknown), never zero
         if "kj" not in food:
             continue
+        if food["id"] in densities:
+            food["density"] = densities[food["id"]]   # g per mL, for drinks measured in mL
         if portions.get(food["id"]):
             food["measures"] = portions[food["id"]]
         foods.append(food)

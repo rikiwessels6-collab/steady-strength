@@ -268,6 +268,7 @@ struct AddFoodSheet: View {
     @State private var loggingRecipe: Recipe?
     @State private var quickAdding = false
     @State private var browsingRestaurants = false
+    @State private var makingCoffee = false
     @Environment(ContentStore.self) private var store
     @State private var query = ""
     @State private var results: [FoodItem] = []
@@ -299,6 +300,8 @@ struct AddFoodSheet: View {
                         .accessibilityIdentifier("quickAdd")
                     Button { browsingRestaurants = true } label: { Label("Restaurants and takeaway", systemImage: "takeoutbag.and.cup.and.straw") }
                         .accessibilityIdentifier("restaurants")
+                    Button { makingCoffee = true } label: { Label("Coffee at home", systemImage: "cup.and.saucer") }
+                        .accessibilityIdentifier("coffee")
                 }
                 if let message { Section { Text(message).font(.footnote).foregroundStyle(Color.inkMuted) } }
                 if !results.isEmpty {
@@ -404,6 +407,12 @@ struct AddFoodSheet: View {
                 RestaurantBrowser { item in
                     browsingRestaurants = false
                     picked = (item, .search)
+                }
+            }
+            .sheet(isPresented: $makingCoffee) {
+                CoffeeBuilderView { item in
+                    makingCoffee = false
+                    picked = (item, .manual)
                 }
             }
             .sheet(isPresented: $newRecipe) { RecipeEditor() }
