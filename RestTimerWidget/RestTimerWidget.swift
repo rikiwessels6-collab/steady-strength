@@ -6,7 +6,7 @@ import WidgetKit
 struct RestTimerBundle: WidgetBundle {
     var body: some Widget {
         RestTimerLiveActivity()
-        TodayWidget()
+        // TodayWidget() returns once the app group exists (see project.yml).
     }
 }
 

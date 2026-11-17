@@ -38,7 +38,9 @@ targets:
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
-        com.apple.security.application-groups: [group.au.com.rwfitness.steadystrength]
+        # Widgets need this app group, created once on developer.apple.com (Identifiers > App Groups) and added to both
+        # App IDs. Xcode can't create it with an upload key, so it stays off until that is done:
+        # com.apple.security.application-groups: [group.au.com.rwfitness.steadystrength]
     info:
       path: Config/Info.plist
       properties:
@@ -75,10 +77,6 @@ targets:
     sources:
       - path: RestTimerWidget
       - path: Shared
-    entitlements:
-      path: Config/RestTimerWidget.entitlements
-      properties:
-        com.apple.security.application-groups: [group.au.com.rwfitness.steadystrength]
     info:
       path: Config/RestTimerWidget-Info.plist
       properties:

@@ -119,7 +119,6 @@ jobs:
           codesign -d --entitlements - "$APP" > "$RUNNER_TEMP/ent.txt" 2>&1 || true
           cat "$RUNNER_TEMP/ent.txt"
           grep -q "com.apple.developer.healthkit" "$RUNNER_TEMP/ent.txt" || { echo "::error::The Apple Health entitlement is missing from the archive"; exit 1; }
-          grep -q "com.apple.security.application-groups" "$RUNNER_TEMP/ent.txt" || { echo "::error::The app group (for widgets) is missing from the archive"; exit 1; }
       - name: Upload to TestFlight
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
