@@ -165,7 +165,7 @@ struct IngredientPicker: View {
                     if let b = item.brand { Text(b).font(.caption).foregroundStyle(Color.inkMuted) }
                 }
                 Spacer()
-                Text("\(Int(item.per100.kcal.rounded())) kcal/100g").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
+                Text(item.energyLabel).font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
             }
         }
     }

@@ -384,7 +384,8 @@ struct AddFoodSheet: View {
                     let mine = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(text) }
                     let menus = (store.restaurants?.search(text) ?? []).map { $0.item.food(chain: $0.chain) }
                     let generic = store.genericFoods?.search(text) ?? []
-                    results = mine + (menus + generic).filter { m in !mine.contains { $0.id == m.id } }
+                    let others = (menus + generic).filter { m in !mine.contains { $0.id == m.id } }
+                    results = FoodRanking.rank(mine, query: text) + FoodRanking.rank(others, query: text)
                 }
             }
             .navigationTitle("Add to \(meal.label)")
@@ -467,11 +468,11 @@ struct AddFoodSheet: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name).foregroundStyle(Color.ink).lineLimit(2)
-                    Text([item.brand, item.servingLabel.map { "serve \($0)" }].compactMap { $0 }.joined(separator: " · "))
+                    Text([item.brand, item.serveText].compactMap { $0 }.joined(separator: " · "))
                         .font(.caption).foregroundStyle(Color.inkMuted)
                 }
                 Spacer()
-                Text("\(Int(item.per100.kcal.rounded())) kcal/100g").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
+                Text(item.energyLabel).font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
             }
         }
     }
@@ -479,9 +480,10 @@ struct AddFoodSheet: View {
     private func runSearch() async {
         let q = query.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return }
-        let local = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(q) }
-            + (store.restaurants?.search(q) ?? []).map { $0.item.food(chain: $0.chain) }
-            + (store.genericFoods?.search(q) ?? [])
+        let mine = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(q) }
+        let others = ((store.restaurants?.search(q) ?? []).map { $0.item.food(chain: $0.chain) } + (store.genericFoods?.search(q) ?? []))
+            .filter { o in !mine.contains { $0.id == o.id } }
+        let local = FoodRanking.rank(mine, query: q) + FoodRanking.rank(others, query: q)
         searching = true; message = nil
         defer { searching = false }
         do {
