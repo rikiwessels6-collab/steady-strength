@@ -1051,7 +1051,7 @@ struct RestaurantBrowser: View {
                 }
             }
             .themedList()
-            .searchable(text: $query, prompt: "Search menus, e.g. latte")
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search menus, e.g. latte")
             .navigationTitle("Restaurants")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }

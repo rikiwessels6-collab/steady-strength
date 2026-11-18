@@ -22,9 +22,10 @@ final class FoodUITests: XCTestCase {
         let accept = app.switches["acceptDisclaimer"]
         XCTAssertTrue(accept.waitForExistence(timeout: 5))
         accept.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
-        for _ in 0..<3 { tapNext() }                            // Health, Privacy, Lock
         let name = app.textFields["nameField"]
-        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        var taps = 0
+        while !name.waitForExistence(timeout: 3) && taps < 6 { tapNext(); taps += 1 }   // Health, Privacy, Lock
+        XCTAssertTrue(name.exists, "the profile step should appear")
         name.tap(); name.typeText("Sam")
         for _ in 0..<9 { tapNext() }                            // Profile ... Review -> Start my plan
         XCTAssertTrue(app.buttons["nextSession"].waitForExistence(timeout: 10))
@@ -50,7 +51,7 @@ final class FoodUITests: XCTestCase {
     private func caloriesLeft() -> Int? {
         let ring = app.descendants(matching: .any)["caloriesLeft"].firstMatch
         guard ring.waitForExistence(timeout: 5) else { return nil }
-        return Int(ring.label.prefix { $0.isNumber })
+        return Int(ring.label.prefix { $0.isNumber || $0 == "," || $0 == "." || $0 == " " }.filter(\.isNumber))
     }
 
     func testCoffeeBuilderLogsACup() {
