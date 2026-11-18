@@ -8,6 +8,20 @@ final class HardDayTests: XCTestCase {
         XCTAssertTrue(HardDay.targets(calories: 2400, carbs: 250, extraKcal: 0, isHardDay: true) == (2400, 250))
     }
 
+    func testHealthAddBackIsTheChosenShare() {
+        XCTAssertEqual(HardDay.healthExtra(burnedKcal: 643, percent: 50), 320)
+        XCTAssertEqual(HardDay.healthExtra(burnedKcal: 643, percent: 0), 0)
+        XCTAssertEqual(HardDay.healthExtra(burnedKcal: 0, percent: 100), 0)
+        XCTAssertEqual(HardDay.healthExtra(burnedKcal: 500, percent: 150), 500)
+    }
+
+    func testHardDayAndHealthAreNotAddedTogether() {
+        XCTAssertEqual(HardDay.extra(manualKcal: 200, isHardDay: true, healthKcal: 320), 320)
+        XCTAssertEqual(HardDay.extra(manualKcal: 200, isHardDay: true, healthKcal: 0), 200)
+        XCTAssertEqual(HardDay.extra(manualKcal: 200, isHardDay: false, healthKcal: 150), 150)
+        XCTAssertEqual(HardDay.extra(manualKcal: 200, isHardDay: false, healthKcal: 0), 0)
+    }
+
     func testKeyIsTheLocalCalendarDay() {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "Australia/Sydney")!

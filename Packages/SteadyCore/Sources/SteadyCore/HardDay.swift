@@ -19,6 +19,19 @@ public enum HardDay {
         return (calories + extraKcal, carbs + Int((Double(extraKcal) / 4).rounded()))
     }
 
+    /// Calories added back from workouts recorded in Apple Health: the chosen share of their active energy,
+    /// rounded to the nearest 10. Watch and app estimates vary, which is why the share is the user's to set.
+    public static func healthExtra(burnedKcal: Int, percent: Int) -> Int {
+        guard burnedKcal > 0, percent > 0 else { return 0 }
+        return Int((Double(burnedKcal) * Double(min(percent, 100)) / 100 / 10).rounded()) * 10
+    }
+
+    /// The day's extra: the larger of the hard-day amount (if marked) and the Health add-back, never both,
+    /// so a hard session recorded on a watch isn't counted twice.
+    public static func extra(manualKcal: Int, isHardDay: Bool, healthKcal: Int) -> Int {
+        max(isHardDay ? manualKcal : 0, healthKcal, 0)
+    }
+
     /// Marks or unmarks a day, keeping only the most recent days.
     public static func toggled(_ days: [String], key: String) -> [String] {
         var set = Set(days)

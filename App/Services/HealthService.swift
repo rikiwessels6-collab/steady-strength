@@ -174,6 +174,15 @@ enum HealthService {
         }
     }
 
+    /// Active calories from workouts recorded in Health on one day (not this app's own sessions).
+    static func workoutCalories(on day: Date) async -> (kcal: Int, count: Int) {
+        let (start, end) = Calendar.current.dayRange(day)
+        let days = max(1, (Calendar.current.dateComponents([.day], from: start, to: .now).day ?? 0) + 1)
+        let list = await recentWorkouts(days: days).filter { $0.start >= start && $0.start < end }
+        let withEnergy = list.compactMap(\.kcal)
+        return (withEnergy.reduce(0, +), withEnergy.count)
+    }
+
     private static func activeEnergy(_ workout: HKWorkout) -> Int? {
         guard let type = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned),
               let sum = workout.statistics(for: type)?.sumQuantity() else { return nil }

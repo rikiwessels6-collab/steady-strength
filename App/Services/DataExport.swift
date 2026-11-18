@@ -77,6 +77,7 @@ enum DataExport {
             // Added in build 32; older exports don't have them.
             var hardDayExtraKcal: Int? = nil
             var hardDays: [String]? = nil
+            var healthAddBackPercent: Int? = nil
         }
         struct NoteRecord: Codable { let exerciseId: String, text: String }
         struct PhotoRecord: Codable { let date: Date, angle: String }   // the pictures stay in the app; only this list is exported
@@ -172,7 +173,8 @@ enum DataExport {
             settings: s.map { Snapshot.SettingsRecord(barWeightKg: $0.barWeightKg, plateStock: $0.plateStock, warmupStyle: $0.warmupStyleRaw,
                                                       remindersEnabled: $0.remindersEnabled, reminderHour: $0.reminderHour,
                                                       reminderMinute: $0.reminderMinute,
-                                                      hardDayExtraKcal: $0.hardDayExtraKcal, hardDays: $0.hardDays) },
+                                                      hardDayExtraKcal: $0.hardDayExtraKcal, hardDays: $0.hardDays,
+                                                      healthAddBackPercent: $0.healthAddBackPercent) },
             savedMeals: meals.map { Snapshot.SavedMealRecord(name: $0.name, itemsData: $0.itemsData, createdAt: $0.createdAt, lastUsed: $0.lastUsed) },
             recipes: recipes.map { Snapshot.RecipeRecord(name: $0.name, ingredients: $0.ingredients, servings: $0.servings,
                                                          cookedWeightGrams: $0.cookedWeightGrams, createdAt: $0.createdAt, lastUsed: $0.lastUsed) },

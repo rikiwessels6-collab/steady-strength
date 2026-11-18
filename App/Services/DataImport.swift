@@ -180,6 +180,7 @@ enum DataImport {
             settings.remindersEnabled = st.remindersEnabled; settings.reminderHour = st.reminderHour; settings.reminderMinute = st.reminderMinute
             if let x = st.hardDayExtraKcal { settings.hardDayExtraKcal = x }
             if let d = st.hardDays { settings.hardDays = d }
+            if let h = st.healthAddBackPercent { settings.healthAddBackPercent = h }
         }
         if settings.disclaimerAcceptedAt == nil { settings.disclaimerAcceptedAt = .now }
         settings.onboardingComplete = true

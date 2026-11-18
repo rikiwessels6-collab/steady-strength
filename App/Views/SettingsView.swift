@@ -223,8 +223,12 @@ struct SettingsView: View {
                             LabeledContent("Extra on hard days", value: s.hardDayExtraKcal == 0 ? "Off" : "\(s.hardDayExtraKcal) kcal")
                         }
                         .accessibilityIdentifier("hardDayExtra")
+                        Picker("Add back from Apple Health", selection: Binding(get: { s.healthAddBackPercent }, set: { s.healthAddBackPercent = $0 })) {
+                            Text("Off").tag(0); Text("25%").tag(25); Text("50%").tag(50); Text("75%").tag(75); Text("100%").tag(100)
+                        }
+                        .accessibilityIdentifier("healthAddBack")
                     } header: { Text("Hard training days") } footer: {
-                        Text("Tap the flame on the food card to mark a day you train harder. That day's target rises by this amount, all as carbs. Your weekly calorie suggestion still follows your weight trend. Set to 0 to hide the button.")
+                        Text("Tap the flame on the food card to mark a day you train harder; that day's target rises by the extra above, all as carbs. Workouts and runs recorded in Apple Health (from your watch or other apps) can add back a share of their active calories instead. Watch estimates vary, so a share is safer than all of it. On a marked day the larger of the two is used, never both. Your weekly calorie suggestion still follows your weight trend.")
                     }
                 }
                 Section("Privacy") {

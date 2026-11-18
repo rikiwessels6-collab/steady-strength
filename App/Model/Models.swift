@@ -183,6 +183,8 @@ final class AppSettings {
     var hardDayExtraKcal: Int = 200
     /// Days marked as hard training days, as "yyyy-MM-dd".
     var hardDays: [String] = []
+    /// Share (%) of active calories from Apple Health workouts that day added to the calorie target; 0 = off.
+    var healthAddBackPercent: Int = 50
 
     init() {
         onboardingComplete = false

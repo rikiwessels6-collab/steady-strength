@@ -349,10 +349,15 @@ struct FoodCard: View {
     @Query private var settings: [AppSettings]
     @Environment(\.modelContext) private var context
     private var eaten: Int { Int(totals.kcal.rounded()) }
-    private var extra: Int { settings.first?.hardDayExtraKcal ?? 0 }
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var health: (kcal: Int, count: Int) = (0, 0)
+    private var manual: Int { settings.first?.hardDayExtraKcal ?? 0 }
+    private var percent: Int { settings.first?.healthAddBackPercent ?? 0 }
     private var isHard: Bool { settings.first?.hardDays.contains(HardDay.key(day)) ?? false }
+    private var healthExtra: Int { HardDay.healthExtra(burnedKcal: health.kcal, percent: percent) }
+    private var extra: Int { HardDay.extra(manualKcal: manual, isHardDay: isHard, healthKcal: healthExtra) }
     private var target: (calories: Int, carbs: Int) {
-        HardDay.targets(calories: plan.calories, carbs: plan.carbs, extraKcal: extra, isHardDay: isHard)
+        HardDay.targets(calories: plan.calories, carbs: plan.carbs, extraKcal: extra, isHardDay: extra > 0)
     }
 
     var body: some View {
@@ -373,12 +378,16 @@ struct FoodCard: View {
                 MacroBar(label: "Protein", value: Int(totals.protein.rounded()), target: plan.protein)
                 MacroBar(label: "Carbs", value: Int(totals.carbs.rounded()), target: target.carbs)
                 MacroBar(label: "Fat", value: Int(totals.fat.rounded()), target: plan.fat)
-                if extra > 0, let s = settings.first {
+                if healthExtra > 0 {
+                    Label("Apple Health workouts: \(health.kcal) kcal, +\(healthExtra) added (\(percent)%)", systemImage: "heart.fill")
+                        .font(.caption2).foregroundStyle(Color.inkMuted)
+                }
+                if manual > 0, let s = settings.first {
                     Button {
                         s.hardDays = HardDay.toggled(s.hardDays, key: HardDay.key(day))
                         try? context.save()
                     } label: {
-                        Label(isHard ? "Hard training day: +\(extra) kcal" : "Hard training day?",
+                        Label(isHard ? "Hard training day: +\(manual) kcal" : "Hard training day?",
                               systemImage: isHard ? "flame.fill" : "flame")
                             .font(.caption.weight(.semibold))
                     }
@@ -394,6 +403,10 @@ struct FoodCard: View {
         }
         .card()
         .accessibilityElement(children: .combine)
+        .task(id: "\(HardDay.key(day))-\(percent)-\(scenePhase == .active)") {
+            guard percent > 0, HealthService.isAvailable else { health = (0, 0); return }
+            health = await HealthService.workoutCalories(on: day)
+        }
     }
 }
 
