@@ -40,6 +40,8 @@ struct MainTabView: View {
                 .tag(AppTab.settings)
         }
         .environment(\.showTab, { tab = $0 })
+        .onAppear { if NotificationRouter.shared.openMeal != nil { tab = .food } }
+        .onChange(of: NotificationRouter.shared.openMeal) { _, meal in if meal != nil { tab = .food } }
     }
 }
 

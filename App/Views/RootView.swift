@@ -77,6 +77,7 @@ struct RootView: View {
     private func backupIfDue() {
         guard case .ready = content.state, current?.onboardingComplete == true, !Persistence.isUITest else { return }
         AutoBackup.runIfDue(context)
+        Task { await MealReminderService.refresh(context) }
     }
 
     /// The lock only applies once onboarding is finished and it's switched on.

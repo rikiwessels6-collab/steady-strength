@@ -68,6 +68,9 @@ struct FoodView: View {
             .background(Color.night.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $addingTo) { meal in AddFoodSheet(meal: meal, day: day) }
+            .onAppear(perform: openFromNotification)
+            .onChange(of: NotificationRouter.shared.openMeal) { _, _ in openFromNotification() }
+            .onChange(of: entries.count) { _, _ in Task { await MealReminderService.refresh(context) } }
             .sheet(item: $editing) { entry in EditEntrySheet(entry: entry) }
             .alert("Save as a meal", isPresented: Binding(get: { savingMeal != nil }, set: { if !$0 { savingMeal = nil } })) {
                 TextField("Name, for example Usual breakfast", text: $mealName)
@@ -77,6 +80,15 @@ struct FoodView: View {
                 Text("Keeps these foods and amounts together so you can add them all in one tap from Add, then Meals.")
             }
         }
+    }
+
+    /// A tapped "Log lunch?" nudge: show today and open Add for that meal.
+    private func openFromNotification() {
+        guard let meal = NotificationRouter.shared.openMeal else { return }
+        NotificationRouter.shared.openMeal = nil
+        day = .now
+        editing = nil
+        addingTo = meal
     }
 
     private func saveMeal() {

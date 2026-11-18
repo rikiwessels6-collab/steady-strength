@@ -194,6 +194,7 @@ struct SettingsView: View {
                     } header: { Text("Reminders") } footer: {
                         Text("A reminder on your training days and your check-in day, and an alert when a rest timer ends so you can lock your phone between sets. They're set on this phone only.")
                     }
+                    MealReminderSection(settings: s)
                     Section("Security") {
                         Toggle("Lock with \(AppLock.biometryName)", isOn: Binding(get: { s.lockEnabled }, set: { s.lockEnabled = $0 }))
                             .accessibilityIdentifier("lockToggle")
@@ -424,5 +425,57 @@ struct AutoBackupSection: View {
         folder = AutoBackup.isOn ? (AutoBackup.folderName ?? "Unavailable") : nil
         lastAt = AutoBackup.lastAt
         problem = AutoBackup.lastError
+    }
+}
+
+/// Settings › Food reminders: a nudge at a set time for each chosen meal, only if nothing is logged in it yet.
+struct MealReminderSection: View {
+    @Bindable var settings: AppSettings
+    @Environment(\.modelContext) private var context
+    @State private var message: String?
+
+    var body: some View {
+        Section {
+            ForEach([MealSlot.breakfast, .lunch, .dinner]) { meal in
+                Toggle(meal.label, isOn: Binding(get: { settings.mealReminderMinutes[meal.rawValue] != nil },
+                                                 set: { setOn($0, meal) }))
+                    .accessibilityIdentifier("mealReminder-\(meal.rawValue)")
+                if let minutes = settings.mealReminderMinutes[meal.rawValue] {
+                    DatePicker("Remind at", selection: Binding(
+                        get: { Calendar.current.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0, of: .now) ?? .now },
+                        set: { d in
+                            let c = Calendar.current.dateComponents([.hour, .minute], from: d)
+                            settings.mealReminderMinutes[meal.rawValue] = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+                            refresh()
+                        }), displayedComponents: .hourAndMinute)
+                        .padding(.leading)
+                }
+            }
+            if let message { Text(message).font(.footnote).foregroundStyle(.secondary) }
+        } header: { Text("Food reminders") } footer: {
+            Text("A nudge at the time you pick, only on days that meal is still empty. Logging the meal cancels that day's nudge, and tapping one opens Add for that meal, where you can search, scan or take a plate photo.")
+        }
+    }
+
+    private func setOn(_ on: Bool, _ meal: MealSlot) {
+        guard on else {
+            settings.mealReminderMinutes[meal.rawValue] = nil
+            refresh()
+            return
+        }
+        Task {
+            if await ReminderService.enable() {
+                message = nil
+                settings.mealReminderMinutes[meal.rawValue] = MealReminders.defaultTimes[meal] ?? 720
+                refresh()
+            } else {
+                message = "Notifications are off for Steady Strength. You can allow them in the iPhone Settings app."
+            }
+        }
+    }
+
+    private func refresh() {
+        try? context.save()
+        Task { await MealReminderService.refresh(context) }
     }
 }

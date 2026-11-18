@@ -185,6 +185,8 @@ final class AppSettings {
     var hardDays: [String] = []
     /// Share (%) of active calories from Apple Health workouts that day added to the calorie target; 0 = off.
     var healthAddBackPercent: Int = 50
+    /// "Did you log it?" reminders: meal (MealSlot.rawValue) -> minutes after midnight. Empty = off.
+    var mealReminderMinutes: [String: Int] = [:]
 
     init() {
         onboardingComplete = false

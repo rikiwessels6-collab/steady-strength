@@ -181,6 +181,7 @@ enum DataImport {
             if let x = st.hardDayExtraKcal { settings.hardDayExtraKcal = x }
             if let d = st.hardDays { settings.hardDays = d }
             if let h = st.healthAddBackPercent { settings.healthAddBackPercent = h }
+            if let m = st.mealReminderMinutes { settings.mealReminderMinutes = m }
         }
         if settings.disclaimerAcceptedAt == nil { settings.disclaimerAcceptedAt = .now }
         settings.onboardingComplete = true
