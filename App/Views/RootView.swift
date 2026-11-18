@@ -47,6 +47,7 @@ struct RootView: View {
             }
             syncLock()
             lock.lockNow()
+            backupIfDue()
             if ProcessInfo.processInfo.arguments.contains("-UITestForceLock") {
                 lock.configure(enabled: true, timeoutSeconds: 0)
                 lock.lockNow()
@@ -64,10 +65,18 @@ struct RootView: View {
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .background: lock.didEnterBackground()
-            case .active: lock.willEnterForeground()
+            case .active:
+                lock.willEnterForeground()
+                backupIfDue()
             default: break
             }
         }
+    }
+
+    /// The weekly backup, once the app is set up and a folder has been chosen.
+    private func backupIfDue() {
+        guard case .ready = content.state, current?.onboardingComplete == true, !Persistence.isUITest else { return }
+        AutoBackup.runIfDue(context)
     }
 
     /// The lock only applies once onboarding is finished and it's switched on.

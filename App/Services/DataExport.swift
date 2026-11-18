@@ -104,8 +104,19 @@ enum DataExport {
         var cardio: [CardioRecord]? = nil
     }
 
+    /// Writes the backup to a temporary file for the share sheet.
     @MainActor
     static func write(_ context: ModelContext) throws -> URL {
+        let data = try encoded(context)
+        let stamp = ISO8601DateFormatter().string(from: .now).prefix(10)
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("SteadyStrength-export-\(stamp).json")
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
+        return url
+    }
+
+    /// The whole backup as JSON.
+    @MainActor
+    static func encoded(_ context: ModelContext) throws -> Data {
         let p = try context.fetch(FetchDescriptor<UserProfile>()).first
         let t = try context.fetch(FetchDescriptor<TrainingPlan>()).first
         let n = try context.fetch(FetchDescriptor<NutritionPlan>()).first
@@ -185,9 +196,6 @@ enum DataExport {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
-        let stamp = ISO8601DateFormatter().string(from: .now).prefix(10)
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("SteadyStrength-export-\(stamp).json")
-        try encoder.encode(snapshot).write(to: url, options: [.atomic, .completeFileProtection])
-        return url
+        return try encoder.encode(snapshot)
     }
 }

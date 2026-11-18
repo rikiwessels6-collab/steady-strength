@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import SteadyCore
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var context
@@ -231,6 +232,7 @@ struct SettingsView: View {
                         Text("Tap the flame on the food card to mark a day you train harder; that day's target rises by the extra above, all as carbs. Workouts and runs recorded in Apple Health (from your watch or other apps) can add back a share of their active calories instead. Watch estimates vary, so a share is safer than all of it. On a marked day the larger of the two is used, never both. Your weekly calorie suggestion still follows your weight trend.")
                     }
                 }
+                AutoBackupSection()
                 Section("Privacy") {
                     NavigationLink("Privacy policy") { PrivacyPolicyView() }
                     if let s = settings.first {
@@ -377,4 +379,50 @@ struct WeightField: View {
     }
 
     static func display(_ value: Double) -> String { NumberText.format((value * 10).rounded() / 10) }
+}
+
+/// Settings › Weekly backup: pick a folder in Files and a backup file is saved there once a week.
+struct AutoBackupSection: View {
+    @Environment(\.modelContext) private var context
+    @State private var picking = false
+    @State private var folder: String?
+    @State private var lastAt: Date?
+    @State private var problem: String?
+
+    var body: some View {
+        Section {
+            if let folder {
+                LabeledContent("Folder", value: folder)
+                LabeledContent("Last saved", value: lastAt.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? "Not yet")
+                Button("Back up now") { AutoBackup.run(context); refresh() }
+                    .accessibilityIdentifier("backupNow")
+            }
+            Button(folder == nil ? "Choose a backup folder" : "Change folder") { picking = true }
+                .accessibilityIdentifier("chooseBackupFolder")
+                .fileImporter(isPresented: $picking, allowedContentTypes: [.folder]) { result in
+                    var failure: String?
+                    switch result {
+                    case .success(let url):
+                        do { try AutoBackup.choose(url, context: context) } catch { failure = error.localizedDescription }
+                    case .failure(let error):
+                        failure = error.localizedDescription
+                    }
+                    refresh()
+                    if let failure { problem = failure }
+                }
+            if folder != nil {
+                Button("Stop weekly backups", role: .destructive) { AutoBackup.stop(); refresh() }
+            }
+            if let problem { Text(problem).font(.footnote).foregroundStyle(.red) }
+        } header: { Text("Weekly backup") } footer: {
+            Text("Once a week, when you open the app, a full backup file is saved to the folder you choose in Files (for example iCloud Drive or On My iPhone). The newest 8 are kept and older ones removed. Progress photos stay in the app; only their dates are in the file. A file in iCloud Drive is stored in your iCloud account, not only on this phone. To restore, use Restore from a backup and pick one of these files.")
+        }
+        .onAppear(perform: refresh)
+    }
+
+    private func refresh() {
+        folder = AutoBackup.isOn ? (AutoBackup.folderName ?? "Unavailable") : nil
+        lastAt = AutoBackup.lastAt
+        problem = AutoBackup.lastError
+    }
 }

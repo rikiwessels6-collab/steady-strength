@@ -57,6 +57,7 @@ struct FoodView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     dayHeader
+                    if dayEntries.isEmpty, let prev = previousDay { copyDayButton(prev) }
                     if let plan = plans.first { FoodCard(plan: plan, totals: totals(dayEntries), day: day) }
                     NutritionDetailCard(totals: totals(dayEntries))
                     ForEach(MealSlot.allCases) { meal in mealCard(meal) }
@@ -130,14 +131,36 @@ struct FoodView: View {
     /// Copies a past meal onto the day being viewed, at the same times of day (never in the future).
     private func repeatMeal(_ meal: MealSlot) {
         guard let prev = previousMeal(meal) else { return }
-        let cal = Calendar.current
         for e in prev.items {
-            let t = cal.dateComponents([.hour, .minute], from: e.eatenAt)
-            var when = cal.date(bySettingHour: t.hour ?? 12, minute: t.minute ?? 0, second: 0, of: day) ?? day
-            if when > .now { when = .now }
-            context.insert(FoodEntry(copying: e, eatenAt: when, meal: meal))
+            context.insert(FoodEntry(copying: e, eatenAt: FoodRepeat.time(of: e.eatenAt, on: day), meal: meal))
         }
         try? context.save()
+    }
+
+    /// The most recent earlier day with anything logged, to copy a whole day in one tap.
+    private var previousDay: (date: Date, items: [FoodEntry])? {
+        guard let start = FoodRepeat.previousDay(entries.map(\.eatenAt), before: day) else { return nil }
+        let (s, e) = Calendar.current.dayRange(start)
+        return (s, entries.filter { $0.eatenAt >= s && $0.eatenAt < e })
+    }
+
+    /// Copies every food from that day onto the day being viewed, in the same meals and at the same times.
+    private func repeatDay() {
+        guard let prev = previousDay else { return }
+        for e in prev.items {
+            context.insert(FoodEntry(copying: e, eatenAt: FoodRepeat.time(of: e.eatenAt, on: day), meal: e.meal))
+        }
+        try? context.save()
+    }
+
+    private func copyDayButton(_ prev: (date: Date, items: [FoodEntry])) -> some View {
+        Button { repeatDay() } label: {
+            Label("Copy all of \(repeatLabel(prev.date, prev.items))", systemImage: "doc.on.doc")
+                .font(.subheadline.weight(.semibold)).multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.bordered).tint(Color.gold)
+        .accessibilityIdentifier("copyDay")
     }
 
     /// "7:30 am · 150 g · P 20 C 30 F 5". Quick adds have no real weight, so the grams are left out.

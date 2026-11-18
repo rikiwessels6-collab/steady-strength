@@ -373,6 +373,8 @@ struct FoodCard: View {
                 }
             }
             .frame(width: 104, height: 104)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("caloriesLeft")
             VStack(alignment: .leading, spacing: 10) {
                 Text("FOOD TODAY").font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
                 MacroBar(label: "Protein", value: Int(totals.protein.rounded()), target: plan.protein)
@@ -402,7 +404,7 @@ struct FoodCard: View {
             }
         }
         .card()
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .task(id: "\(HardDay.key(day))-\(percent)-\(scenePhase == .active)") {
             guard percent > 0, HealthService.isAvailable else { health = (0, 0); return }
             health = await HealthService.workoutCalories(on: day)
