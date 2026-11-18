@@ -8,6 +8,9 @@ enum Persistence {
     /// UI tests pass -UITestInMemory to start from a clean, throwaway store.
     static var isUITest: Bool { ProcessInfo.processInfo.arguments.contains("-UITestInMemory") }
 
+    /// The one store for the app and its Siri shortcuts.
+    static let shared = makeContainer()
+
     static func makeContainer() -> ModelContainer {
         do {
             if isUITest {
