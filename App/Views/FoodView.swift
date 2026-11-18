@@ -1088,12 +1088,17 @@ struct RestaurantItemRow: View {
     let showChain: Bool
     let onTap: () -> Void
 
+    private var macroText: String {
+        guard !item.isEnergyOnly, let p = item.protein, let c = item.carbs, let f = item.fat else { return "Calories only" }
+        return "P \(NumberText.format(p)) C \(NumberText.format(c)) F \(NumberText.format(f))"
+    }
+
     var body: some View {
         Button(action: onTap) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name).foregroundStyle(Color.ink).lineLimit(2)
-                    Text((showChain ? chain.name + " · " : "") + "P \(NumberText.format(item.protein)) C \(NumberText.format(item.carbs)) F \(NumberText.format(item.fat))")
+                    Text((showChain ? chain.name + " · " : "") + macroText)
                         .font(.caption).foregroundStyle(Color.inkMuted)
                     if let note = item.note { Text(note).font(.caption2).foregroundStyle(Color.gold) }
                 }

@@ -64,14 +64,19 @@ public struct RestaurantItem: Decodable, Sendable, Identifiable {
     public let checkedOn: String?
     public let kj: Double
     public let kcal: Double
-    public let protein: Double
-    public let fat: Double
+    /// Nil only for energy-only items (see `energyOnly`).
+    public let protein: Double?
+    public let fat: Double?
     public let satFat: Double?
-    public let carbs: Double
+    public let carbs: Double?
     public let sugar: Double?
     public let sodium: Double?
     public let source: String
     public let note: String?
+    /// The source gives energy but not protein, fat or carbohydrate; the app logs calories only.
+    public let energyOnly: Bool?
+
+    public var isEnergyOnly: Bool { energyOnly == true || protein == nil || fat == nil || carbs == nil }
 
     /// True when the item is logged by the serve because the guide gives no weight.
     public var isPerServe: Bool { (serveAmount ?? 0) <= 0 || unit == "serve" }
@@ -88,8 +93,9 @@ public struct RestaurantItem: Decodable, Sendable, Identifiable {
             let amount = serveAmount ?? 100
             f = 100 / amount; serving = amount; label = "1 serve (\(Int(amount.rounded())) \(unit))"
         }
-        return FoodItem(id: (isPerServe ? FoodItem.perServePrefix : "restaurant-") + id, name: name, brand: chain.name, barcode: nil,
-                        per100: Per100(kcal: kcal * f, protein: protein * f, carbs: carbs * f, fat: fat * f, fibre: 0,
+        // Energy-only items log calories with zero macros, as a Quick add with the macro boxes left blank does.
+        return FoodItem(id: (isPerServe ? FoodItem.perServePrefix : "restaurant-") + id, name: isEnergyOnly ? name + " (calories only)" : name, brand: chain.name, barcode: nil,
+                        per100: Per100(kcal: kcal * f, protein: (protein ?? 0) * f, carbs: (carbs ?? 0) * f, fat: (fat ?? 0) * f, fibre: 0,
                                        sugar: sugar.map { $0 * f }, satFat: satFat.map { $0 * f }, sodium: sodium.map { $0 * f }),
                         servingGrams: serving, servingLabel: label)
     }

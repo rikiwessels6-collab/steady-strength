@@ -12,3 +12,4 @@ energy total disagrees with the macros, kept as published with `publishedMismatc
 - `parse_subway.py <pdftotext -layout of Subway's AUS guide> <raw.json>` then `build_subway.py <raw.json> <items.json>`
 - `parse_zambrero.py <pdftotext -layout of Zambrero's AUS guide> <items.json>` (logged by the serve: the guide gives no weights)
 - `parse_thisbowl.py <saved thisbowl.com/en-au/pages/nutritional-and-allergen-guides html> <items.json>` (Fishbowl is now THISBOWL)
+- `parse_kfc.py <pdftotext -layout of KFC's Nutrition & Allergen page saved as PDF> <items.json>` (energy per item; full values only for items in its FULL table, the rest `energyOnly`)

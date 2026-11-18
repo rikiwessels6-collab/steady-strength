@@ -49,4 +49,20 @@ final class RestaurantTests: XCTestCase {
         XCTAssertTrue(menus.search("").isEmpty)
         XCTAssertTrue(menus.search("zzzz").isEmpty)
     }
+
+    func testKFCEnergyOnlyItemsLogCaloriesWithoutMacros() throws {
+        let menus = try bundled()
+        let chain = try XCTUnwrap(menus.chains.first { $0.id == "kfc-au" })
+        let wings = try XCTUnwrap(chain.items.first { $0.id == "kfc-3-wicked-wings" })
+        XCTAssertTrue(wings.isEnergyOnly)
+        XCTAssertNil(wings.protein)
+        let food = wings.food(chain: chain)
+        let m = food.macros(grams: 100)                                   // one serve
+        XCTAssertEqual(m.kcal, 389, accuracy: 0.5)                        // 1629 kJ
+        XCTAssertEqual(m.protein + m.carbs + m.fat, 0)
+
+        let burger = try XCTUnwrap(chain.items.first { $0.id == "kfc-original-crispy-burger" })
+        XCTAssertFalse(burger.isEnergyOnly)
+        XCTAssertEqual(burger.food(chain: chain).macros(grams: 183).protein, 24.7, accuracy: 0.01)
+    }
 }

@@ -19,6 +19,10 @@ class RestaurantMenus(unittest.TestCase):
             for key in ("name", "category", "serveAmount", "unit", "kj", "kcal", "protein", "fat", "carbs", "source"):
                 self.assertIn(key, i, i["id"])
             self.assertIn(i["unit"], ("g", "mL", "serve"))
+            # Protein, fat and carbohydrate may only be missing when the item says it is energy only.
+            if any(i[k] is None for k in ("protein", "fat", "carbs")):
+                self.assertTrue(i.get("energyOnly"), i["id"])
+                self.assertTrue(all(i[k] is None for k in ("protein", "fat", "carbs")), i["id"])
             if i["unit"] == "serve":
                 self.assertIsNone(i["serveAmount"], i["id"])            # no invented weight
                 self.assertTrue(i.get("servingDescription"), i["id"])  # but it says what a serve is
@@ -33,6 +37,8 @@ class RestaurantMenus(unittest.TestCase):
     def test_parts_make_sense(self):
         problems = []
         for i in self.items:
+            if i.get("energyOnly"):
+                continue
             if i.get("satFat", 0) > i["fat"] + 0.05:
                 problems.append(f"{i['id']}: saturated fat above total fat")
             if i.get("sugar", 0) > i["carbs"] + 0.05:
@@ -49,6 +55,21 @@ class RestaurantMenus(unittest.TestCase):
         for i in self.items:
             if i.get("publishedMismatch"):
                 self.assertIn("as published", i.get("note", ""), i["id"])
+
+
+    def test_energy_only_items_say_so(self):
+        only = [i for i in self.items if i.get("energyOnly")]
+        self.assertTrue(only)
+        for i in only:
+            self.assertTrue(i.get("note", "").startswith("Calories only"), i["id"])
+            for k in ("satFat", "sugar", "sodium"):
+                self.assertNotIn(k, i, i["id"])
+
+    def test_kfc_original_crispy_burger(self):
+        burger = next(i for i in self.items if i["id"] == "kfc-original-crispy-burger")
+        self.assertEqual((burger["serveAmount"], burger["kj"], burger["protein"], burger["fat"], burger["carbs"]),
+                         (183, 1874, 24.7, 22.3, 35.9))
+        self.assertNotIn("energyOnly", burger)
 
 
 if __name__ == "__main__":
