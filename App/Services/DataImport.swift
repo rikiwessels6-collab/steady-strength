@@ -178,6 +178,8 @@ enum DataImport {
         if let st = snap.settings {
             settings.barWeightKg = st.barWeightKg; settings.plateStock = st.plateStock; settings.warmupStyleRaw = st.warmupStyle
             settings.remindersEnabled = st.remindersEnabled; settings.reminderHour = st.reminderHour; settings.reminderMinute = st.reminderMinute
+            if let x = st.hardDayExtraKcal { settings.hardDayExtraKcal = x }
+            if let d = st.hardDays { settings.hardDays = d }
         }
         if settings.disclaimerAcceptedAt == nil { settings.disclaimerAcceptedAt = .now }
         settings.onboardingComplete = true

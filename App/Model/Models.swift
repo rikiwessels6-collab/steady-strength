@@ -179,6 +179,10 @@ final class AppSettings {
     var restAlerts: Bool = false
     /// Save finished workouts to Apple Health as strength training (start and end time only).
     var saveWorkoutsToHealth: Bool = false
+    /// Extra calories (as carbs) on days marked as hard training days; 0 turns it off.
+    var hardDayExtraKcal: Int = 200
+    /// Days marked as hard training days, as "yyyy-MM-dd".
+    var hardDays: [String] = []
 
     init() {
         onboardingComplete = false

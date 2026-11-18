@@ -344,26 +344,47 @@ struct WeekStrip: View {
 struct FoodCard: View {
     let plan: NutritionPlan
     var totals: Macros = Macros()
+    /// The day shown; a hard training day raises its targets.
+    var day: Date = .now
+    @Query private var settings: [AppSettings]
+    @Environment(\.modelContext) private var context
     private var eaten: Int { Int(totals.kcal.rounded()) }
+    private var extra: Int { settings.first?.hardDayExtraKcal ?? 0 }
+    private var isHard: Bool { settings.first?.hardDays.contains(HardDay.key(day)) ?? false }
+    private var target: (calories: Int, carbs: Int) {
+        HardDay.targets(calories: plan.calories, carbs: plan.carbs, extraKcal: extra, isHardDay: isHard)
+    }
 
     var body: some View {
         HStack(spacing: 18) {
             ZStack {
                 Circle().stroke(Color.hairline, lineWidth: 10)
-                Circle().trim(from: 0, to: min(1, CGFloat(eaten) / CGFloat(max(plan.calories, 1))))
+                Circle().trim(from: 0, to: min(1, CGFloat(eaten) / CGFloat(max(target.calories, 1))))
                     .stroke(LinearGradient.brand, style: StrokeStyle(lineWidth: 10, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                 VStack(spacing: 0) {
-                    Text("\(abs(plan.calories - eaten))").font(.title3.weight(.bold).monospacedDigit()).foregroundStyle(Color.ink)
-                    Text(eaten > plan.calories ? "kcal over" : "kcal left").font(.caption2).foregroundStyle(Color.inkMuted)
+                    Text("\(abs(target.calories - eaten))").font(.title3.weight(.bold).monospacedDigit()).foregroundStyle(Color.ink)
+                    Text(eaten > target.calories ? "kcal over" : "kcal left").font(.caption2).foregroundStyle(Color.inkMuted)
                 }
             }
             .frame(width: 104, height: 104)
             VStack(alignment: .leading, spacing: 10) {
                 Text("FOOD TODAY").font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Color.gold)
                 MacroBar(label: "Protein", value: Int(totals.protein.rounded()), target: plan.protein)
-                MacroBar(label: "Carbs", value: Int(totals.carbs.rounded()), target: plan.carbs)
+                MacroBar(label: "Carbs", value: Int(totals.carbs.rounded()), target: target.carbs)
                 MacroBar(label: "Fat", value: Int(totals.fat.rounded()), target: plan.fat)
+                if extra > 0, let s = settings.first {
+                    Button {
+                        s.hardDays = HardDay.toggled(s.hardDays, key: HardDay.key(day))
+                        try? context.save()
+                    } label: {
+                        Label(isHard ? "Hard training day: +\(extra) kcal" : "Hard training day?",
+                              systemImage: isHard ? "flame.fill" : "flame")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.bordered).tint(isHard ? Color.gold : Color.inkMuted)
+                    .accessibilityIdentifier("hardDayToggle")
+                }
                 if plan.startAtMaintenance {
                     Text(plan.easeInUntil.map { "Maintenance until \($0.formatted(.dateTime.day().month(.abbreviated))), then your goal targets" }
                          ?? "Maintenance for your first two weeks")

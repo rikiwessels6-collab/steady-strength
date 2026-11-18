@@ -217,6 +217,16 @@ struct SettingsView: View {
                         Text("Used by Daily habits on Today. Protein comes from your food targets.")
                     }
                 }
+                if let s = settings.first {
+                    Section {
+                        Stepper(value: Binding(get: { s.hardDayExtraKcal }, set: { s.hardDayExtraKcal = $0 }), in: 0...800, step: 50) {
+                            LabeledContent("Extra on hard days", value: s.hardDayExtraKcal == 0 ? "Off" : "\(s.hardDayExtraKcal) kcal")
+                        }
+                        .accessibilityIdentifier("hardDayExtra")
+                    } header: { Text("Hard training days") } footer: {
+                        Text("Tap the flame on the food card to mark a day you train harder. That day's target rises by this amount, all as carbs. Your weekly calorie suggestion still follows your weight trend. Set to 0 to hide the button.")
+                    }
+                }
                 Section("Privacy") {
                     NavigationLink("Privacy policy") { PrivacyPolicyView() }
                     if let s = settings.first {

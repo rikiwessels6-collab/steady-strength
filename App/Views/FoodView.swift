@@ -57,7 +57,7 @@ struct FoodView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     dayHeader
-                    if let plan = plans.first { FoodCard(plan: plan, totals: totals(dayEntries)) }
+                    if let plan = plans.first { FoodCard(plan: plan, totals: totals(dayEntries), day: day) }
                     NutritionDetailCard(totals: totals(dayEntries))
                     ForEach(MealSlot.allCases) { meal in mealCard(meal) }
                 }
