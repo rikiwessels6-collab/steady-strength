@@ -74,7 +74,7 @@ final class FoodUITests: XCTestCase {
         restaurants.tap()
         let chain = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Domino")).firstMatch
         XCTAssertTrue(chain.waitForExistence(timeout: 10), "Domino's should be listed")
-        let search = app.searchFields.firstMatch
+        let search = app.searchFields["Search menus, e.g. latte"]   // not the food search under this sheet
         XCTAssertTrue(search.waitForExistence(timeout: 5))
         search.tap(); search.typeText("margherita classic")
         let row = app.buttons["menu-dominos-margherita-classic-crust"]
