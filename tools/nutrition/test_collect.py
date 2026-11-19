@@ -3,9 +3,11 @@ from pathlib import Path
 import sqlite3
 from tempfile import TemporaryDirectory
 import unittest
+from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlparse
+from unittest.mock import patch
 
-from collect import collect_operators, collect_retail, open_food_facts, write_snapshot
+from collect import collect_operators, collect_retail, download, open_food_facts, write_snapshot
 
 
 class CatalogueTests(unittest.TestCase):
@@ -60,6 +62,19 @@ class CatalogueTests(unittest.TestCase):
             collect_operators([self.feed], get=fetch({**self.operator, "sourceURL": "http://example.com"}))
         with self.assertRaisesRegex(ValueError, "licence"):
             collect_operators([{**self.feed, "licence": ""}], get=fetch(self.operator))
+
+    def test_download_retries_transient_http_errors_but_not_missing_feeds(self):
+        url = "https://example.com/feed.json"
+        waits = []
+        with patch("collect.urlopen", side_effect=[
+            HTTPError(url, 503, "Unavailable", {}, None),
+            HTTPError(url, 404, "Not found", {}, None),
+        ]) as open_url:
+            with self.assertRaises(HTTPError) as failure:
+                download(url, pause=waits.append)
+        self.assertEqual(failure.exception.code, 404)
+        self.assertEqual(waits, [8])
+        self.assertEqual(open_url.call_count, 2)
 
     def test_invalid_nutrient_and_missing_serving_size(self):
         item = self.operator["item"]

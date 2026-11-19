@@ -6,6 +6,7 @@ import math
 from pathlib import Path
 import re
 import sqlite3
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
 from time import sleep
@@ -28,14 +29,26 @@ def https_url(value):
     return value
 
 
-def download(url):
+def download(url, *, pause=sleep):
     request = Request(https_url(url), headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
-    with urlopen(request, timeout=45) as response:
-        https_url(response.url)
-        payload = response.read(MAX_BYTES + 1)
-    if len(payload) > MAX_BYTES:
-        raise ValueError("Feed exceeds the JSON download limit")
-    return json.loads(payload)
+    for attempt in range(3):
+        try:
+            with urlopen(request, timeout=45) as response:
+                https_url(response.url)
+                payload = response.read(MAX_BYTES + 1)
+            if len(payload) > MAX_BYTES:
+                raise ValueError("Feed exceeds the JSON download limit")
+            return json.loads(payload)
+        except HTTPError as error:
+            if attempt == 2 or error.code not in {429, 500, 502, 503, 504}:
+                raise
+            retry_after = error.headers.get("Retry-After", "")
+            delay = min(int(retry_after), 60) if retry_after.isdecimal() else 8 * (attempt + 1)
+        except (URLError, TimeoutError):
+            if attempt == 2:
+                raise
+            delay = 8 * (attempt + 1)
+        pause(max(7, delay))
 
 
 def number(value, cap):
