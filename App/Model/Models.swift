@@ -322,6 +322,8 @@ final class FoodEntry {
     var barcode: String?
     var foodId: String
     var grams: Double
+    var amountUnit: String? = nil
+    var portionUnit: String { amountUnit == "mL" ? "mL" : "g" }
     var kcal: Double
     var protein: Double
     var carbs: Double
@@ -345,6 +347,7 @@ final class FoodEntry {
         self.barcode = item.barcode
         self.foodId = item.id
         self.grams = grams
+        self.amountUnit = item.amountUnit
         self.kcal = m.kcal
         self.protein = m.protein
         self.carbs = m.carbs
@@ -366,6 +369,7 @@ final class FoodEntry {
         self.barcode = e.barcode
         self.foodId = e.foodId
         self.grams = e.grams
+        self.amountUnit = e.amountUnit
         self.kcal = e.kcal
         self.protein = e.protein
         self.carbs = e.carbs
@@ -388,6 +392,7 @@ final class FoodEntry {
         self.barcode = i.barcode
         self.foodId = i.foodId
         self.grams = i.grams
+        self.amountUnit = i.amountUnit
         self.kcal = i.kcal
         self.protein = i.protein
         self.carbs = i.carbs
@@ -549,6 +554,7 @@ struct MealItem: Codable, Hashable {
     var barcode: String?
     var foodId: String
     var grams: Double
+    var amountUnit: String? = nil
     var kcal: Double
     var protein: Double
     var carbs: Double
@@ -562,6 +568,7 @@ struct MealItem: Codable, Hashable {
     init(_ e: FoodEntry) {
         name = e.name; brand = e.brand; barcode = e.barcode; foodId = e.foodId; grams = e.grams
         kcal = e.kcal; protein = e.protein; carbs = e.carbs; fat = e.fat; fibre = e.fibre; sourceRaw = e.sourceRaw
+        amountUnit = e.amountUnit
         sugar = e.sugar; satFat = e.satFat; sodiumMg = e.sodiumMg
     }
 }

@@ -1,0 +1,47 @@
+name: Australian nutrition catalogue
+
+on:
+  pull_request:
+    branches: [steady-strength]
+    paths:
+      - 'tools/nutrition/**'
+      - '.github/workflows/nutrition-catalogue.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '23 16 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nutrition-catalogue-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest discover -s tools/nutrition
+      - run: python3 -m unittest discover -s tools/importer -p test_restaurants.py
+
+  collect:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect and validate nutrition snapshots
+        env:
+          APPROVED_MENU_FEEDS: ${{ vars.APPROVED_MENU_FEEDS }}
+        run: |
+          printf '%s' "${APPROVED_MENU_FEEDS:-[]}" > "$RUNNER_TEMP/nutrition-feeds.json"
+          python3 tools/nutrition/collect.py --output nutrition-output --feed-config "$RUNNER_TEMP/nutrition-feeds.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: australian-nutrition-catalogues
+          path: nutrition-output/
+          if-no-files-found: error
+          retention-days: 30

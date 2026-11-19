@@ -19,6 +19,27 @@ final class FeatureTests: XCTestCase {
         return NutritionPlan(targets: t, presetName: "Balanced", proteinPerKg: 1.8, startAtMaintenance: true)
     }
 
+    func testReviewedProductCanBeReadFromTheLocalStoreAndRepeated() throws {
+        let container = try container()
+        let item = FoodItem(id: "9300633603224", name: "Test drink", brand: nil, barcode: "9300633603224",
+                            per100: Per100(kcal: 40, protein: 3, carbs: 5, fat: 1, fibre: 1, sugar: 4, sodium: 50),
+                            servingGrams: 250, servingLabel: nil, amountUnit: "mL")
+        let context = ModelContext(container)
+        context.insert(SavedFood(item: item, isCustom: true))
+        try context.save()
+
+        let freshContext = ModelContext(container)
+        let record = try XCTUnwrap(freshContext.fetch(FetchDescriptor<SavedFood>()).first)
+        let saved = try XCTUnwrap(record.item)
+        XCTAssertEqual(saved, item)
+        let entry = FoodEntry(item: saved, grams: 250, meal: .breakfast, source: .barcode, eatenAt: .now)
+        let repeated = FoodEntry(mealItem: MealItem(entry), eatenAt: .now, meal: .lunch)
+        XCTAssertEqual(repeated.portionUnit, "mL")
+        XCTAssertEqual(repeated.macros.sodium, 125)
+        XCTAssertEqual(repeated.macros.sugar, 10)
+        XCTAssertEqual(repeated.macros.kcal, 100)
+    }
+
     func testGoalChangeRecomputesTargets() {
         let p = profile()
         let n = nutrition(for: p)

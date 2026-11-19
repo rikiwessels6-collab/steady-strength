@@ -24,7 +24,7 @@ final class NutritionPanelTests: XCTestCase {
 
     func testPer100FirstWithCalories() {
         let r = NutritionPanel.parse([
-            "Serving size: 250 ml", "Per 100 g Per serve",
+            "Serving size: 250 g", "Per 100 g Per serve",
             "Energy 1600 kJ (382 Cal) 4000 kJ (955 Cal)",
             "Protein 20,5 g 51,3 g", "Fat total 10 g 25 g", "Carbohydrate 50 g 125 g",
         ])
@@ -51,4 +51,38 @@ final class NutritionPanelTests: XCTestCase {
         let r = NutritionPanel.parse(["hello world", "Protein 500 g 800 g"])
         XCTAssertFalse(r.foundAnything)
     }
+
+    func testAustralianLiquidWithMixedSodiumUnitsAndAnUnreadColumn() {
+        let r = NutritionPanel.parse([
+            "Serving size: 250 mL", "Per serve Per 100mL",
+            "Energy 500 kJ 200 kJ", "Protein 8 g 3.2 g", "Fat, total 3 g",
+            "Carbohydrate 12 g 4.8 g", "Sugars 10 g 4 g", "Fibre 2 g 0.8 g", "Sodium 0.1 g 40 mg",
+        ])
+        XCTAssertEqual(r.amountUnit, "mL")
+        XCTAssertEqual(r.servingGrams, 250)
+        XCTAssertEqual(r.kcal, 48)
+        XCTAssertEqual(r.protein, 3.2)
+        XCTAssertNil(r.fat)
+        XCTAssertEqual(r.carbs, 4.8)
+        XCTAssertEqual(r.sugar, 4)
+        XCTAssertEqual(r.fibre, 0.8)
+        XCTAssertEqual(r.sodium, 40)
+    }
+
+    func testPerServeConversionAndMissingServingSize() throws {
+        let panel = ["Quantity per serving", "Calories 90", "Protein 3 g", "Sodium 50 mg"]
+        let r = NutritionPanel.parse(["Serving size: 30 g"] + panel)
+        XCTAssertEqual(r.kcal, 300)
+        XCTAssertEqual(r.protein, 10)
+        XCTAssertEqual(try XCTUnwrap(r.sodium), 500.0 / 3, accuracy: 0.001)
+        XCTAssertTrue(r.hasConfirmedBasis)
+        XCTAssertFalse(NutritionPanel.parse(panel).foundAnything)
+    }
+
+    func testMismatchedServingUnitIsNotAssumedToBeAWeight() {
+        let r = NutritionPanel.parse(["Serving size 250 mL", "Per 100 g", "Energy 100 kJ"])
+        XCTAssertEqual(r.amountUnit, "g")
+        XCTAssertNil(r.servingGrams)
+    }
+
 }

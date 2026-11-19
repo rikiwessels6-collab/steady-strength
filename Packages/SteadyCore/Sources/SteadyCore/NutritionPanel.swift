@@ -14,8 +14,10 @@ public struct PanelReading: Equatable, Sendable {
     public var sodium: Double?
     /// True when the panel had a per-serve and a per-100 g column, so the per-100 g one could be picked out.
     public var foundBothColumns = false
+    public var amountUnit: String?
+    public var hasConfirmedBasis = false
 
-    public var foundAnything: Bool { kcal != nil || protein != nil || carbs != nil || fat != nil }
+    public var foundAnything: Bool { [kcal, protein, carbs, fat, fibre, sugar, satFat, sodium].contains { $0 != nil } }
 }
 
 /// Reads an Australian-style panel from lines of text (one line per table row), using the per 100 g column.
@@ -24,32 +26,51 @@ public enum NutritionPanel {
         let lines = rows.map(normalise)
         var reading = PanelReading()
 
-        // Which column is "per 100 g"? Default: the last one, as on most labels.
+        let header = lines.first { $0.range(of: #"per\s*100\s*(?:ml|g)\b"#, options: .regularExpression) != nil }
+        let per100 = header?.range(of: #"per\s*100\s*(?:ml|g)\b"#, options: .regularExpression)
+        let perServe = #"per\s*(?:(?:serving|serve|portion)\b)"#
+        var dual = false
         var per100First = false
-        for l in lines where l.contains("per 100") || l.contains("per100") {
-            if let r100 = l.range(of: "per 100") ?? l.range(of: "per100") {
-                let before = l[..<r100.lowerBound]
-                per100First = !(before.contains("serv") || before.contains("per "))
-            }
-            break
+        if let header, let per100 {
+            let serveColumn = header.range(of: perServe, options: .regularExpression)
+            dual = serveColumn != nil
+            per100First = serveColumn.map { per100.lowerBound < $0.lowerBound } ?? true
+            reading.amountUnit = header[per100].hasSuffix("ml") ? "mL" : "g"
         }
+        let servingLine = lines.first { $0.contains("serving size") || $0.contains("serve size") || $0.contains("serv size") }
+        let serveUnit = servingLine?.range(of: #"\d\s*ml\b"#, options: .regularExpression) != nil ? "mL" : "g"
+        let servingAmount = servingLine.flatMap { numbers($0, units: ["g", "ml"]).first }.flatMap { $0 > 0 ? $0 : nil }
+        if reading.amountUnit == nil || reading.amountUnit == serveUnit { reading.servingGrams = servingAmount }
 
+        let serveOnly = header == nil && lines.contains {
+            !$0.contains("package") && !$0.contains("container") && $0 != servingLine
+                && $0.range(of: perServe, options: .regularExpression) != nil
+        }
+        // A declared per-serve column is safe to scale only with a readable serving size.
+        if serveOnly && servingAmount == nil { return reading }
+        if serveOnly { reading.amountUnit = serveUnit }
+        reading.hasConfirmedBasis = header != nil || serveOnly
         var both = false
+        let multiplier = serveOnly ? 100 / (servingAmount ?? 100) : 1
         func pick(_ values: [Double]) -> Double? {
-            guard !values.isEmpty else { return nil }
-            if values.count >= 2 { both = true }
-            return per100First ? values.first : values.last
+            if dual && values.count != 2 { return nil }
+            if !dual && (header != nil || serveOnly) && values.count != 1 { return nil }
+            if dual { both = true }
+            return (per100First ? values.first : values.last).map { $0 * multiplier }
         }
 
         var kj: [Double] = [], cal: [Double] = []
         for l in lines {
-            if l.contains("serving size") || l.contains("serve size") || l.contains("serv size") {
-                if reading.servingGrams == nil, let v = numbers(l, units: ["g", "ml"]).first { reading.servingGrams = v }
-                continue
-            }
-            if l.contains("energy") || l.hasPrefix("kj") {
-                kj = numbers(l, units: ["kj"])
-                cal = numbers(l, units: ["kcal", "cal"])
+            if l == servingLine { continue }
+            if l.contains("energy") || l.hasPrefix("kj") || l.hasPrefix("calories") {
+                let newKj = numbers(l, units: ["kj"])
+                let newCal = numbers(l, units: ["kcal", "cal", "calories"])
+                if !newKj.isEmpty { kj = newKj }
+                if !newCal.isEmpty { cal = newCal }
+                if newCal.isEmpty, !dual, l.hasPrefix("calories"),
+                   let value = Double(l.dropFirst("calories".count).trimmingCharacters(in: CharacterSet(charactersIn: " :"))) {
+                    cal = [value]
+                }
                 continue
             }
             if l.contains("sugar") && !l.contains("carbohydrate") {
@@ -58,7 +79,7 @@ public enum NutritionPanel {
             }
             if l.contains("sodium") {
                 if reading.sodium == nil {
-                    reading.sodium = pick(numbers(l, units: ["mg"])) ?? pick(numbers(l, units: ["g"])).map { $0 * 1000 }
+                    reading.sodium = pick(numbers(l, units: ["mg", "g"], asMilligrams: true))
                 }
                 continue
             }
@@ -80,7 +101,7 @@ public enum NutritionPanel {
                 if reading.fat == nil, !isSub { reading.fat = pick(numbers(l, units: ["g"])) }
             }
         }
-        if let c = pick(cal) {
+        if let c = pick(cal), (0...950).contains(c) {
             reading.kcal = c
         } else if let k = pick(kj) {
             reading.kcal = (k / 4.184).rounded()
@@ -106,12 +127,14 @@ public enum NutritionPanel {
     }
 
     /// Numbers directly followed by one of the units, in the order they appear ("<1 g" gives 1).
-    static func numbers(_ line: String, units: [String]) -> [Double] {
-        let pattern = #"(\d+(?:\.\d+)?)\s*("# + units.joined(separator: "|") + #")(?![a-z])"#
+    static func numbers(_ line: String, units: [String], asMilligrams: Bool = false) -> [Double] {
+        let pattern = #"(?<![\d.,-])(\d+(?:\.\d+)?)\s*("# + units.joined(separator: "|") + #")(?![a-z])"#
         guard let re = try? NSRegularExpression(pattern: pattern) else { return [] }
         let range = NSRange(line.startIndex..., in: line)
         return re.matches(in: line, range: range).compactMap { m in
-            Range(m.range(at: 1), in: line).flatMap { Double(line[$0]) }
+            guard let digits = Range(m.range(at: 1), in: line), let value = Double(line[digits]),
+                  let unit = Range(m.range(at: 2), in: line) else { return nil }
+            return asMilligrams && line[unit] == "g" ? value * 1000 : value
         }
     }
 }

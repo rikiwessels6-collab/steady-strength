@@ -72,4 +72,32 @@ final class FoodTests: XCTestCase {
         XCTAssertEqual((a + b).kcal, 150)
         XCTAssertEqual((a + b).fat, 2)
     }
+
+    func testRetailerSearchConfirmsAustralianStoreTagsAndCompleteMacros() throws {
+        let matching = #"{"product_name":"Milk","code":"12345678","countries_tags":["en:australia"],"stores_tags":["coles"],"nutriments":{"energy-kcal_100g":65,"proteins_100g":4,"carbohydrates_100g":5,"fat_100g":3}}"#
+        let foreign = matching.replacingOccurrences(of: "en:australia", with: "en:france")
+        let incomplete = matching.replacingOccurrences(of: #","fat_100g":3"#, with: "")
+        let json = #"{"products":["# + [matching, foreign, incomplete].joined(separator: ",") + "]}"
+        let hits = try OpenFoodFacts.parseSearch(Data(json.utf8), retailer: .coles)
+        XCTAssertEqual(hits.map(\.name), ["Milk"])
+        XCTAssertTrue(OpenFoodFacts.searchURL("milk", retailer: .coles)?.absoluteString.contains("tag_1=coles") == true)
+    }
+
+    func testBarcodeKeysAllowLeadingZerosWithoutRewritingLegacyFoodIDs() {
+        XCTAssertEqual(OpenFoodFacts.barcodeKey(" 0123456789012 "), OpenFoodFacts.barcodeKey("123456789012"))
+        XCTAssertNil(OpenFoodFacts.barcodeKey("abc12345678"))
+        XCTAssertNil(OpenFoodFacts.barcodeKey("123"))
+    }
+
+    func testMillilitreItemRoundTripsAndScales() throws {
+        let food = FoodItem(id: "drink", name: "Drink", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 100, protein: 2, carbs: 3, fat: 4, sodium: 50),
+                            servingGrams: nil, servingLabel: nil, amountUnit: "mL")
+        let saved = try JSONDecoder().decode(FoodItem.self, from: JSONEncoder().encode(food))
+        XCTAssertEqual(saved.energyLabel, "100 kcal/100mL")
+        XCTAssertEqual(saved.macros(grams: 250).sodium, 125)
+        let old = #"{"id":"old","name":"Old","per100":{"kcal":100,"protein":2,"carbs":3,"fat":4,"fibre":0}}"#
+        XCTAssertEqual(try JSONDecoder().decode(FoodItem.self, from: Data(old.utf8)).portionUnit, "g")
+    }
+
 }

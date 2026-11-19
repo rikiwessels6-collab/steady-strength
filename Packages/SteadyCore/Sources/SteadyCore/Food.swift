@@ -59,12 +59,16 @@ public struct FoodItem: Codable, Equatable, Sendable, Identifiable {
     public var servingLabel: String?
     /// Household portions from a food database ("1 slice", "1 cup"), when it lists them.
     public var measures: [FoodMeasure]? = nil
+    /// Nil for legacy foods and foods measured in grams.
+    public var amountUnit: String?
+    public var portionUnit: String { amountUnit == "mL" ? "mL" : "g" }
 
     public init(id: String, name: String, brand: String?, barcode: String?, per100: Per100,
-                servingGrams: Double?, servingLabel: String?, measures: [FoodMeasure]? = nil) {
+                servingGrams: Double?, servingLabel: String?, measures: [FoodMeasure]? = nil, amountUnit: String? = nil) {
         self.id = id; self.name = name; self.brand = brand; self.barcode = barcode
         self.per100 = per100; self.servingGrams = servingGrams; self.servingLabel = servingLabel
         self.measures = measures
+        self.amountUnit = amountUnit
     }
 
     public func macros(grams: Double) -> Macros {
@@ -101,17 +105,28 @@ public enum FoodSource: String, Codable, CaseIterable, Sendable {
 /// Open Food Facts (openfoodfacts.org, data under the ODbL licence).
 /// Only the barcode or search words are sent; nothing about the user.
 public enum OpenFoodFacts {
-    public static let userAgent = "SteadyStrength/0.1 (iOS)"
-    static let fields = "code,product_name,product_name_en,brands,nutriments,serving_quantity,serving_size"
+    public static let userAgent = "SteadyStrength/0.1 (https://github.com/rikiwessels6-collab/steady-strength)"
+    static let fields = "code,product_name,product_name_en,brands,nutriments,serving_quantity,serving_size,stores_tags,countries_tags"
+
+    public static func barcodeKey(_ barcode: String) -> String? {
+        let code = barcode.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard (8...14).contains(code.count), code.utf8.allSatisfy({ (48...57).contains($0) }) else { return nil }
+        return String(repeating: "0", count: 14 - code.count) + code
+    }
 
     public static func productURL(barcode: String) -> URL? {
-        let digits = barcode.filter(\.isNumber)
-        guard digits.count >= 8 else { return nil }
-        return URL(string: "https://world.openfoodfacts.org/api/v2/product/\(digits).json?fields=\(fields)")
+        guard barcodeKey(barcode) != nil else { return nil }
+        let code = barcode.trimmingCharacters(in: .whitespacesAndNewlines)
+        return URL(string: "https://world.openfoodfacts.org/api/v2/product/\(code).json?fields=\(fields)")
+    }
+
+    public enum Retailer: String, CaseIterable, Identifiable, Sendable {
+        case aldi = "ALDI", woolworths = "Woolworths", coles = "Coles", iga = "IGA"
+        public var id: String { rawValue }
     }
 
     /// Search, preferring products sold in Australia.
-    public static func searchURL(_ query: String, page: Int = 1) -> URL? {
+    public static func searchURL(_ query: String, page: Int = 1, retailer: Retailer? = nil) -> URL? {
         var c = URLComponents(string: "https://world.openfoodfacts.org/cgi/search.pl")!
         c.queryItems = [
             .init(name: "search_terms", value: query), .init(name: "search_simple", value: "1"),
@@ -120,6 +135,12 @@ public enum OpenFoodFacts {
             .init(name: "tagtype_0", value: "countries"), .init(name: "tag_contains_0", value: "contains"),
             .init(name: "tag_0", value: "australia"), .init(name: "fields", value: fields),
         ]
+        if let retailer {
+            c.queryItems?.append(contentsOf: [
+                .init(name: "tagtype_1", value: "stores"), .init(name: "tag_contains_1", value: "contains"),
+                .init(name: "tag_1", value: retailer.rawValue.lowercased()),
+            ])
+        }
         return c.url
     }
 
@@ -134,6 +155,8 @@ public enum OpenFoodFacts {
         let nutriments: [String: Flexible]?
         let serving_quantity: Flexible?
         let serving_size: String?
+        let stores_tags: [String]?
+        let countries_tags: [String]?
     }
 
     /// OFF numbers arrive as numbers or strings.
@@ -151,18 +174,23 @@ public enum OpenFoodFacts {
         let name = (p.product_name_en?.isEmpty == false ? p.product_name_en : p.product_name)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard let name, !name.isEmpty, let n = p.nutriments else { return nil }
-        func v(_ k: String) -> Double? { n[k]?.value }
+        func v(_ k: String, atMost limit: Double) -> Double? {
+            guard let value = n[k]?.value, (0...limit).contains(value) else { return nil }
+            return value
+        }
         // Energy: prefer kcal; otherwise convert kJ (Australian labels are kJ-first).
-        let kcal = v("energy-kcal_100g") ?? v("energy_100g").map { $0 / 4.184 } ?? v("energy-kj_100g").map { $0 / 4.184 }
+        let kcal = v("energy-kcal_100g", atMost: 950)
+            ?? (v("energy-kj_100g", atMost: 3974.8) ?? v("energy_100g", atMost: 3974.8)).map { $0 / 4.184 }
         guard let kcal else { return nil }
-        // Sodium is given in grams; salt is 2.5 times sodium.
-        let sodiumMg = v("sodium_100g").map { $0 * 1000 } ?? v("salt_100g").map { $0 / 2.5 * 1000 }
-        let per = Per100(kcal: kcal, protein: v("proteins_100g") ?? 0, carbs: v("carbohydrates_100g") ?? 0,
-                         fat: v("fat_100g") ?? 0, fibre: v("fiber_100g") ?? 0,
-                         sugar: v("sugars_100g"), satFat: v("saturated-fat_100g"), sodium: sodiumMg)
+        let sodiumMg = v("sodium_100g", atMost: 40).map { $0 * 1000 }
+            ?? v("salt_100g", atMost: 100).map { $0 / 2.5 * 1000 }
+        let per = Per100(kcal: kcal, protein: v("proteins_100g", atMost: 100) ?? 0,
+                         carbs: v("carbohydrates_100g", atMost: 100) ?? 0, fat: v("fat_100g", atMost: 100) ?? 0,
+                         fibre: v("fiber_100g", atMost: 100) ?? 0, sugar: v("sugars_100g", atMost: 100),
+                         satFat: v("saturated-fat_100g", atMost: 100), sodium: sodiumMg)
         let code = p.code ?? UUID().uuidString
         let brand = p.brands?.split(separator: ",").first.map { $0.trimmingCharacters(in: .whitespaces) }
-        let serving = p.serving_quantity?.value.flatMap { $0 > 0 ? $0 : nil }
+        let serving = p.serving_quantity?.value.flatMap { (0.001...10_000).contains($0) ? $0 : nil }
         return FoodItem(id: code, name: name, brand: brand, barcode: p.code, per100: per,
                         servingGrams: serving, servingLabel: p.serving_size)
     }
@@ -170,10 +198,25 @@ public enum OpenFoodFacts {
     public static func parseProduct(_ data: Data) throws -> FoodItem? {
         let r = try JSONDecoder().decode(ProductResponse.self, from: data)
         guard r.status != 0, let p = r.product else { return nil }
+        // A barcode match with missing core values goes to label capture instead of being saved as zero.
+        guard hasCoreNutrition(p) else { return nil }
         return item(from: p)
     }
 
-    public static func parseSearch(_ data: Data) throws -> [FoodItem] {
-        try JSONDecoder().decode(SearchResponse.self, from: data).products.compactMap(item(from:))
+    private static func hasCoreNutrition(_ product: Product) -> Bool {
+        ["proteins_100g", "carbohydrates_100g", "fat_100g"].allSatisfy { key in
+            guard let value = product.nutriments?[key]?.value else { return false }
+            return (0...100).contains(value)
+        }
+    }
+
+    public static func parseSearch(_ data: Data, retailer: Retailer? = nil) throws -> [FoodItem] {
+        let products = try JSONDecoder().decode(SearchResponse.self, from: data).products
+        guard let retailer else { return products.compactMap(item(from:)) }
+        return products.filter { product in
+            product.countries_tags?.contains("en:australia") == true
+                && product.stores_tags?.contains(retailer.rawValue.lowercased()) == true
+                && hasCoreNutrition(product)
+        }.compactMap(item(from:))
     }
 }

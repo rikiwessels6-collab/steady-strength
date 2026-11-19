@@ -11,18 +11,20 @@ enum FoodService {
         var req = URLRequest(url: url, timeoutInterval: 12)
         req.setValue(OpenFoodFacts.userAgent, forHTTPHeaderField: "User-Agent")
         let (data, resp) = try await URLSession.shared.data(for: req)
-        guard (resp as? HTTPURLResponse)?.statusCode ?? 200 < 400 else { throw URLError(.badServerResponse) }
+        if (resp as? HTTPURLResponse)?.statusCode == 404 { throw URLError(.resourceUnavailable) }
+        guard let response = resp as? HTTPURLResponse, (200..<300).contains(response.statusCode) else { throw URLError(.badServerResponse) }
         return data
     }
 
     static func lookup(barcode: String) async throws -> FoodItem? {
         guard let url = OpenFoodFacts.productURL(barcode: barcode) else { return nil }
-        return try OpenFoodFacts.parseProduct(try await get(url))
+        do { return try OpenFoodFacts.parseProduct(try await get(url)) }
+        catch let error as URLError where error.code == .resourceUnavailable { return nil }
     }
 
-    static func search(_ query: String) async throws -> [FoodItem] {
-        guard let url = OpenFoodFacts.searchURL(query) else { return [] }
-        return try OpenFoodFacts.parseSearch(try await get(url))
+    static func search(_ query: String, retailer: OpenFoodFacts.Retailer? = nil) async throws -> [FoodItem] {
+        guard let url = OpenFoodFacts.searchURL(query, retailer: retailer) else { return [] }
+        return try OpenFoodFacts.parseSearch(try await get(url), retailer: retailer)
     }
 }
 
@@ -185,7 +187,7 @@ struct FoodView: View {
             let serves = NumberText.format(e.grams / 100)
             grams = " · \(serves) serve\(e.grams == 100 ? "" : "s")"
         } else {
-            grams = " · \(Int(e.grams.rounded())) g"
+            grams = " · \(Int(e.grams.rounded())) \(e.portionUnit)"
         }
         return "\(time)\(grams) · P \(Int(e.protein.rounded())) C \(Int(e.carbs.rounded())) F \(Int(e.fat.rounded()))"
     }
@@ -310,9 +312,15 @@ struct AddFoodSheet: View {
     @State private var searching = false
     @State private var message: String?
     @State private var scanning = false
+    @State private var scannedCode: String?
+    @State private var lookingUp = false
+    @State private var retailer: OpenFoodFacts.Retailer?
     @State private var picked: (item: FoodItem, source: FoodSource)?
     @State private var creating = false
     @State private var newBarcode: String?
+    @State private var reviewItem: FoodItem?
+    @State private var reviewNote: String?
+    @State private var reviewedFood: FoodItem?
     @State private var plate = false
     @State private var tab = 0
 
@@ -321,16 +329,33 @@ struct AddFoodSheet: View {
             List {
                 Section {
                     HStack(spacing: 12) {
-                        actionButton("Scan barcode", "barcode.viewfinder") { scanning = true }
+                        actionButton("Scan barcode", "barcode.viewfinder") { scannedCode = nil; scanning = true }
                             .accessibilityIdentifier("scanBarcode")
+                            .disabled(lookingUp)
                         actionButton("Plate photo", "camera.viewfinder") { plate = true }
                             .accessibilityIdentifier("platePhoto")
-                        actionButton("Create food", "square.and.pencil") { newBarcode = nil; creating = true }
+                        actionButton("Create food", "square.and.pencil") { startReview() }
+                            .accessibilityIdentifier("createFood")
                     }
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                 }
                 Section {
+                    Menu {
+                        Picker("Retailer", selection: $retailer) {
+                            Text("All foods").tag(nil as OpenFoodFacts.Retailer?)
+                            ForEach(OpenFoodFacts.Retailer.allCases) { store in
+                                Text(store.rawValue).tag(Optional(store))
+                            }
+                        }
+                    } label: {
+                        Label(retailer?.rawValue ?? "Filter by supermarket", systemImage: "cart")
+                    }
+                    .accessibilityIdentifier("supermarketFilter")
+                    if retailer != nil {
+                        Text("Enter a product name and tap Search. Store tags come from Open Food Facts and may be incomplete.")
+                            .font(.footnote).foregroundStyle(Color.inkMuted)
+                    }
                     Button { quickAdding = true } label: { Label("Quick add calories", systemImage: "bolt") }
                         .accessibilityIdentifier("quickAdd")
                     Button { browsingRestaurants = true } label: { Label("Restaurants and takeaway", systemImage: "takeoutbag.and.cup.and.straw") }
@@ -408,33 +433,46 @@ struct AddFoodSheet: View {
                 }
             }
             .themedList()
-            .overlay { if searching { ProgressView().controlSize(.large) } }
+            .overlay { if searching || lookingUp { ProgressView().controlSize(.large) } }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search foods")
             .onSubmit(of: .search) { Task { await runSearch() } }
             .onChange(of: query) { _, q in
+                message = nil
+                results = []
+                guard retailer == nil else { return }
                 // Your own foods match as you type; Search adds the wider database.
                 let text = q.trimmingCharacters(in: .whitespaces)
-                if text.isEmpty { results = []; message = nil }
-                else if text.count >= 2 {
+                if text.count >= 2 {
                     let mine = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(text) }
                     let menus = (store.restaurants?.search(text) ?? []).map { $0.item.food(chain: $0.chain) }
                     let generic = store.genericFoods?.search(text) ?? []
-                    let others = (menus + generic).filter { m in !mine.contains { $0.id == m.id } }
+                    let catalogue = store.nutritionCatalogue?.search(text) ?? []
+                    let others = (menus + catalogue + generic).filter { m in !mine.contains { $0.id == m.id } }
                     results = FoodRanking.rank(mine, query: text) + FoodRanking.rank(others, query: text)
                 }
+            }
+            .task { await store.refreshNutritionCatalogue() }
+            .onChange(of: retailer) { _, _ in
+                results = []
+                message = nil
             }
             .navigationTitle("Add to \(meal.label)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
-            .fullScreenCover(isPresented: $scanning) {
+            .fullScreenCover(isPresented: $scanning, onDismiss: {
+                guard let code = scannedCode else { return }
+                scannedCode = nil
+                Task { await lookup(code) }
+            }) {
                 BarcodeScanner { code in
+                    scannedCode = code
                     scanning = false
-                    Task { await lookup(code) }
                 } onCancel: { scanning = false }
             }
             .sheet(isPresented: Binding(get: { picked != nil }, set: { if !$0 { picked = nil } })) {
                 if let p = picked {
-                    PortionSheet(item: p.item, source: p.source, meal: meal, day: day) { dismiss() }
+                    PortionSheet(item: p.item, source: p.source, meal: meal, day: day,
+                                 provenance: store.nutritionCatalogue?.entries.first { $0.item.id == p.item.id }) { dismiss() }
                 }
             }
             .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { dismiss() } }
@@ -453,17 +491,59 @@ struct AddFoodSheet: View {
             }
             .sheet(isPresented: $newRecipe) { RecipeEditor() }
             .sheet(item: $loggingRecipe) { r in RecipePortionSheet(recipe: r, meal: meal, day: day) { dismiss() } }
-            .sheet(isPresented: $creating) {
-                CustomFoodForm(barcode: newBarcode) { item in
+            .sheet(isPresented: $creating, onDismiss: {
+                guard let item = reviewedFood else { return }
+                reviewedFood = nil
+                picked = (item, item.barcode == nil ? .manual : .barcode)
+            }) {
+                CustomFoodForm(barcode: newBarcode, item: reviewItem, initialNote: reviewNote) { item in
+                    reviewedFood = try saveReviewedFood(item)
                     creating = false
-                    if !saved.contains(where: { $0.foodId == item.id }) {
-                        context.insert(SavedFood(item: item, isCustom: true))
-                        try? context.save()
-                    }
-                    let source: FoodSource = item.barcode == nil ? .manual : .barcode
-                    picked = (item, source)
                 }
             }
+        }
+    }
+
+    private func startReview(code: String? = nil, item: FoodItem? = nil, note: String? = nil) {
+        newBarcode = code
+        reviewItem = item
+        reviewNote = note
+        creating = true
+    }
+
+    private func savedBarcode(_ code: String) -> SavedFood? {
+        let key = OpenFoodFacts.barcodeKey(code)
+        return saved.first { record in
+            guard let item = record.item else { return false }
+            let barcode = item.barcode ?? record.foodId
+            return barcode == code || (key != nil && OpenFoodFacts.barcodeKey(barcode) == key)
+        }
+    }
+
+    private func saveReviewedFood(_ item: FoodItem) throws -> FoodItem {
+        if let existing = item.barcode.flatMap(savedBarcode) {
+            let oldData = existing.itemData
+            let wasCustom = existing.isCustom
+            var updated = item
+            updated.id = existing.foodId
+            existing.itemData = try JSONEncoder().encode(updated)
+            existing.isCustom = true
+            do { try context.save() }
+            catch {
+                existing.itemData = oldData
+                existing.isCustom = wasCustom
+                throw error
+            }
+            return updated
+        } else {
+            let record = SavedFood(item: item, isCustom: true)
+            context.insert(record)
+            do { try context.save() }
+            catch {
+                context.delete(record)
+                throw error
+            }
+            return item
         }
     }
 
@@ -514,37 +594,45 @@ struct AddFoodSheet: View {
 
     private func runSearch() async {
         let q = query.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return }
+        guard !q.isEmpty, !searching else { return }
+        let selectedRetailer = retailer
         let mine = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(q) }
-        let others = ((store.restaurants?.search(q) ?? []).map { $0.item.food(chain: $0.chain) } + (store.genericFoods?.search(q) ?? []))
+        let catalogue = store.nutritionCatalogue?.search(q) ?? []
+        let others = (catalogue + (store.restaurants?.search(q) ?? []).map { $0.item.food(chain: $0.chain) } + (store.genericFoods?.search(q) ?? []))
             .filter { o in !mine.contains { $0.id == o.id } }
-        let local = FoodRanking.rank(mine, query: q) + FoodRanking.rank(others, query: q)
+        let local = selectedRetailer == nil ? FoodRanking.rank(mine, query: q) + FoodRanking.rank(others, query: q) : []
         searching = true; message = nil
         defer { searching = false }
         do {
-            let remote = try await FoodService.search(q)
+            let remote = try await FoodService.search(q, retailer: selectedRetailer)
+            guard query.trimmingCharacters(in: .whitespaces) == q, selectedRetailer == retailer else { return }
             results = local + remote.filter { r in !local.contains { $0.id == r.id } }
             if results.isEmpty { message = "No matches. Try fewer words, or create the food." }
         } catch {
+            guard query.trimmingCharacters(in: .whitespaces) == q, selectedRetailer == retailer else { return }
             results = local
-            message = "Couldn't reach the food database. Showing your saved foods."
+            message = selectedRetailer == nil
+                ? "Couldn't reach Open Food Facts. Showing matches stored on this phone."
+                : "Couldn't reach Open Food Facts. Clear the supermarket filter to search offline."
         }
     }
 
     private func lookup(_ code: String) async {
-        if let hit = saved.first(where: { $0.foodId == code })?.item { picked = (hit, .barcode); return }
-        searching = true; defer { searching = false }
+        guard !lookingUp else { return }
+        if let hit = savedBarcode(code)?.item { picked = (hit, .barcode); return }
+        lookingUp = true
+        defer { lookingUp = false }
         do {
-            if let item = try await FoodService.lookup(barcode: code) { picked = (item, .barcode) }
-            else {
-                message = "Barcode \(code) isn't in the food database. Add it from the pack once and it's saved on your phone for next time."
-                newBarcode = code
-                creating = true
+            if let item = try await FoodService.lookup(barcode: code) {
+                startReview(code: code, item: item, note: "Found in Open Food Facts. Check the values against the pack before saving.")
+            } else {
+                startReview(code: code, note: "No complete match. Take a photo of the nutrition panel or enter the values from the pack.")
             }
         } catch {
-            message = "Couldn't look up that barcode. Check your connection and try again."
+            startReview(code: code, note: "Lookup is unavailable. You can still use the nutrition panel and save this product offline.")
         }
     }
+
 }
 
 struct PortionSheet: View {
@@ -552,6 +640,7 @@ struct PortionSheet: View {
     let source: FoodSource
     let meal: MealSlot
     let day: Date
+    var provenance: NutritionCatalogue.Entry? = nil
     let onDone: () -> Void
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -591,19 +680,26 @@ struct PortionSheet: View {
                 } else {
                 Section("Amount") {
                     HStack {
-                        TextField("Grams", value: $grams, format: .number).keyboardType(.decimalPad)
+                        TextField(item.portionUnit == "mL" ? "Millilitres" : "Grams", value: $grams, format: .number).keyboardType(.decimalPad)
                             .font(.title2.weight(.semibold).monospacedDigit())
-                        Text("g").foregroundStyle(Color.inkMuted)
+                        Text(item.portionUnit).foregroundStyle(Color.inkMuted)
                     }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
                             if let ms = item.measures, !ms.isEmpty {
                                 ForEach(ms, id: \.self) { m in chip("\(m.label) (\(NumberText.format(m.grams)) g)") { grams = m.grams } }
-                            } else if let s = item.servingGrams { chip("1 serve (\(NumberText.format(s)) g)") { grams = s }; chip("2 serves") { grams = s * 2 } }
-                            chip("50 g") { grams = 50 }; chip("100 g") { grams = 100 }; chip("150 g") { grams = 150 }; chip("200 g") { grams = 200 }
+                            } else if let s = item.servingGrams { chip("1 serve (\(NumberText.format(s)) \(item.portionUnit))") { grams = s }; chip("2 serves") { grams = s * 2 } }
+                            chip("50 \(item.portionUnit)") { grams = 50 }; chip("100 \(item.portionUnit)") { grams = 100 }; chip("150 \(item.portionUnit)") { grams = 150 }; chip("200 \(item.portionUnit)") { grams = 200 }
                         }
                     }
                 }
+                }
+                if let provenance {
+                    Section("Nutrition source") {
+                        Link("Open original source", destination: provenance.sourceURL)
+                        Text("Checked \(provenance.checkedOn) · \(provenance.licence)")
+                            .font(.footnote).foregroundStyle(Color.inkMuted)
+                    }
                 }
                 Section("When") {
                     Picker("Meal", selection: $slot) { ForEach(MealSlot.allCases) { Text($0.label).tag($0) } }
@@ -617,7 +713,7 @@ struct PortionSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") { save() }.fontWeight(.semibold).disabled(grams <= 0)
+                    Button("Add") { save() }.fontWeight(.semibold).disabled(!grams.isFinite || grams <= 0)
                         .accessibilityIdentifier("addFoodConfirm")
                 }
             }
@@ -776,7 +872,13 @@ struct EditEntrySheet: View {
             Form {
                 Section {
                     Text(entry.name).font(.title3.weight(.semibold))
-                    TextField("Grams", value: $grams, format: .number).keyboardType(.decimalPad)
+                    if entry.foodId.hasPrefix(FoodItem.perServePrefix) {
+                        TextField("Serves", value: Binding(get: { grams / 100 }, set: { grams = $0 * 100 }), format: .number)
+                            .keyboardType(.decimalPad)
+                    } else {
+                        TextField(entry.portionUnit == "mL" ? "Millilitres" : "Grams", value: $grams, format: .number)
+                            .keyboardType(.decimalPad)
+                    }
                     Picker("Meal", selection: Binding(get: { entry.meal }, set: { entry.mealRaw = $0.rawValue })) {
                         ForEach(MealSlot.allCases) { Text($0.label).tag($0) }
                     }
@@ -799,6 +901,9 @@ struct EditEntrySheet: View {
                         if grams > 0, entry.grams > 0, grams != entry.grams {
                             let f = grams / entry.grams
                             entry.kcal *= f; entry.protein *= f; entry.carbs *= f; entry.fat *= f; entry.fibre *= f
+                            entry.sugar = entry.sugar.map { $0 * f }
+                            entry.satFat = entry.satFat.map { $0 * f }
+                            entry.sodiumMg = entry.sodiumMg.map { $0 * f }
                             entry.grams = grams
                         }
                         try? context.save()
@@ -812,7 +917,7 @@ struct EditEntrySheet: View {
 }
 
 struct CustomFoodForm: View {
-    let onSave: (FoodItem) -> Void
+    let onSave: (FoodItem) throws -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var brand = ""
@@ -826,13 +931,46 @@ struct CustomFoodForm: View {
     @State private var satFat: Double?
     @State private var sodium: Double?
     @State private var serving: Double?
+    @State private var unit = "g"
+    @State private var scannedPanel = false
+    @State private var confirmedPanel = false
+    @State private var saveError = false
     @State private var scanningBarcode = false
     @State private var reading = false
     @State private var note: String?
 
-    init(barcode: String? = nil, onSave: @escaping (FoodItem) -> Void) {
+    init(barcode: String? = nil, item: FoodItem? = nil, initialNote: String? = nil,
+         onSave: @escaping (FoodItem) throws -> Void) {
         self.onSave = onSave
-        _barcode = State(initialValue: barcode ?? "")
+        _barcode = State(initialValue: barcode ?? item?.barcode ?? "")
+        _name = State(initialValue: item?.name ?? "")
+        _brand = State(initialValue: item?.brand ?? "")
+        _kcal = State(initialValue: item?.per100.kcal)
+        _protein = State(initialValue: item?.per100.protein)
+        _carbs = State(initialValue: item?.per100.carbs)
+        _fat = State(initialValue: item?.per100.fat)
+        _fibre = State(initialValue: item?.per100.fibre)
+        _sugar = State(initialValue: item?.per100.sugar)
+        _satFat = State(initialValue: item?.per100.satFat)
+        _sodium = State(initialValue: item?.per100.sodium)
+        _serving = State(initialValue: item?.servingGrams)
+        _unit = State(initialValue: item?.portionUnit ?? "g")
+        _note = State(initialValue: initialNote)
+        _scannedPanel = State(initialValue: item != nil)
+    }
+
+    private var requiresReview: Bool {
+        scannedPanel || !barcode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var canSave: Bool {
+        guard !reading, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, let kcal,
+              (0...950).contains(kcal) else { return false }
+        let nutrients = [protein, carbs, fat, fibre, sugar, satFat]
+        let validNutrients = nutrients.compactMap { $0 }.allSatisfy { (0...100).contains($0) }
+        return validNutrients && (0...40_000).contains(sodium ?? 0)
+            && (0.001...10_000).contains(serving ?? 100)
+            && (!requiresReview || (confirmedPanel && protein != nil && carbs != nil && fat != nil))
     }
 
     var body: some View {
@@ -855,38 +993,60 @@ struct CustomFoodForm: View {
                 Section {
                     HStack {
                         TextField("Barcode (optional)", text: $barcode).keyboardType(.numberPad)
+                            .accessibilityIdentifier("foodBarcode")
                         Button("Scan") { scanningBarcode = true }.buttonStyle(.bordered)
                     }
                 } footer: {
                     Text("With a barcode saved, scanning this product again finds it straight away.")
                 }
-                Section("Per 100 g, from the label") {
+                Section("Nutrition per 100 \(unit)") {
+                    Picker("Label unit", selection: $unit) {
+                        Text("Grams").tag("g")
+                        Text("Millilitres").tag("mL")
+                    }
                     field("Energy (kcal)", $kcal); field("Protein (g)", $protein)
                     field("Carbohydrate (g)", $carbs); field("Fat (g)", $fat); field("Fibre (g, optional)", $fibre)
                     field("Sugars (g, optional)", $sugar); field("Saturated fat (g, optional)", $satFat)
                     field("Sodium (mg, optional)", $sodium)
                 }
-                Section { field("Serving size (g, optional)", $serving) } footer: {
-                    Text("Australian labels list kJ: divide by 4.184 for kcal.")
+                Section { field("Serving size (\(unit), optional)", $serving) } footer: {
+                    Text("To convert kJ to kcal, divide by 4.184.")
+                }
+                if requiresReview {
+                    Section {
+                        Toggle("I checked the values and units against the pack", isOn: $confirmedPanel)
+                            .accessibilityIdentifier("confirmFoodValues")
+                    } footer: {
+                        Text("Enter energy, protein, carbohydrate and fat, including any zeros shown on the label.")
+                    }
                 }
             }
             .themedList()
-            .navigationTitle("Create food")
+            .navigationTitle(requiresReview ? "Review food" : "Create food")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        let code = barcode.trimmingCharacters(in: .whitespaces)
-                        onSave(FoodItem(id: code.isEmpty ? "custom-" + UUID().uuidString : code, name: name, brand: brand.isEmpty ? nil : brand,
-                                        barcode: code.isEmpty ? nil : code,
-                                        per100: Per100(kcal: kcal ?? 0, protein: protein ?? 0, carbs: carbs ?? 0, fat: fat ?? 0, fibre: fibre ?? 0,
-                                                       sugar: sugar, satFat: satFat, sodium: sodium),
-                                        servingGrams: serving, servingLabel: serving.map { "\(NumberText.format($0)) g" }))
+                        let code = barcode.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let item = FoodItem(id: code.isEmpty ? "custom-" + UUID().uuidString : code,
+                                            name: cleanName, brand: brand.isEmpty ? nil : brand,
+                                            barcode: code.isEmpty ? nil : code,
+                                            per100: Per100(kcal: kcal ?? 0, protein: protein ?? 0, carbs: carbs ?? 0,
+                                                           fat: fat ?? 0, fibre: fibre ?? 0, sugar: sugar, satFat: satFat, sodium: sodium),
+                                            servingGrams: serving, servingLabel: nil, amountUnit: unit == "mL" ? unit : nil)
+                        do { try onSave(item) }
+                        catch { saveError = true }
                     }
-                    .disabled(name.isEmpty || kcal == nil)
+                    .disabled(!canSave)
                     .accessibilityIdentifier("saveFood")
                 }
+            }
+            .alert("Couldn’t save the food", isPresented: $saveError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Your edits are still here. Try saving again.")
             }
             .fullScreenCover(isPresented: $scanningBarcode) {
                 BarcodeScanner { code in barcode = code; scanningBarcode = false } onCancel: { scanningBarcode = false }
@@ -895,7 +1055,9 @@ struct CustomFoodForm: View {
     }
 
     private func readBarcode(_ image: UIImage) async {
-        reading = true; defer { reading = false }
+        guard !reading else { return }
+        reading = true
+        defer { reading = false }
         if let code = await PanelScanner.barcodes(in: image).first {
             barcode = code
             note = "Barcode \(code) read."
@@ -905,25 +1067,31 @@ struct CustomFoodForm: View {
     }
 
     private func readPanel(_ image: UIImage) async {
-        reading = true; defer { reading = false }
+        guard !reading else { return }
+        reading = true
+        defer { reading = false }
         let r = NutritionPanel.parse(await PanelScanner.rows(in: image))
         guard r.foundAnything else {
             note = "Couldn't read the numbers. Lay the panel flat in good light and try again, or type them in."
             return
         }
-        if let v = r.kcal { kcal = v }
-        if let v = r.protein { protein = v }
-        if let v = r.carbs { carbs = v }
-        if let v = r.fat { fat = v }
-        if let v = r.fibre { fibre = v }
-        if let v = r.sugar { sugar = v }
-        if let v = r.satFat { satFat = v }
-        if let v = r.sodium { sodium = v }
-        if let v = r.servingGrams { serving = v }
-        let missing = [("energy", r.kcal), ("protein", r.protein), ("carbs", r.carbs), ("fat", r.fat)].filter { $0.1 == nil }.map(\.0)
-        var text = "Filled in from the photo. Check each number against the label."
-        if !r.foundBothColumns { text += " Only one column was found, so make sure it is per 100 g." }
-        if !missing.isEmpty { text += " Couldn't read: \(missing.joined(separator: ", "))." }
+        scannedPanel = true
+        confirmedPanel = false
+        if let amountUnit = r.amountUnit { unit = amountUnit }
+        kcal = r.kcal
+        protein = r.protein
+        carbs = r.carbs
+        fat = r.fat
+        fibre = r.fibre
+        sugar = r.sugar
+        satFat = r.satFat
+        sodium = r.sodium
+        serving = r.servingGrams
+        let missing = [("energy", r.kcal), ("protein", r.protein), ("carbohydrate", r.carbs), ("fat", r.fat),
+                       ("sugars", r.sugar), ("fibre", r.fibre), ("sodium", r.sodium)].filter { $0.1 == nil }.map(\.0)
+        var text = "Check each value against the nutrition panel before saving."
+        if !r.hasConfirmedBasis { text += " Check that the values are per 100 g or per 100 mL." }
+        if !missing.isEmpty { text += " Blank: \(missing.joined(separator: ", "))." }
         note = text
     }
 
@@ -970,6 +1138,8 @@ struct PackPhotoButton: View {
 struct BarcodeScanner: View {
     let onCode: (String) -> Void
     let onCancel: () -> Void
+    @State private var enteringCode = false
+    @State private var typedCode = ""
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -978,15 +1148,27 @@ struct BarcodeScanner: View {
             } else {
                 Color.night.ignoresSafeArea()
                 ContentUnavailableView("Scanner unavailable", systemImage: "barcode.viewfinder",
-                                       description: Text("Barcode scanning needs a recent iPhone and camera access. Allow it in Settings › Steady Strength, or search by name."))
+                                       description: Text("Allow camera access in Settings or enter the digits printed under the barcode."))
             }
-            HStack {
-                Text("Point at a barcode").font(.headline).foregroundStyle(.white)
-                Spacer()
-                Button("Cancel", action: onCancel).font(.headline).foregroundStyle(Color.gold)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Point at a barcode").font(.headline).foregroundStyle(.white)
+                    Spacer()
+                    Button("Cancel", action: onCancel).font(.headline).foregroundStyle(Color.gold)
+                }
+                Button("Enter barcode") { enteringCode = true }
+                    .foregroundStyle(Color.gold)
             }
             .padding()
             .background(.ultraThinMaterial)
+        }
+        .alert("Enter barcode", isPresented: $enteringCode) {
+            TextField("Barcode", text: $typedCode).keyboardType(.numberPad)
+            Button("Continue") {
+                onCode(typedCode.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            .disabled(OpenFoodFacts.barcodeKey(typedCode) == nil)
+            Button("Cancel", role: .cancel) {}
         }
     }
 }
