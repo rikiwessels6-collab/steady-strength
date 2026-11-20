@@ -6,14 +6,14 @@ extension FoodItem {
     public var energyLabel: String {
         if isPerServe { return "\(Int(per100.kcal.rounded())) kcal/serve" }
         if let g = servingGrams, g > 0 { return "\(Int((per100.kcal * g / 100).rounded())) kcal/serve" }
-        return "\(Int(per100.kcal.rounded())) kcal/100g"
+        return "\(Int(per100.kcal.rounded())) kcal/100\(portionUnit)"
     }
 
     /// The serve a row describes, e.g. "serve 1 slice (35 g)".
     public var serveText: String? {
         if isPerServe { return servingLabel.map { "serve: \($0)" } ?? "per serve" }
         guard let g = servingGrams, g > 0 else { return nil }
-        let grams = "\(NumberText.format((g * 10).rounded() / 10)) g"
+        let grams = "\(NumberText.format((g * 10).rounded() / 10)) \(portionUnit)"
         let base = servingLabel.map { $0.contains("(") ? $0 : "\($0) (\(grams))" } ?? grams
         return base.hasPrefix("1 serve") ? base : "serve " + base
     }

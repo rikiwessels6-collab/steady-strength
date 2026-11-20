@@ -65,6 +65,7 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         NSSupportsLiveActivities: true
         HideUnreviewedContent: false
+        NutritionCatalogueURL: $(NUTRITION_CATALOGUE_URL)
         PlateRelayURL: $(PLATE_RELAY_URL)
         PlateRelayToken: $(PLATE_RELAY_TOKEN)
     settings:

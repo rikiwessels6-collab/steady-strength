@@ -21,6 +21,11 @@ struct CoffeeBuilderView: View {
                     .accessibilityIdentifier("coffeeStyle")
                 }
                 Section {
+                    TextField("Capsule name (optional)", text: Binding(
+                        get: { order.capsuleName ?? "" },
+                        set: { order.capsuleName = String($0.prefix(60)) }
+                    ))
+                    .accessibilityIdentifier("coffeeCapsule")
                     Stepper(value: $order.brewMl, in: 20...600, step: 10) {
                         LabeledContent("Coffee per capsule", value: "\(NumberText.format(order.brewMl)) mL")
                     }
@@ -69,7 +74,7 @@ struct CoffeeBuilderView: View {
                         }
                     }
                     Section {
-                        Text("Values from AUSNUT 2023 (© Food Standards Australia New Zealand, CC BY 4.0): espresso or long black for the coffee, the matching milk, and white sugar. Volumes are converted to grams with each food's published density. Capsules vary, so the coffee itself is AUSNUT's general value, not a specific capsule.")
+                        Text("Values from AUSNUT 2023 (© Food Standards Australia New Zealand, CC BY 4.0): espresso or long black for the coffee, the matching milk, and white sugar. Volumes are converted to grams with each food's published density. Capsule names label your recipe. Coffee nutrition uses AUSNUT’s generic estimate.")
                             .font(.caption2).foregroundStyle(Color.inkMuted)
                     }
                 } else {
@@ -102,7 +107,7 @@ struct CoffeeBuilderView: View {
     /// A new style resets the amounts to that style's starting point, keeping the milk type.
     private func choose(_ style: CoffeeStyle) {
         let milk = order.milk == .noMilk ? CoffeeMilk.fullCream : order.milk
-        order = CoffeeOrder(style: style, capsules: order.capsules, milk: milk, sugarTsp: order.sugarTsp)
+        order = CoffeeOrder(style: style, capsules: order.capsules, milk: milk, sugarTsp: order.sugarTsp, capsuleName: order.capsuleName)
     }
 
     private func stat(_ value: String, _ label: String) -> some View {
