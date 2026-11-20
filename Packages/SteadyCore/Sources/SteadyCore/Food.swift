@@ -46,6 +46,12 @@ public struct FoodMeasure: Codable, Equatable, Sendable, Hashable {
     public var label: String
     public var grams: Double
     public init(label: String, grams: Double) { self.label = label; self.grams = grams }
+
+    public func amount(for quantity: Double) -> Double? {
+        let amount = grams * quantity
+        guard grams > 0, quantity > 0, amount.isFinite, amount > 0 else { return nil }
+        return amount
+    }
 }
 
 /// A food you can log: from a barcode, a search, or entered by hand.
@@ -79,6 +85,23 @@ public struct FoodItem: Codable, Equatable, Sendable, Identifiable {
     }
 
     public var defaultGrams: Double { servingGrams ?? 100 }
+
+    /// Countable portions using the same basis as the food's nutrition values.
+    public var quantityMeasures: [FoodMeasure] {
+        if isPerServe {
+            // A per-serve record uses 100 internally to represent a single serve.
+            return [.init(label: servingLabel ?? "1 serve", grams: 100)]
+        }
+        let portions = (measures ?? []).filter { $0.amount(for: 1) != nil }
+        if !portions.isEmpty { return portions }
+        guard let servingGrams, servingGrams.isFinite, servingGrams > 0 else { return [] }
+        return [.init(label: "1 serve", grams: servingGrams)]
+    }
+
+    public var defaultQuantityMeasure: FoodMeasure? {
+        let portions = quantityMeasures
+        return portions.first { $0.label.localizedCaseInsensitiveContains(", regular") } ?? portions.first
+    }
 }
 
 public enum MealSlot: String, Codable, CaseIterable, Sendable, Identifiable {

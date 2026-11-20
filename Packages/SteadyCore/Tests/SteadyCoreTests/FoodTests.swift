@@ -100,4 +100,34 @@ final class FoodTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(FoodItem.self, from: Data(old.utf8)).portionUnit, "g")
     }
 
+
+    func testTwoRegularSausagesUseTwiceTheSinglePortion() throws {
+        let regular = FoodMeasure(label: "1 sausage, regular", grams: 89)
+        let cocktail = FoodMeasure(label: "1 sausage, cocktail", grams: 38)
+        let sausage = FoodItem(id: "sausage", name: "Sausage", brand: nil, barcode: nil,
+                               per100: Per100(kcal: 250, protein: 15, carbs: 0, fat: 20),
+                               servingGrams: 38, servingLabel: nil, measures: [cocktail, regular])
+        let portion = try XCTUnwrap(sausage.defaultQuantityMeasure)
+        XCTAssertEqual(portion, regular)
+        let total = try XCTUnwrap(portion.amount(for: 2))
+        XCTAssertEqual(total, 178)
+        XCTAssertEqual(sausage.macros(grams: total).protein, 26.7, accuracy: 0.001)
+        XCTAssertNil(portion.amount(for: .infinity))
+        XCTAssertNil(portion.amount(for: 0))
+    }
+
+    func testQuantityUsesKnownServesAndLeavesUnmeasuredFoodsByWeight() throws {
+        var food = FoodItem(id: "example", name: "Example", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 80, protein: 0, carbs: 0, fat: 0),
+                            servingGrams: nil, servingLabel: nil, amountUnit: "mL")
+        XCTAssertNil(food.defaultQuantityMeasure)
+        food.servingGrams = 250
+        XCTAssertEqual(food.defaultQuantityMeasure?.amount(for: 1.5), 375)
+
+        food.id = FoodItem.perServePrefix + "example"
+        let serve = try XCTUnwrap(food.defaultQuantityMeasure)
+        let amount = try XCTUnwrap(serve.amount(for: 1.5))
+        XCTAssertEqual(food.macros(grams: amount).kcal, 120)
+    }
+
 }

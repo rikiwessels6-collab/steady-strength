@@ -644,14 +644,27 @@ struct PortionSheet: View {
     let onDone: () -> Void
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @Query private var saved: [SavedFood]
-    @State private var grams: Double = 100
+    @State private var portion: FoodMeasure?
+    @State private var quantity = "1"
+    @State private var measuredAmount = ""
     @State private var slot: MealSlot = .snacks
     @State private var eatenAt = Date.now
     @State private var favourite = false
 
+    private var grams: Double? {
+        let input = portion == nil ? measuredAmount : quantity
+        let parts = input.components(separatedBy: locale.decimalSeparator ?? ".")
+        guard parts.count <= 2, parts.allSatisfy({ $0.allSatisfy(\.isWholeNumber) }),
+              let value = try? Double(input, format: .number.locale(locale), lenient: false) else { return nil }
+        let amount = portion == nil ? value : portion?.amount(for: value)
+        guard let amount, (0...100_000).contains(amount), amount > 0 else { return nil }
+        return amount
+    }
+
     var body: some View {
-        let m = item.macros(grams: grams)
+        let m = item.macros(grams: grams ?? 0)
         NavigationStack {
             Form {
                 Section {
@@ -666,34 +679,7 @@ struct PortionSheet: View {
                         stat("\(Int(m.fat.rounded()))", "fat")
                     }
                 }
-                if item.isPerServe {
-                    // No published weight: count serves instead (100 here means one serve).
-                    Section {
-                        Stepper(value: Binding(get: { grams / 100 }, set: { grams = $0 * 100 }), in: 0.5...10, step: 0.5) {
-                            LabeledContent("Serves", value: NumberText.format(grams / 100))
-                                .font(.title3.weight(.semibold).monospacedDigit())
-                        }
-                        .accessibilityIdentifier("serveStepper")
-                    } header: { Text("Amount") } footer: {
-                        Text("One serve is \(item.servingLabel ?? "the standard serve"). The guide gives no weight, so it's logged by the serve.")
-                    }
-                } else {
-                Section("Amount") {
-                    HStack {
-                        TextField(item.portionUnit == "mL" ? "Millilitres" : "Grams", value: $grams, format: .number).keyboardType(.decimalPad)
-                            .font(.title2.weight(.semibold).monospacedDigit())
-                        Text(item.portionUnit).foregroundStyle(Color.inkMuted)
-                    }
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            if let ms = item.measures, !ms.isEmpty {
-                                ForEach(ms, id: \.self) { m in chip("\(m.label) (\(NumberText.format(m.grams)) g)") { grams = m.grams } }
-                            } else if let s = item.servingGrams { chip("1 serve (\(NumberText.format(s)) \(item.portionUnit))") { grams = s }; chip("2 serves") { grams = s * 2 } }
-                            chip("50 \(item.portionUnit)") { grams = 50 }; chip("100 \(item.portionUnit)") { grams = 100 }; chip("150 \(item.portionUnit)") { grams = 150 }; chip("200 \(item.portionUnit)") { grams = 200 }
-                        }
-                    }
-                }
-                }
+                amountSection
                 if let provenance {
                     Section("Nutrition source") {
                         Link("Open original source", destination: provenance.sourceURL)
@@ -713,13 +699,14 @@ struct PortionSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") { save() }.fontWeight(.semibold).disabled(!grams.isFinite || grams <= 0)
+                    Button("Add") { save() }.fontWeight(.semibold).disabled(grams == nil)
                         .accessibilityIdentifier("addFoodConfirm")
                 }
             }
         }
         .onAppear {
-            grams = item.defaultGrams
+            portion = item.defaultQuantityMeasure
+            measuredAmount = (portion?.grams ?? item.defaultGrams).formatted(.number.grouping(.never).locale(locale))
             slot = meal
             // Logging another day: keep that day, at the current time.
             if !Calendar.current.isDateInToday(day) {
@@ -727,6 +714,52 @@ struct PortionSheet: View {
                 eatenAt = Calendar.current.date(bySettingHour: t.hour ?? 12, minute: t.minute ?? 0, second: 0, of: day) ?? day
             }
             favourite = saved.first { $0.foodId == item.id }?.isFavourite ?? false
+        }
+    }
+
+    private var amountSection: some View {
+        Section("Amount") {
+            if !item.isPerServe && !item.quantityMeasures.isEmpty {
+                Picker("Portion", selection: $portion) {
+                    ForEach(item.quantityMeasures, id: \.self) { measure in
+                        Text("\(measure.label) (\(NumberText.format(measure.grams)) \(item.portionUnit))")
+                            .tag(Optional(measure))
+                    }
+                    Text(item.portionUnit == "mL" ? "Enter millilitres" : "Enter grams")
+                        .tag(nil as FoodMeasure?)
+                }
+            }
+            if portion != nil {
+                HStack {
+                    Text("Quantity")
+                    TextField("Quantity", text: $quantity)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .font(.title2.weight(.semibold)).monospacedDigit()
+                        .accessibilityIdentifier("foodPortionQuantity")
+                }
+                if item.isPerServe {
+                    Text(portion?.label ?? "1 serve").font(.footnote).foregroundStyle(Color.inkMuted)
+                } else if let grams {
+                    Text("Total \(NumberText.format(grams)) \(item.portionUnit)")
+                        .font(.footnote).foregroundStyle(Color.inkMuted)
+                        .accessibilityIdentifier("foodPortionTotal")
+                }
+            } else {
+                HStack {
+                    TextField(item.portionUnit == "mL" ? "Millilitres" : "Grams", text: $measuredAmount)
+                        .keyboardType(.decimalPad)
+                        .font(.title2.weight(.semibold)).monospacedDigit()
+                    Text(item.portionUnit).foregroundStyle(Color.inkMuted)
+                }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach([50, 100, 150, 200], id: \.self) { amount in
+                            chip("\(amount) \(item.portionUnit)") { measuredAmount = String(amount) }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -743,6 +776,7 @@ struct PortionSheet: View {
     }
 
     private func save() {
+        guard let grams else { return }
         context.insert(FoodEntry(item: item, grams: grams, meal: slot, source: source, eatenAt: eatenAt))
         let s = saved.first { $0.foodId == item.id } ?? {
             let n = SavedFood(item: item, isCustom: source == .manual)
