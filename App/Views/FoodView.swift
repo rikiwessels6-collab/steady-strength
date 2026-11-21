@@ -425,143 +425,51 @@ struct AddFoodSheet: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                if !draft.isEmpty { draftSection }
-                Section {
-                    let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 12))
-                    layout {
-                        actionButton("Scan barcode", "barcode.viewfinder") { scannedCode = nil; scanning = true }
-                            .accessibilityIdentifier("scanBarcode")
-                            .disabled(lookingUp)
-                        actionButton("Plate photo", "camera.viewfinder") { plate = true }
-                            .accessibilityIdentifier("platePhoto")
-                        actionButton("Create food", "square.and.pencil") { startReview() }
-                            .accessibilityIdentifier("createFood")
-                    }
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-                }
-                Section {
-                    Button { typingMeal = true } label: { Label("Type a meal", systemImage: "text.cursor") }
-                        .accessibilityIdentifier("typeMeal")
-                    Menu {
-                        Picker("Retailer", selection: $retailer) {
-                            Text("All foods").tag(nil as OpenFoodFacts.Retailer?)
-                            ForEach(OpenFoodFacts.Retailer.allCases) { store in
-                                Text(store.rawValue).tag(Optional(store))
-                            }
-                        }
-                    } label: {
-                        Label(retailer?.rawValue ?? "Filter by supermarket", systemImage: "cart")
-                    }
-                    .accessibilityIdentifier("supermarketFilter")
-                    if retailer != nil {
-                        Text("Enter a product name and tap Search. Store tags come from Open Food Facts and may be incomplete.")
-                            .font(.footnote).foregroundStyle(Color.inkMuted)
-                    }
-                    Button { quickAdding = true } label: { Label("Quick add calories", systemImage: "bolt") }
-                        .accessibilityIdentifier("quickAdd")
-                    Button { browsingRestaurants = true } label: { Label("Restaurants and takeaway", systemImage: "takeoutbag.and.cup.and.straw") }
-                        .accessibilityIdentifier("restaurants")
-                    Button { makingCoffee = true } label: { Label("Coffee at home", systemImage: "cup.and.saucer") }
-                        .accessibilityIdentifier("coffee")
-                }
-                if let message { Section { Text(message).font(.footnote).foregroundStyle(Color.inkMuted) } }
-                if !results.isEmpty {
-                    Section("Results") { ForEach(results) { row($0, source: .search) } }
-                } else {
-                    Section {
-                        Picker("Show", selection: $tab) {
-                            Text("Recent").tag(0); Text("Favourites").tag(1); Text("My foods").tag(2); Text("Meals").tag(3)
-                        }
-                        .pickerStyle(.segmented)
-                        .listRowBackground(Color.clear)
-                        if tab == 3 {
-                            ForEach(meals) { m in
-                                Button { add(m) } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(m.name).foregroundStyle(Color.ink).lineLimit(2)
-                                            Text(m.items.map(\.name).joined(separator: ", "))
-                                                .font(.caption).foregroundStyle(Color.inkMuted).lineLimit(2)
-                                        }
-                                        Spacer()
-                                        Text("\(Int(m.kcal.rounded())) kcal").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
-                                    }
-                                }
-                                .accessibilityIdentifier("meal-\(m.name)")
-                            }
-                            .onDelete { offsets in
-                                for i in offsets { context.delete(meals[i]) }
-                                try? context.save()
-                            }
-                            if meals.isEmpty {
-                                Text("Log two or more foods in a meal, then tap the bookmark on that meal to save it here.")
-                                    .font(.footnote).foregroundStyle(Color.inkMuted)
-                            }
-                            Text("RECIPES").font(.caption2.weight(.semibold)).tracking(1.2).foregroundStyle(Color.inkMuted)
-                                .listRowBackground(Color.clear)
-                            ForEach(recipes) { r in
-                                Button { loggingRecipe = r } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(r.name).foregroundStyle(Color.ink).lineLimit(2)
-                                            Text("Makes \(NumberText.format(r.servings)) · \(r.ingredients.count) ingredients")
-                                                .font(.caption).foregroundStyle(Color.inkMuted)
-                                        }
-                                        Spacer()
-                                        Text("\(Int(r.kcalPerServing.rounded())) kcal/serve").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
-                                    }
-                                }
-                                .accessibilityIdentifier("recipe-\(r.name)")
-                            }
-                            .onDelete { offsets in
-                                for i in offsets { context.delete(recipes[i]) }
-                                try? context.save()
-                            }
-                            Button { newRecipe = true } label: { Label("New recipe", systemImage: "frying.pan") }
-                                .accessibilityIdentifier("newRecipe")
-                        } else {
-                            ForEach(list) { s in if let item = s.item { row(item, source: s.isCustom ? .saved : .recent) } }
-                            if list.isEmpty {
-                                Text(tab == 0 ? "Foods you log appear here." : tab == 1 ? "Tap the star on a food to keep it here." : "Foods you create appear here.")
-                                    .font(.footnote).foregroundStyle(Color.inkMuted)
-                            }
-                        }
-                    }
-                }
-                Section {
-                    Text("Product data from Open Food Facts (openfoodfacts.org), licensed under the ODbL. Generic foods from AUSNUT 2023, © Food Standards Australia New Zealand, used under Creative Commons Attribution 4.0.")
-                        .font(.caption2).foregroundStyle(Color.inkMuted)
-                }
+            foodList
+        }
+        .interactiveDismissDisabled(!draft.isEmpty)
+        .task {
+            guard scanOnOpen, !opened else { return }
+            opened = true
+            scanning = true
+        }
+    }
+
+    private var foodList: some View {
+        List {
+            if !draft.isEmpty { draftSection }
+            captureActions
+            foodOptions
+            searchOrLibrary
+            dataAttribution
+        }
+        .themedList()
+        .overlay { if searching || lookingUp { ProgressView().controlSize(.large) } }
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search foods")
+        .onSubmit(of: .search) { Task { await runSearch() } }
+        .onChange(of: query) { _, q in
+            message = nil
+            results = []
+            guard retailer == nil else { return }
+            // Your own foods match as you type; Search adds the wider database.
+            let text = q.trimmingCharacters(in: .whitespaces)
+            if text.count >= 2 {
+                let mine = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(text) }
+                let menus = (store.restaurants?.search(text) ?? []).map { $0.item.food(chain: $0.chain) }
+                let generic = store.genericFoods?.search(text) ?? []
+                let catalogue = store.nutritionCatalogue?.search(text) ?? []
+                let others = (menus + catalogue + generic).filter { m in !mine.contains { $0.id == m.id } }
+                results = FoodRanking.rank(mine, query: text) + FoodRanking.rank(others, query: text)
             }
-            .themedList()
-            .overlay { if searching || lookingUp { ProgressView().controlSize(.large) } }
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search foods")
-            .onSubmit(of: .search) { Task { await runSearch() } }
-            .onChange(of: query) { _, q in
-                message = nil
-                results = []
-                guard retailer == nil else { return }
-                // Your own foods match as you type; Search adds the wider database.
-                let text = q.trimmingCharacters(in: .whitespaces)
-                if text.count >= 2 {
-                    let mine = saved.compactMap(\.item).filter { $0.name.localizedCaseInsensitiveContains(text) }
-                    let menus = (store.restaurants?.search(text) ?? []).map { $0.item.food(chain: $0.chain) }
-                    let generic = store.genericFoods?.search(text) ?? []
-                    let catalogue = store.nutritionCatalogue?.search(text) ?? []
-                    let others = (menus + catalogue + generic).filter { m in !mine.contains { $0.id == m.id } }
-                    results = FoodRanking.rank(mine, query: text) + FoodRanking.rank(others, query: text)
-                }
-            }
-            .task { await store.refreshNutritionCatalogue() }
-            .onChange(of: retailer) { _, _ in
-                results = []
-                message = nil
-            }
-            .navigationTitle("Add to \(meal.label)")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+        }
+        .task { await store.refreshNutritionCatalogue() }
+        .onChange(of: retailer) { _, _ in
+            results = []
+            message = nil
+        }
+        .navigationTitle("Add to \(meal.label)")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
                         if draft.isEmpty { dismiss() } else { confirmDiscard = true }
@@ -574,8 +482,8 @@ struct AddFoodSheet: View {
                             .accessibilityIdentifier("saveDiaryMeal")
                     }
                 }
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
                 if textSize.isAccessibilitySize && !draft.isEmpty {
                     Button(action: saveDraft) {
                         Text("Save meal").frame(maxWidth: .infinity, minHeight: 44)
@@ -585,8 +493,8 @@ struct AddFoodSheet: View {
                     .padding()
                     .background(.regularMaterial)
                 }
-            }
-            .confirmationDialog("Leave this meal?", isPresented: $confirmDiscard, titleVisibility: .visible) {
+        }
+        .confirmationDialog("Leave this meal?", isPresented: $confirmDiscard, titleVisibility: .visible) {
                 Button("Continue later") {
                     do { try foodNavigation.close(destination, in: context); dismiss() }
                     catch { foodNavigation.storageError = true }
@@ -596,80 +504,206 @@ struct AddFoodSheet: View {
                     catch { foodNavigation.storageError = true }
                 }
                 Button("Keep editing", role: .cancel) {}
-            }
-            .alert("Couldn’t keep the meal draft", isPresented: Binding(
+        }
+        .alert("Couldn’t keep the meal draft", isPresented: Binding(
                 get: { foodNavigation.storageError },
                 set: { foodNavigation.storageError = $0 }
             )) {
                 Button("OK", role: .cancel) {}
-            } message: {
-                Text("Keep the app open and try again. You can still save the meal to your diary.")
-            }
-            .alert("Couldn’t save the meal", isPresented: $saveError) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("Your meal is still here. Try saving again.")
-            }
-            .sheet(item: $editingLine) { line in
+        } message: {
+            Text("Keep the app open and try again. You can still save the meal to your diary.")
+        }
+        .alert("Couldn’t save the meal", isPresented: $saveError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your meal is still here. Try saving again.")
+        }
+        .sheet(item: $editingLine) { line in
                 EditEntrySheet(entry: line.entry, food: line.food, onSave: {
                     if let index = draft.firstIndex(where: { $0.id == line.id }) { draft[index] = line }
                 }, onDelete: {
                     draft.removeAll { $0.id == line.id }
                 })
-            }
-            .fullScreenCover(isPresented: $scanning, onDismiss: {
+        }
+        .fullScreenCover(isPresented: $scanning, onDismiss: {
                 guard let code = scannedCode else { return }
                 scannedCode = nil
                 Task { await lookup(code) }
-            }) {
+        }) {
                 BarcodeScanner { code in
                     scannedCode = code
                     scanning = false
                 } onCancel: { scanning = false }
-            }
-            .sheet(isPresented: Binding(get: { picked != nil }, set: { if !$0 { picked = nil } })) {
+        }
+        .sheet(isPresented: Binding(get: { picked != nil }, set: { if !$0 { picked = nil } })) {
                 if let p = picked {
                     PortionSheet(item: p.item, source: p.source, meal: meal, day: day,
                                  provenance: store.nutritionCatalogue?.entries.first { $0.item.id == p.item.id }) { line in
                         draft.append(line)
                     }
                 }
-            }
-            .sheet(isPresented: $typingMeal) {
+        }
+        .sheet(isPresented: $typingMeal) {
                 MealTextReviewSheet(meal: meal, day: day) { draft.append(contentsOf: $0) }
-            }
-            .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { draft.append(contentsOf: $0) } }
-            .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { draft.append($0) } }
-            .sheet(isPresented: $browsingRestaurants) {
+        }
+        .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { draft.append(contentsOf: $0) } }
+        .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { draft.append($0) } }
+        .sheet(isPresented: $browsingRestaurants) {
                 RestaurantBrowser { item in
                     browsingRestaurants = false
                     picked = (item, .search)
                 }
-            }
-            .sheet(isPresented: $makingCoffee) {
+        }
+        .sheet(isPresented: $makingCoffee) {
                 CoffeeBuilderView { item in
                     makingCoffee = false
                     picked = (item, .manual)
                 }
-            }
-            .sheet(isPresented: $newRecipe) { RecipeEditor() }
-            .sheet(item: $loggingRecipe) { r in RecipePortionSheet(recipe: r, meal: meal, day: day) { draft.append($0) } }
-            .sheet(isPresented: $creating, onDismiss: {
+        }
+        .sheet(isPresented: $newRecipe) { RecipeEditor() }
+        .sheet(item: $loggingRecipe) { r in RecipePortionSheet(recipe: r, meal: meal, day: day) { draft.append($0) } }
+        .sheet(isPresented: $creating, onDismiss: {
                 guard let item = reviewedFood else { return }
                 reviewedFood = nil
                 picked = (item, item.barcode == nil ? .manual : .barcode)
-            }) {
+        }) {
                 CustomFoodForm(barcode: newBarcode, item: reviewItem, initialNote: reviewNote) { item in
                     reviewedFood = try saveReviewedFood(item)
                     creating = false
                 }
-            }
         }
-        .interactiveDismissDisabled(!draft.isEmpty)
-        .task {
-            guard scanOnOpen, !opened else { return }
-            opened = true
-            scanning = true
+    }
+
+    private var captureActions: some View {
+        Section {
+            let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 12))
+            layout {
+                actionButton("Scan barcode", "barcode.viewfinder") { scannedCode = nil; scanning = true }
+                    .accessibilityIdentifier("scanBarcode")
+                    .disabled(lookingUp)
+                actionButton("Plate photo", "camera.viewfinder") { plate = true }
+                    .accessibilityIdentifier("platePhoto")
+                actionButton("Create food", "square.and.pencil") { startReview() }
+                    .accessibilityIdentifier("createFood")
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+        }
+    }
+
+    private var foodOptions: some View {
+        Section {
+            Button { typingMeal = true } label: { Label("Type a meal", systemImage: "text.cursor") }
+                .accessibilityIdentifier("typeMeal")
+            Menu {
+                Picker("Retailer", selection: $retailer) {
+                    Text("All foods").tag(nil as OpenFoodFacts.Retailer?)
+                    ForEach(OpenFoodFacts.Retailer.allCases) { store in
+                        Text(store.rawValue).tag(Optional(store))
+                    }
+                }
+            } label: {
+                Label(retailer?.rawValue ?? "Filter by supermarket", systemImage: "cart")
+            }
+            .accessibilityIdentifier("supermarketFilter")
+            if retailer != nil {
+                Text("Enter a product name and tap Search. Store tags come from Open Food Facts and may be incomplete.")
+                    .font(.footnote).foregroundStyle(Color.inkMuted)
+            }
+            Button { quickAdding = true } label: { Label("Quick add calories", systemImage: "bolt") }
+                .accessibilityIdentifier("quickAdd")
+            Button { browsingRestaurants = true } label: { Label("Restaurants and takeaway", systemImage: "takeoutbag.and.cup.and.straw") }
+                .accessibilityIdentifier("restaurants")
+            Button { makingCoffee = true } label: { Label("Coffee at home", systemImage: "cup.and.saucer") }
+                .accessibilityIdentifier("coffee")
+        }
+    }
+
+    @ViewBuilder private var searchOrLibrary: some View {
+        if let message { Section { Text(message).font(.footnote).foregroundStyle(Color.inkMuted) } }
+        if !results.isEmpty {
+            Section("Results") { ForEach(results) { row($0, source: .search) } }
+        } else {
+            librarySection
+        }
+    }
+
+    private var dataAttribution: some View {
+        Section {
+            Text("Product data from Open Food Facts (openfoodfacts.org), licensed under the ODbL. Generic foods from AUSNUT 2023, © Food Standards Australia New Zealand, used under Creative Commons Attribution 4.0.")
+                .font(.caption2).foregroundStyle(Color.inkMuted)
+        }
+    }
+
+    private var librarySection: some View {
+        Section {
+            Picker("Show", selection: $tab) {
+                Text("Recent").tag(0); Text("Favourites").tag(1); Text("My foods").tag(2); Text("Meals").tag(3)
+            }
+            .pickerStyle(.segmented)
+            .listRowBackground(Color.clear)
+            if tab == 3 { savedMealsAndRecipes } else { savedFoods }
+        }
+    }
+
+    @ViewBuilder private var savedMealsAndRecipes: some View {
+        ForEach(meals) { m in
+            Button { add(m) } label: { savedMealRow(m) }
+                .accessibilityIdentifier("meal-\(m.name)")
+        }
+        .onDelete { offsets in
+            for i in offsets { context.delete(meals[i]) }
+            try? context.save()
+        }
+        if meals.isEmpty {
+            Text("Log two or more foods in a meal, then tap the bookmark on that meal to save it here.")
+                .font(.footnote).foregroundStyle(Color.inkMuted)
+        }
+        Text("RECIPES").font(.caption2.weight(.semibold)).tracking(1.2).foregroundStyle(Color.inkMuted)
+            .listRowBackground(Color.clear)
+        ForEach(recipes) { recipe in
+            Button { loggingRecipe = recipe } label: { recipeRow(recipe) }
+                .accessibilityIdentifier("recipe-\(recipe.name)")
+        }
+        .onDelete { offsets in
+            for i in offsets { context.delete(recipes[i]) }
+            try? context.save()
+        }
+        Button { newRecipe = true } label: { Label("New recipe", systemImage: "frying.pan") }
+            .accessibilityIdentifier("newRecipe")
+    }
+
+    @ViewBuilder private var savedFoods: some View {
+        ForEach(list) { savedFood in
+            if let item = savedFood.item { row(item, source: savedFood.isCustom ? .saved : .recent) }
+        }
+        if list.isEmpty {
+            Text(tab == 0 ? "Foods you log appear here." : tab == 1 ? "Tap the star on a food to keep it here." : "Foods you create appear here.")
+                .font(.footnote).foregroundStyle(Color.inkMuted)
+        }
+    }
+
+    private func savedMealRow(_ meal: SavedMeal) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(meal.name).foregroundStyle(Color.ink).lineLimit(2)
+                Text(meal.items.map(\.name).joined(separator: ", "))
+                    .font(.caption).foregroundStyle(Color.inkMuted).lineLimit(2)
+            }
+            Spacer()
+            Text("\(Int(meal.kcal.rounded())) kcal").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
+        }
+    }
+
+    private func recipeRow(_ recipe: Recipe) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(recipe.name).foregroundStyle(Color.ink).lineLimit(2)
+                Text("Makes \(NumberText.format(recipe.servings)) · \(recipe.ingredients.count) ingredients")
+                    .font(.caption).foregroundStyle(Color.inkMuted)
+            }
+            Spacer()
+            Text("\(Int(recipe.kcalPerServing.rounded())) kcal/serve").font(.caption.monospacedDigit()).foregroundStyle(Color.inkMuted)
         }
     }
 
