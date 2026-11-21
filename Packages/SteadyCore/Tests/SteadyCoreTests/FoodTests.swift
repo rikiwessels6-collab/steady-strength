@@ -116,6 +116,18 @@ final class FoodTests: XCTestCase {
         XCTAssertNil(portion.amount(for: 0))
     }
 
+    func testRememberedAmountUsesTheMatchingPortionOrKeepsTheWeight() {
+        let regular = FoodMeasure(label: "1 sausage, regular", grams: 89)
+        let cocktail = FoodMeasure(label: "1 sausage, cocktail", grams: 38)
+        let item = FoodItem(id: "sausage", name: "Sausage", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 240, protein: 13, carbs: 2, fat: 20),
+                            servingGrams: 89, servingLabel: nil, measures: [cocktail, regular])
+        XCTAssertEqual(item.measure(forLoggedAmount: 178), regular)
+        XCTAssertEqual(item.measure(forLoggedAmount: 76), cocktail)
+        XCTAssertEqual(item.measure(forLoggedAmount: 133.5), regular)
+        XCTAssertNil(item.measure(forLoggedAmount: 100))
+    }
+
     func testQuantityUsesKnownServesAndLeavesUnmeasuredFoodsByWeight() throws {
         var food = FoodItem(id: "example", name: "Example", brand: nil, barcode: nil,
                             per100: Per100(kcal: 80, protein: 0, carbs: 0, fat: 0),

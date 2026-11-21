@@ -41,6 +41,14 @@ final class FoodUITests: XCTestCase {
         XCTAssertTrue(add.waitForExistence(timeout: 10), "the portion sheet should open")
         add.tap()
         XCTAssertTrue(add.waitForNonExistence(timeout: 10))
+        saveDiaryMeal()
+    }
+
+    private func saveDiaryMeal() {
+        let save = app.buttons["saveDiaryMeal"]
+        XCTAssertTrue(save.waitForExistence(timeout: 10))
+        save.tap()
+        XCTAssertTrue(save.waitForNonExistence(timeout: 10))
     }
 
     private func text(_ contains: String) -> XCUIElement {
@@ -102,6 +110,35 @@ final class FoodUITests: XCTestCase {
         XCTAssertTrue(addBack.exists, "the Apple Health add-back setting should be in Settings")
     }
 
+    func testSaveAndUndoTwoFoodsTogether() {
+        app.buttons["add-breakfast"].tap()
+
+        for (name, calories) in [("First draft food", "100"), ("Second draft food", "200")] {
+            let quick = app.buttons["quickAdd"]
+            XCTAssertTrue(quick.waitForExistence(timeout: 10))
+            quick.tap()
+            let kcal = app.textFields["quickKcal"]
+            XCTAssertTrue(kcal.waitForExistence(timeout: 5))
+            kcal.tap()
+            kcal.typeText(calories)
+            let label = app.textFields["What was it? (optional)"]
+            label.tap()
+            label.typeText(name)
+            let add = app.buttons["quickSave"]
+            add.tap()
+            XCTAssertTrue(add.waitForNonExistence(timeout: 10))
+        }
+
+        saveDiaryMeal()
+        let first = app.staticTexts["First draft food"].firstMatch
+        let second = app.staticTexts["Second draft food"].firstMatch
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+        XCTAssertTrue(second.exists)
+        app.buttons["undoFoodChange"].tap()
+        XCTAssertTrue(first.waitForNonExistence(timeout: 5))
+        XCTAssertFalse(second.exists)
+    }
+
     func testCopyingYesterday() {
         app.buttons["Previous day"].tap()
         app.buttons["add-breakfast"].tap()
@@ -114,6 +151,7 @@ final class FoodUITests: XCTestCase {
         let what = app.textFields["What was it? (optional)"]
         what.tap(); what.typeText("Test porridge")
         app.buttons["quickSave"].tap()
+        saveDiaryMeal()
         XCTAssertTrue(app.staticTexts["Test porridge"].firstMatch.waitForExistence(timeout: 5))
 
         app.buttons["Next day"].tap()

@@ -102,6 +102,19 @@ public struct FoodItem: Codable, Equatable, Sendable, Identifiable {
         let portions = quantityMeasures
         return portions.first { $0.label.localizedCaseInsensitiveContains(", regular") } ?? portions.first
     }
+
+    /// Express a previously logged amount as a simple portion when there is a match.
+    /// Otherwise the diary can show the original weight or volume directly.
+    public func measure(forLoggedAmount amount: Double) -> FoodMeasure? {
+        let preferred = defaultQuantityMeasure
+        if isPerServe { return preferred }
+        func isQuarterPortion(_ measure: FoodMeasure) -> Bool {
+            let quarters = amount / measure.grams * 4
+            return quarters >= 1 && abs(quarters - quarters.rounded()) < 0.000_001
+        }
+        if let preferred, isQuarterPortion(preferred) { return preferred }
+        return quantityMeasures.first(where: isQuarterPortion)
+    }
 }
 
 public enum MealSlot: String, Codable, CaseIterable, Sendable, Identifiable {
