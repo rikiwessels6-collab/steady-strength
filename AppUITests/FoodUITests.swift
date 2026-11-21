@@ -124,10 +124,10 @@ final class FoodUITests: XCTestCase {
         let add = app.buttons["addTypedMeal"]
         XCTAssertTrue(waitUntil(add, "isEnabled == true"))
         add.tap()
-        let review = app.staticTexts["This meal"]
-        XCTAssertTrue(review.waitForExistence(timeout: 5))
+        XCTAssertTrue(add.waitForNonExistence(timeout: 10))
         saveDiaryMeal()
-        XCTAssertTrue(app.buttons["undoFoodChange"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["2 foods added"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["undoFoodChange"].exists)
     }
 
     func testSaveAndUndoTwoFoodsTogether() {
