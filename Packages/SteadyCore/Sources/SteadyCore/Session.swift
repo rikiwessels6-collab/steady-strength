@@ -206,3 +206,25 @@ public enum SessionBuilder {
         return Int((sec / 60).rounded())
     }
 }
+
+/// The first missing set. Contiguous superset partners advance one round at a time.
+public enum WorkoutSetOrder {
+    public static func next(in plan: [PlannedExercise], completed: [Int: Set<Int>],
+                            extraSets: [Int: Int]) -> (exerciseIndex: Int, setIndex: Int)? {
+        var index = 0
+        while index < plan.count {
+            let group = plan[index].supersetGroup
+            var end = index + 1
+            while let group, end < plan.count, plan[end].supersetGroup == group { end += 1 }
+            let missing = (index..<end).compactMap { i -> (exerciseIndex: Int, setIndex: Int)? in
+                let item = plan[i]
+                let count = max(0, item.sets + (extraSets[item.id] ?? 0))
+                guard let set = (0..<count).first(where: { completed[item.id]?.contains($0) != true }) else { return nil }
+                return (i, set)
+            }
+            if let next = missing.min(by: { $0.setIndex < $1.setIndex }) { return next }
+            index = end
+        }
+        return nil
+    }
+}

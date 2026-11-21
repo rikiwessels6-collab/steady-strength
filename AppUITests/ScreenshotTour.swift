@@ -54,8 +54,14 @@ final class ScreenshotTour: XCTestCase {
         _ = app.buttons["Later"].waitForExistence(timeout: 10)
         sleep(1)
         shot(app, "workout")
-        let firstSet = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'setDone-'")).firstMatch
-        if firstSet.exists { firstSet.tap(); sleep(1); shot(app, "workout-rest-timer") }
+        let logSet = app.buttons["quickLogSet"]
+        XCTAssertTrue(logSet.waitForExistence(timeout: 5))
+        logSet.tap()
+        let undoSet = app.buttons["quickUndoSet"]
+        XCTAssertTrue(undoSet.waitForExistence(timeout: 5))
+        shot(app, "workout-rest-timer")
+        undoSet.tap()
+        XCTAssertTrue(undoSet.waitForNonExistence(timeout: 5))
         let swap = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Swap '")).firstMatch
         if swap.exists { swap.tap(); sleep(1); shot(app, "swap"); app.buttons["Cancel"].firstMatch.tap() }
         app.buttons["Later"].tap()

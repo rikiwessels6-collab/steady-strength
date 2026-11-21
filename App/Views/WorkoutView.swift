@@ -55,6 +55,49 @@ enum WorkoutPlanner {
         return 10
     }
 
+    static func suggestion(for item: PlannedExercise, exercise: Exercise?, logs: [WorkoutLog],
+                           trainingPlan: TrainingPlan) -> LoadSuggestion {
+        let lower = exercise?.tier == "main"
+            && (exercise?.pattern.hasPrefix("squat") == true || exercise?.pattern.hasPrefix("hinge") == true)
+        return Progression.suggest(for: item, exercise: exercise, history: history(item.exerciseId, logs: logs),
+                                   oneRepMaxes: trainingPlan.oneRepMaxes,
+                                   increment: lower ? trainingPlan.lowerIncrement : trainingPlan.upperIncrement)
+    }
+
+    static func baseWeight(for suggestion: LoadSuggestion, item: PlannedExercise,
+                           log: WorkoutLog) -> Double? {
+        guard let weight = suggestion.weight else { return nil }
+        let usePrevious = suggestion.needsConfirmation && !log.acceptedSuggestions.contains(item.exerciseId)
+        return scaled(usePrevious ? suggestion.previousWeight ?? weight : weight, factor: log.loadFactor)
+    }
+
+    static func quickWeight(_ item: PlannedExercise, _ exercise: Exercise?, _ suggestion: LoadSuggestion,
+                            _ previous: SetLog?, log: WorkoutLog) -> Double {
+        guard let previous else {
+            return baseWeight(for: suggestion, item: item, log: log) ?? defaultStartWeight(exercise)
+        }
+        guard exercise?.loadable != false, exercise?.timed != true else { return previous.weight }
+        let advice = SetAdvisor.next(lastWeight: previous.weight, lastReps: previous.reps,
+                                    minReps: previous.minReps ?? item.minimumReps(set: previous.setIndex),
+                                    topReps: previous.targetReps ?? item.targetReps(set: previous.setIndex),
+                                    step: Progression.increment(for: exercise))
+        return advice.kind == .lighter ? advice.weight : previous.weight
+    }
+
+    @MainActor
+    static func recordSet(_ item: PlannedExercise, index: Int, weight: Double, reps: Int,
+                          log: WorkoutLog, context: ModelContext) throws -> SetLog? {
+        guard weight.isFinite, weight >= 0, reps > 0,
+              !log.sets.contains(where: { $0.slotOrder == item.id && $0.setIndex == index }) else { return nil }
+        let set = SetLog(exerciseId: item.exerciseId, slotOrder: item.id, setIndex: index, weight: weight, reps: reps,
+                         rpe: nil, targetSets: item.sets, targetReps: item.targetReps(set: index),
+                         minReps: item.minimumReps(set: index), maxRPE: item.effortType == .rpe ? item.effortMax : nil)
+        context.insert(set)
+        set.workout = log
+        do { try context.save(); return set }
+        catch { context.rollback(); throw error }
+    }
+
     /// "Last time (12 Nov): 60 kg × 8, 8, 7", from the most recent finished session with this exercise.
     static func lastTime(_ exerciseId: String, logs: [WorkoutLog]) -> String? {
         guard let h = history(exerciseId, logs: logs).last else { return nil }
@@ -84,6 +127,7 @@ struct StartWorkoutSheet: View {
     let program: Program
     let week: ProgramWeek
     let workout: ProgramWorkout
+    var initialVersion: SessionVersion = .standard
     let onStart: (SessionVersion, Readiness.Choice, ReasonCode?) -> Void
     @Environment(ContentStore.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -128,6 +172,7 @@ struct StartWorkoutSheet: View {
                     }
                 }
             }
+            .onAppear { version = initialVersion }
             .navigationTitle(workout.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -222,6 +267,8 @@ struct ActiveWorkoutView: View {
     @State private var addingExercise = false
     @State private var loggingCardio = false
     @State private var nextUp: String?
+    @State private var latestSet: SetLog?
+    @State private var saveError = false
     private var nextUpText: String? { nextUp }
     @Query private var appSettings: [AppSettings]
     @FocusState private var focused: Bool
@@ -234,6 +281,9 @@ struct ActiveWorkoutView: View {
                 FreeWorkout.item($1, order: FreeWorkout.extraBase + $0, log: log, content: content)
             }
             let all = built.plan + extras
+            let previousLogs = logs.filter { $0 !== log }
+            let completed = Dictionary(grouping: log.sets, by: \.slotOrder).mapValues { Set($0.map(\.setIndex)) }
+            let upcoming = WorkoutSetOrder.next(in: all, completed: completed, extraSets: log.extraSets)
             let totalSets = built.plan.reduce(0) { $0 + $1.sets + (log.extraSets[$1.id] ?? 0) } + extras.reduce(0) { $0 + $1.sets }
             ScrollViewReader { proxy in
             ScrollView {
@@ -246,11 +296,8 @@ struct ActiveWorkoutView: View {
                         let isExtra = item.id >= FreeWorkout.extraBase
                         VStack(spacing: 6) {
                         ExerciseCard(item: item, log: log, exercise: ex,
-                                     suggestion: Progression.suggest(for: item, exercise: ex,
-                                                                     history: WorkoutPlanner.history(item.exerciseId, logs: logs.filter { $0 !== log }),
-                                                                     oneRepMaxes: trainingPlan.oneRepMaxes,
-                                                                     increment: (ex?.pattern.hasPrefix("squat") == true || ex?.pattern.hasPrefix("hinge") == true) && ex?.tier == "main"
-                                                                         ? trainingPlan.lowerIncrement : trainingPlan.upperIncrement),
+                                     suggestion: WorkoutPlanner.suggestion(for: item, exercise: ex,
+                                                                           logs: previousLogs, trainingPlan: trainingPlan),
                                      isSwapped: item.exerciseId != item.originalExerciseId,
                                      canSwap: !isExtra,
                                      lastTime: WorkoutPlanner.lastTime(item.exerciseId, logs: logs.filter { $0 !== log }),
@@ -262,7 +309,10 @@ struct ActiveWorkoutView: View {
                                          try? context.save()
                                      },
                                      focused: $focused,
-                                     onSetDone: { setDone(item, index: index, plan: all, proxy: proxy) },
+                                     onSetDone: { set in
+                                         latestSet = set
+                                         setDone(item, index: index, plan: all, proxy: proxy)
+                                     },
                                      onSwap: { swapFor = item },
                                      onInfo: { infoFor = item })
                             if isExtra, !log.sets.contains(where: { $0.slotOrder == item.id }) {
@@ -309,18 +359,54 @@ struct ActiveWorkoutView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 24)
             }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if log.finishedAt == nil && !focused {
+                    let controls = VStack(spacing: 6) {
+                        if let end = restEndsAt {
+                            RestTimerBar(endsAt: end, total: restTotal,
+                                         onAdd: { restEndsAt = end.addingTimeInterval(30); restTotal += 30 },
+                                         onLess: { restEndsAt = end.addingTimeInterval(-15); restTotal = max(15, restTotal - 15) },
+                                         onDone: { restEndsAt = nil }, nextText: nextUp)
+                        }
+                        if let upcoming {
+                            let item = all[upcoming.exerciseIndex]
+                            let exercise = content.library[item.exerciseId]
+                            let previous = log.sets.filter { $0.slotOrder == item.id }.max { $0.setIndex < $1.setIndex }
+                            let suggestion = WorkoutPlanner.suggestion(for: item, exercise: exercise,
+                                                                      logs: previousLogs, trainingPlan: trainingPlan)
+                            QuickSetPanel(item: item, index: upcoming.setIndex,
+                                          setCount: item.sets + (log.extraSets[item.id] ?? 0),
+                                          loadable: exercise?.loadable ?? true,
+                                          weight: WorkoutPlanner.quickWeight(item, exercise, suggestion, previous, log: log),
+                                          lastTime: WorkoutPlanner.lastTime(item.exerciseId, logs: previousLogs),
+                                          undo: undoAction) { weight, reps in
+                                do {
+                                    guard let set = try WorkoutPlanner.recordSet(item, index: upcoming.setIndex,
+                                                                                 weight: weight, reps: reps, log: log, context: context) else { return }
+                                    latestSet = set
+                                    setDone(item, index: upcoming.exerciseIndex, plan: all, proxy: proxy)
+                                } catch { saveError = true }
+                            }
+                            .id("\(item.id):\(item.exerciseId):\(upcoming.setIndex)")
+                        } else {
+                            HStack {
+                                Button("Finish workout") { confirmFinish = true }
+                                    .buttonStyle(.borderedProminent).frame(minHeight: 44)
+                                    .accessibilityIdentifier("quickFinishWorkout")
+                                if let undoAction {
+                                    Button("Undo last set", action: undoAction).frame(minHeight: 44)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                    controls.background(.regularMaterial)
+                }
+            }
             }
             .scrollDismissesKeyboard(.interactively)
             .background(Color.night.ignoresSafeArea())
-            .safeAreaInset(edge: .bottom) {
-                if let end = restEndsAt {
-                    RestTimerBar(endsAt: end, total: restTotal,
-                                 onAdd: { restEndsAt = (restEndsAt ?? .now).addingTimeInterval(30); restTotal += 30 },
-                                 onLess: { restEndsAt = (restEndsAt ?? .now).addingTimeInterval(-15); restTotal = max(15, restTotal - 15) },
-                                 onDone: { restEndsAt = nil }, nextText: nextUp)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
+            .alert("Couldn’t update the set", isPresented: $saveError) { Button("OK", role: .cancel) {} }
             .animation(.snappy, value: restEndsAt)
             .task(id: restEndsAt) {
                 // A notification for a locked phone (if switched on), and a tap on the wrist or hand when rest ends in the app.
@@ -390,6 +476,22 @@ struct ActiveWorkoutView: View {
         }
     }
 
+    private var undoAction: (() -> Void)? {
+        guard let set = latestSet, log.sets.contains(where: { $0 === set }) else { return nil }
+        return {
+            context.delete(set)
+            do {
+                try context.save()
+                latestSet = nil
+                restEndsAt = nil
+                nextUp = nil
+            } catch {
+                context.rollback()
+                saveError = true
+            }
+        }
+    }
+
     /// Rest after a set: none between superset partners, the round's rest after the last one.
     private func setDone(_ item: PlannedExercise, index: Int, plan: [PlannedExercise], proxy: ScrollViewProxy) {
         focused = false
@@ -404,13 +506,110 @@ struct ActiveWorkoutView: View {
                 if let t = target { proxy.scrollTo("ex-\(plan[t].id)", anchor: .top) } else { proxy.scrollTo("finish", anchor: .bottom) }
             }
         }
-        if let g = item.supersetGroup, index + 1 < plan.count, plan[index + 1].supersetGroup == g {
+        let completed = Dictionary(grouping: log.sets, by: \.slotOrder).mapValues { Set($0.map(\.setIndex)) }
+        if let group = item.supersetGroup, let next = WorkoutSetOrder.next(in: plan, completed: completed, extraSets: log.extraSets),
+           plan[next.exerciseIndex].supersetGroup == group, next.exerciseIndex > index {
             restEndsAt = nil
             return
         }
         let rest = item.restSeconds > 0 ? item.restSeconds : 60
         restTotal = rest
         restEndsAt = Date.now.addingTimeInterval(TimeInterval(rest))
+    }
+}
+
+/// The next set stays reachable while the full workout remains scrollable above it.
+struct QuickSetPanel: View {
+    let item: PlannedExercise
+    let index: Int
+    let setCount: Int
+    let loadable: Bool
+    let weight: Double
+    let lastTime: String?
+    let undo: (() -> Void)?
+    let onLog: (Double, Int) -> Void
+    @State private var enteredWeight: Double?
+    @State private var enteredReps: Int?
+    @State private var showDetails = false
+    @FocusState private var focused: Bool
+    @Environment(\.dynamicTypeSize) private var textSize
+
+    private var prescribedCount: Int {
+        if case .duration(_, let upper) = item.reps { return Int(upper.rounded()) }
+        return item.targetReps(set: index) ?? 10
+    }
+    private var countLabel: String {
+        if case .duration = item.reps { return "Seconds" }
+        return "Reps"
+    }
+    private var reps: Int { enteredReps ?? prescribedCount }
+    private var setLabel: String { "Set \(index + 1) of \(setCount)" }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            if textSize.isAccessibilitySize {
+                Button("Set details") { showDetails = true }
+                    .frame(minHeight: 44)
+                    .accessibilityHint("\(item.name), \(setLabel)")
+            } else {
+                summary
+                HStack { fields }
+            }
+            HStack {
+                Button {
+                    focused = false
+                    onLog(loadable ? (enteredWeight ?? weight) : 0, reps)
+                } label: {
+                    Text("Log set").frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(reps <= 0 || (loadable && (!(enteredWeight ?? weight).isFinite || (enteredWeight ?? weight) < 0)))
+                .accessibilityIdentifier("quickLogSet")
+                .accessibilityHint("\(item.name), \(setLabel)")
+                if let undo {
+                    Button("Undo", action: undo).frame(minHeight: 44)
+                        .accessibilityLabel("Undo last set").accessibilityIdentifier("quickUndoSet")
+                }
+            }
+        }
+        .padding(.horizontal).padding(.bottom, 6)
+        .sheet(isPresented: $showDetails) {
+            NavigationStack {
+                Form {
+                    Section { summary }
+                    Section { fields }
+                }
+                .themedList()
+                .navigationTitle("Set details")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showDetails = false } } }
+            }
+        }
+        .onAppear { enteredWeight = weight; enteredReps = prescribedCount }
+        .onChange(of: weight) { old, new in if enteredWeight == old { enteredWeight = new } }
+    }
+
+    @ViewBuilder private var summary: some View {
+        Text(item.name).font(.headline).accessibilityAddTraits(.isHeader)
+        Text("\(setLabel) · \(item.repsText)")
+            .font(.subheadline).foregroundStyle(Color.inkMuted)
+            .accessibilityIdentifier("quickSetNumber")
+        if let lastTime { Text(lastTime).font(.footnote).foregroundStyle(Color.inkMuted) }
+    }
+
+    @ViewBuilder private var fields: some View {
+        if loadable {
+            LabeledContent("kg") {
+                TextField("Weight", value: $enteredWeight, format: .number)
+                    .keyboardType(.decimalPad).focused($focused).modifier(PillField())
+                    .accessibilityLabel("Set weight in kilograms")
+            }
+        }
+        LabeledContent(countLabel) {
+            TextField(countLabel, value: $enteredReps, format: .number)
+                .keyboardType(.numberPad).focused($focused).modifier(PillField())
+                .accessibilityLabel(countLabel == "Seconds" ? "Set duration in seconds" : "Set repetitions")
+        }
     }
 }
 
@@ -464,7 +663,7 @@ struct ExerciseCard: View {
     var onAddSet: (() -> Void)? = nil
     var onRemoveSet: (() -> Void)? = nil
     var focused: FocusState<Bool>.Binding
-    let onSetDone: () -> Void
+    let onSetDone: (SetLog) -> Void
     let onSwap: () -> Void
     let onInfo: () -> Void
     @Environment(\.modelContext) private var context
@@ -472,6 +671,8 @@ struct ExerciseCard: View {
     @Query private var notes: [ExerciseNote]
     @State private var showPlates = false
     @State private var heavierAccepted: Double?
+    @State private var saveError = false
+    @Environment(\.dynamicTypeSize) private var textSize
 
     private var done: [SetLog] {
         log.sets.filter { $0.slotOrder == item.id }.sorted { $0.setIndex < $1.setIndex }
@@ -482,11 +683,7 @@ struct ExerciseCard: View {
     /// Increases and deloads are only applied once you accept them.
     private var pendingConfirmation: Bool { suggestion.needsConfirmation && !accepted && !declined && done.isEmpty }
     private var suggestedWeight: Double? {
-        guard let w = suggestion.weight else { return nil }
-        if suggestion.needsConfirmation && !accepted {
-            return WorkoutPlanner.scaled(suggestion.previousWeight ?? w, factor: log.loadFactor)
-        }
-        return WorkoutPlanner.scaled(w, factor: log.loadFactor)
+        WorkoutPlanner.baseWeight(for: suggestion, item: item, log: log)
     }
     /// Judged from the set just done: lighter is applied straight away, heavier only once you tap to accept it.
     private var advice: SetAdvice? {
@@ -605,6 +802,7 @@ struct ExerciseCard: View {
                 .tint(Color.gold)
             }
             VStack(spacing: 8) {
+                if !textSize.isAccessibilitySize {
                 HStack {
                     Text("SET").frame(width: 34, alignment: .leading)
                     Text(loadable ? "KG" : "LOAD").frame(maxWidth: .infinity)
@@ -612,17 +810,16 @@ struct ExerciseCard: View {
                     Color.clear.frame(width: 44)
                 }
                 .font(.caption2.weight(.semibold)).tracking(1.2).foregroundStyle(Color.inkMuted.opacity(0.7))
+                }
                 ForEach(0..<(item.sets + extraSets), id: \.self) { i in
                     SetRow(index: i, item: item, logged: done.first { $0.setIndex == i },
                            startWeight: startWeight, loadable: loadable, focused: focused) { weight, reps in
-                        let set = SetLog(exerciseId: item.exerciseId, slotOrder: item.id, setIndex: i, weight: weight,
-                                         reps: reps, rpe: nil, targetSets: item.sets, targetReps: item.targetReps(set: i),
-                                         minReps: item.minimumReps(set: i),
-                                         maxRPE: item.effortType == .rpe ? item.effortMax : nil)
-                        context.insert(set)
-                        set.workout = log
-                        try? context.save()
-                        onSetDone()
+                        do {
+                            if let set = try WorkoutPlanner.recordSet(item, index: i, weight: weight, reps: reps,
+                                                                      log: log, context: context) {
+                                onSetDone(set)
+                            }
+                        } catch { saveError = true }
                     } onUndo: { set in
                         context.delete(set)
                         try? context.save()
@@ -672,6 +869,7 @@ struct ExerciseCard: View {
             }
         }
         .card()
+        .alert("Couldn’t log the set", isPresented: $saveError) { Button("OK", role: .cancel) {} }
         .sheet(isPresented: $showPlates) {
             NavigationStack {
                 PlateCalculatorView(target: startWeight)
@@ -736,13 +934,15 @@ struct SetRow: View {
     @State private var weight: Double?
     @State private var reps: Int?
     @State private var ready = false
+    @Environment(\.dynamicTypeSize) private var textSize
 
     var body: some View {
-        HStack(spacing: 10) {
-            Text("\(index + 1)")
+        let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 10))
+        layout {
+            Text(textSize.isAccessibilitySize ? "Set \(index + 1)" : "\(index + 1)")
                 .font(.subheadline.weight(.semibold).monospacedDigit())
                 .foregroundStyle(logged == nil ? Color.inkMuted : Color.gold)
-                .frame(width: 34, alignment: .leading)
+                .frame(width: textSize.isAccessibilitySize ? nil : 34, alignment: .leading)
             if let logged {
                 ValuePill(text: loadable ? NumberText.format(logged.weight) : "BW", done: true)
                 ValuePill(text: logged.rpe.map { "\(logged.reps) @\(NumberText.format($0))" } ?? "\(logged.reps)", done: true)
@@ -837,43 +1037,49 @@ struct RestTimerBar: View {
     let onDone: () -> Void
     /// What comes after this rest, for example "Next: set 2 of 3".
     var nextText: String? = nil
+    @Environment(\.dynamicTypeSize) private var textSize
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
             let left = max(0, Int(endsAt.timeIntervalSince(ctx.date).rounded(.up)))
+            let clock = "\(left / 60):\(String(format: "%02d", left % 60))"
             VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle().stroke(Color.white.opacity(0.12), lineWidth: 4)
-                    Circle().trim(from: 0, to: total > 0 ? CGFloat(left) / CGFloat(total) : 0)
-                        .stroke(LinearGradient.brand, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
+                if textSize.isAccessibilitySize {
+                    Menu {
+                        if left > 0 {
+                            Button("15 seconds less", action: onLess)
+                            Button("30 seconds more", action: onAdd)
+                        }
+                        Button(left > 0 ? "Skip rest" : "Dismiss timer", action: onDone)
+                    } label: {
+                        Label(left > 0 ? "Rest \(clock)" : "Rest done", systemImage: "timer").frame(minHeight: 44)
+                    }
+                    .accessibilityHint("Rest timer options")
+                } else {
+                    HStack(spacing: 10) {
+                        ZStack {
+                            Circle().stroke(Color.white.opacity(0.12), lineWidth: 4)
+                            Circle().trim(from: 0, to: total > 0 ? min(1, CGFloat(left) / CGFloat(total)) : 0)
+                                .stroke(LinearGradient.brand, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                        }
+                        .frame(width: 30, height: 30).accessibilityHidden(true)
+                        Text(left > 0 ? clock : "Next set").font(.title2.weight(.bold).monospacedDigit())
+                        Spacer(minLength: 0)
+                        if left > 0 {
+                            Button("−15", action: onLess).accessibilityLabel("15 seconds less rest")
+                            Button("+30", action: onAdd).accessibilityLabel("30 seconds more rest")
+                        }
+                        Button(left > 0 ? "Skip rest" : "OK", action: onDone)
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+                    if let nextText {
+                        Text(nextText).font(.footnote.weight(.medium)).opacity(0.8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("nextUp")
+                    }
                 }
-                .frame(width: 34, height: 34)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(left > 0 ? "REST" : "GO").font(.caption2.weight(.bold)).tracking(1.2).opacity(0.75)
-                    Text(left > 0 ? "\(left / 60):\(String(format: "%02d", left % 60))" : "Next set")
-                        .font(.title2.weight(.bold).monospacedDigit())
-                }
-                Spacer()
-                if left > 0 {
-                    Button("-15", action: onLess).font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 10).padding(.vertical, 8)
-                        .background(Color.white.opacity(0.10), in: Capsule())
-                        .accessibilityLabel("15 seconds less rest")
-                    Button("+30", action: onAdd).font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 10).padding(.vertical, 8)
-                        .background(Color.white.opacity(0.10), in: Capsule())
-                        .accessibilityLabel("30 seconds more rest")
-                }
-                Button(left > 0 ? "Skip" : "OK", action: onDone).font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .background(Color.white.opacity(0.10), in: Capsule())
-            }
-            if let nextText {
-                Text(nextText).font(.footnote.weight(.medium)).opacity(0.8)
-                    .lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityIdentifier("nextUp")
-            }
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 18).padding(.vertical, 14)
@@ -882,7 +1088,6 @@ struct RestTimerBar: View {
             .shadow(color: .black.opacity(0.25), radius: 16, y: 6)
             .padding(.horizontal)
             .padding(.bottom, 6)
-            .buttonStyle(.plain)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(left > 0 ? "Rest, \(left) seconds left" : "Rest done")
         }
