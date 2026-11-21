@@ -435,7 +435,12 @@ struct AddFoodSheet: View {
         }
     }
 
-    private var foodList: some View {
+    private var foodList: AnyView {
+        AnyView(presentationLayer)
+    }
+
+    private var contentLayer: AnyView {
+        AnyView(
         List {
             listRows
         }
@@ -463,6 +468,12 @@ struct AddFoodSheet: View {
             results = []
             message = nil
         }
+        )
+    }
+
+    private var navigationLayer: AnyView {
+        AnyView(
+        contentLayer
         .navigationTitle("Add to \(meal.label)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -514,6 +525,12 @@ struct AddFoodSheet: View {
         } message: {
             Text("Your meal is still here. Try saving again.")
         }
+        )
+    }
+
+    private var presentationLayer: AnyView {
+        AnyView(
+        navigationLayer
         .sheet(item: $editingLine) { line in
             EditEntrySheet(entry: line.entry, food: line.food, onSave: {
                 if let index = draft.firstIndex(where: { $0.id == line.id }) { draft[index] = line }
@@ -568,6 +585,7 @@ struct AddFoodSheet: View {
                 creating = false
             }
         }
+        )
     }
 
     private var listRows: AnyView {
