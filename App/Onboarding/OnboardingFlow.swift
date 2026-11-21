@@ -14,9 +14,11 @@ struct OnboardingFlow: View {
         if let content = store.content {
             NavigationStack {
                 VStack(spacing: 0) {
-                    ProgressView(value: Double(draft.step.rawValue), total: Double(OnboardingDraft.Step.allCases.count - 1))
+                    let steps = draft.steps.filter { $0 != .strengths || draft.needsStrengths(content) }
+                    let index = steps.firstIndex(of: draft.step) ?? 0
+                    ProgressView(value: Double(index), total: Double(steps.count - 1))
                         .padding(.horizontal)
-                        .accessibilityLabel("Step \(draft.step.rawValue + 1) of \(OnboardingDraft.Step.allCases.count)")
+                        .accessibilityLabel("Step \(index + 1) of \(steps.count)")
                     stepView(content)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     footer(content)
@@ -37,7 +39,7 @@ struct OnboardingFlow: View {
     @ViewBuilder
     private func stepView(_ content: BundledContent) -> some View {
         switch draft.step {
-        case .welcome: WelcomeStep()
+        case .welcome: WelcomeStep { withAnimation { draft.beginQuickStart() } }
         case .health: HealthStep(draft: draft)
         case .privacy: PrivacyStep(draft: draft)
         case .lock: LockStep(draft: draft)
@@ -45,7 +47,9 @@ struct OnboardingFlow: View {
         case .goals: GoalStep(draft: draft)
         case .experience: ExperienceStep(draft: draft)
         case .equipment: EquipmentStep(draft: draft, catalog: content.equipment)
-        case .schedule: ScheduleStep(draft: draft)
+        case .schedule:
+            if draft.quickStart { QuickTrainingDays(draft: draft) }
+            else { ScheduleStep(draft: draft) }
         case .program: ProgramStep(draft: draft, content: content)
         case .strengths: StrengthsStep(draft: draft)
         case .checkIn: CheckInStep(draft: draft, options: content.checkIn.customMetricOptions)
@@ -69,7 +73,7 @@ struct OnboardingFlow: View {
                     withAnimation { draft.next(content) }
                 }
             } label: {
-                Text(draft.step == .review ? "Start my plan" : draft.step == .welcome ? "Get started" : "Continue")
+                Text(draft.step == .review ? "Start my plan" : draft.step == .welcome ? "Full setup" : "Continue")
                     .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.borderedProminent)
@@ -84,6 +88,7 @@ struct OnboardingFlow: View {
 // MARK: - Steps
 
 struct WelcomeStep: View {
+    let quickStart: () -> Void
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -98,6 +103,13 @@ struct WelcomeStep: View {
                 Text("Strength training that adapts to your week, your energy and your gym, with food and weekly check-ins in one place.")
                     .font(.title3)
                     .foregroundStyle(.secondary)
+                Button(action: quickStart) {
+                    Text("Quick start").frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("onboardingQuickStart")
+                Text("Pick a goal, equipment and training days. You can set up Apple Health and reminders later.")
+                    .font(.subheadline).foregroundStyle(.secondary)
                 VStack(alignment: .leading, spacing: 12) {
                     Label("Programs that progress your weights for you", systemImage: "chart.line.uptrend.xyaxis")
                     Label("Swaps for any exercise when equipment isn't free", systemImage: "arrow.triangle.swap")
@@ -201,12 +213,14 @@ struct ProfileStep: View {
                 Stepper(value: $draft.weightKg, in: 35...250, step: 0.5) {
                     LabeledContent("Weight", value: String(format: "%.1f kg", draft.weightKg))
                 }
-                Picker("Body fat (optional)", selection: Binding(get: { draft.bodyFatRange ?? "Not sure" },
-                                                                 set: { draft.bodyFatRange = $0 })) {
-                    ForEach(OnboardingDraft.bodyFatRanges, id: \.self) { Text($0).tag($0) }
+                if !draft.quickStart {
+                    Picker("Body fat (optional)", selection: Binding(get: { draft.bodyFatRange ?? "Not sure" },
+                                                                     set: { draft.bodyFatRange = $0 })) {
+                        ForEach(OnboardingDraft.bodyFatRanges, id: \.self) { Text($0).tag($0) }
+                    }
                 }
             }
-            if draft.sex == .female {
+            if !draft.quickStart && draft.sex == .female {
                 Section {
                     Toggle("I'm perimenopausal or menopausal", isOn: $draft.perimenopause)
                         .onChange(of: draft.perimenopause) { _, on in if on { draft.applyPerimenopauseDefaults() } }
@@ -291,12 +305,37 @@ struct EquipmentStep: View {
             } header: { Text("Where do you usually train?") } footer: {
                 Text("When something isn't available, or is busy, the app swaps in the closest exercise. You can change this any day, for example in a hotel.")
             }
-            Section("Fine-tune what's there") {
-                ForEach(catalog.sortedItems, id: \.id) { item in
-                    Toggle(item.name, isOn: Binding(
-                        get: { draft.equipment.contains(item.id) },
-                        set: { on in if on { draft.equipment.insert(item.id) } else { draft.equipment.remove(item.id) } }))
+            if !draft.quickStart {
+                Section("Fine-tune what's there") {
+                    ForEach(catalog.sortedItems, id: \.id) { item in
+                        Toggle(item.name, isOn: Binding(
+                            get: { draft.equipment.contains(item.id) },
+                            set: { on in if on { draft.equipment.insert(item.id) } else { draft.equipment.remove(item.id) } }))
+                    }
                 }
+            }
+        }
+    }
+}
+
+struct QuickTrainingDays: View {
+    @Bindable var draft: OnboardingDraft
+
+    var body: some View {
+        Form {
+            Section {
+                ForEach([2, 3, 4, 5, 6, 7, 1], id: \.self) { weekday in
+                    Toggle(weekdayNames[weekday - 1], isOn: Binding(
+                        get: { draft.preferredWeekdays.contains(weekday) },
+                        set: { selected in
+                            if selected != draft.preferredWeekdays.contains(weekday) { draft.toggleQuickDay(weekday) }
+                        }
+                    ))
+                }
+            } header: {
+                Text("Choose 2 to 6 training days")
+            } footer: {
+                Text("Your workouts follow a rotation, so you can move a session if your week changes.")
             }
         }
     }
@@ -544,7 +583,7 @@ struct ReviewStep: View {
                 LabeledContent("Steps goal", value: draft.stepsGoal.formatted())
             }
             Section {
-                Text("Apple Health, calendar, reminders and Strava are set up in later updates. Everything here can be changed in Settings.")
+                Text("You can connect Apple Health and turn on reminders in Settings when you need them.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         }

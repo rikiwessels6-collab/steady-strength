@@ -20,6 +20,7 @@ extension EnvironmentValues {
 
 struct MainTabView: View {
     @State private var tab: AppTab = .today
+    @State private var foodNavigation = FoodDraftNavigation()
 
     var body: some View {
         TabView(selection: $tab) {
@@ -40,6 +41,8 @@ struct MainTabView: View {
                 .tag(AppTab.settings)
         }
         .environment(\.showTab, { tab = $0 })
+        .environment(foodNavigation)
+        .onChange(of: foodNavigation.request?.id) { _, request in if request != nil { tab = .food } }
         .onAppear { if NotificationRouter.shared.openMeal != nil { tab = .food } }
         .onChange(of: NotificationRouter.shared.openMeal) { _, meal in if meal != nil { tab = .food } }
     }
@@ -72,8 +75,12 @@ struct TodayView: View {
     @Query(sort: \WaterEntry.date, order: .reverse) private var water: [WaterEntry]
     @Environment(\.showTab) private var showTab
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var textSize
     @State private var startSheet = false
     @State private var activeLog: WorkoutLog?
+    @Environment(FoodDraftNavigation.self) private var foodNavigation
+    @AppStorage("upcomingWorkoutAdjustment") private var adjustmentData = Data()
+    @State private var adjustingWorkout: WorkoutAdjustmentSheet.Focus?
 
     /// The session in progress: an open workout, or one from the program you are on now.
     private var unfinished: WorkoutLog? {
@@ -145,7 +152,10 @@ struct TodayView: View {
 
                     if let plan = plans.first, let program = store.content?.program(plan.programId) {
                         sessionCard(plan: plan, program: program)
-                        WeekStrip(logs: logs, plan: plan)
+                    }
+                    foodShortcuts
+                    if let plan = plans.first {
+                        WeekStrip(logs: logs, plan: plan, adjustment: adjustment(for: plan))
                         let streak = Consistency.weekStreak(sessionDates: logs.compactMap(\.finishedAt), planned: plan.daysPerWeek)
                         if streak >= 2 {
                             Label("\(streak) weeks in a row hitting your \(plan.daysPerWeek) sessions", systemImage: "flame.fill")
@@ -215,9 +225,21 @@ struct TodayView: View {
             .sheet(isPresented: $startSheet) {
                 if let plan = plans.first, let program = store.content?.program(plan.programId),
                    let next = program.session(at: plan.nextSessionIndex, includeOptional: plan.daysPerWeek >= 3) {
-                    StartWorkoutSheet(program: program, week: next.week, workout: next.workout) { version, choice, code in
+                    let changes = adjustment(for: plan)
+                    StartWorkoutSheet(program: program, week: next.week, workout: next.workout,
+                                      initialVersion: changes.version) { version, choice, code in
                         start(plan: plan, program: program, week: next.week, workout: next.workout, version: version,
-                              choice: choice, code: code)
+                              choice: choice, code: code, swaps: changes.swaps)
+                    }
+                }
+            }
+            .sheet(item: $adjustingWorkout) { focus in
+                if let plan = plans.first, let program = store.content?.program(plan.programId),
+                   let next = program.session(at: plan.nextSessionIndex, includeOptional: plan.daysPerWeek >= 3) {
+                    WorkoutAdjustmentSheet(program: program, workout: next.workout, week: next.week,
+                                           equipment: Set(plan.equipment), preferredDay: preferredDay(plan),
+                                           focus: focus, adjustment: adjustment(for: plan)) { updated in
+                        if let data = try? JSONEncoder().encode(updated) { adjustmentData = data }
                     }
                 }
             }
@@ -226,9 +248,61 @@ struct TodayView: View {
         }
     }
 
+    private var foodShortcuts: some View {
+        let today = FoodDraftNavigation.Meal(slot: MealSlot.suggested(for: .now))
+        let log = Button {
+            foodNavigation.request = .init(meal: today)
+            showTab(.food)
+        } label: {
+            Label("Log food", systemImage: "fork.knife").frame(maxWidth: .infinity, minHeight: 44)
+        }.accessibilityIdentifier("todayLogFood")
+        let scan = Button {
+            foodNavigation.request = .init(meal: today, scan: true)
+            showTab(.food)
+        } label: {
+            Label("Scan barcode", systemImage: "barcode.viewfinder").frame(maxWidth: .infinity, minHeight: 44)
+        }.accessibilityIdentifier("todayScanBarcode")
+
+        return VStack(spacing: 8) {
+            if let pending = foodNavigation.latest {
+                Button {
+                    foodNavigation.request = .init(meal: pending)
+                    showTab(.food)
+                } label: {
+                    Label("Continue meal", systemImage: "arrow.uturn.forward")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .accessibilityIdentifier("todayContinueMeal")
+                .accessibilityHint("\(pending.slot.label), \(pending.day.formatted(date: .abbreviated, time: .omitted))")
+            }
+            ViewThatFits(in: .horizontal) {
+                HStack { log; scan }
+                VStack { log; scan }
+            }
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private func adjustment(for plan: TrainingPlan) -> SessionAdjustment {
+        if let stored = try? JSONDecoder().decode(SessionAdjustment.self, from: adjustmentData),
+           stored.applies(programID: plan.programId, planStart: plan.startDate, sessionIndex: plan.nextSessionIndex) {
+            return stored
+        }
+        return SessionAdjustment(programID: plan.programId, planStart: plan.startDate, sessionIndex: plan.nextSessionIndex)
+    }
+
+    private func preferredDay(_ plan: TrainingPlan) -> Date {
+        let now: Date = .now
+        let first = doneToday == nil ? now : Calendar.current.date(byAdding: .day, value: 1, to: now) ?? now
+        return SessionAdjustment.preferredDay(onOrAfter: first, weekdays: plan.preferredWeekdays)
+    }
+
     @ViewBuilder
     private func sessionCard(plan: TrainingPlan, program: Program) -> some View {
         if let next = program.session(at: plan.nextSessionIndex, includeOptional: plan.daysPerWeek >= 3) {
+            let changes = adjustment(for: plan)
+            let startsEarly = changes.movedTo.map { $0 > Calendar.current.startOfDay(for: .now) } ?? false
+            let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 12))
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
                     Text(unfinished == nil ? "NEXT SESSION" : "IN PROGRESS")
@@ -246,7 +320,7 @@ struct TodayView: View {
                                 .foregroundStyle(Color.ink)
                             Image(systemName: "chevron.right").font(.headline).foregroundStyle(Color.inkMuted)
                         }
-                        HStack(spacing: 16) {
+                        layout {
                             Label("\(next.workout.estimatedMinutes) min", systemImage: "clock")
                             Label("\(next.workout.slots.count) exercises", systemImage: "dumbbell")
                             if let phase = next.week.phase { Label(phase, systemImage: "flag") }
@@ -256,11 +330,28 @@ struct TodayView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("nextSession")
+                if unfinished == nil {
+                    if let date = changes.movedTo {
+                        Label(date.formatted(date: .complete, time: .omitted), systemImage: "calendar")
+                            .font(.subheadline).accessibilityIdentifier("scheduledWorkoutDay")
+                    }
+                    if changes.version != .standard { Text(changes.version.label).font(.subheadline) }
+                    Menu {
+                        ForEach([WorkoutAdjustmentSheet.Focus.shorter, .swap, .move]) { focus in
+                            Button(focus.title) { adjustingWorkout = focus }
+                        }
+                    } label: {
+                        Label("Adjust workout", systemImage: "slider.horizontal.3").frame(minHeight: 44)
+                    }
+                    .accessibilityIdentifier("adjustWorkout")
+                }
                 Button {
                     if let open = unfinished { activeLog = open } else { startSheet = true }
                 } label: {
-                    Text(unfinished == nil ? "Start workout" : "Resume \(unfinished?.workoutName ?? "")")
+                    Text(unfinished.map { "Resume \($0.workoutName)" } ?? (startsEarly ? "Start workout early" : "Start workout"))
                         .font(.headline).foregroundStyle(Color.night)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 8)
                         .frame(maxWidth: .infinity, minHeight: 52)
                         .background(LinearGradient.brand, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
@@ -271,16 +362,23 @@ struct TodayView: View {
             .background(LinearGradient.night, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .stroke(LinearGradient.brand.opacity(0.6), lineWidth: 1))
+        } else if let unfinished {
+            Button { activeLog = unfinished } label: {
+                Label("Resume \(unfinished.workoutName)", systemImage: "play.fill")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("resumeWorkout")
         } else {
             Text("Program complete. Choose your next one in Settings.").card()
         }
     }
 
     private func start(plan: TrainingPlan, program: Program, week: ProgramWeek, workout: ProgramWorkout, version: SessionVersion,
-                       choice: Readiness.Choice = .asPlanned, code: ReasonCode? = nil) {
+                       choice: Readiness.Choice = .asPlanned, code: ReasonCode? = nil, swaps: [Int: String] = [:]) {
         guard let content = store.content, choice != .rest else { return }
         let built = WorkoutPlanner.plan(program: program, workout: workout, version: version, content: content,
-                                        equipment: Set(plan.equipment), chosenSwaps: [:], week: week.number)
+                                        equipment: Set(plan.equipment), chosenSwaps: swaps, week: week.number)
         let log = WorkoutLog(programId: program.id, weekNumber: week.number, workoutPosition: workout.position,
                              workoutName: workout.name, version: version, swaps: built.swaps)
         log.loadFactor = choice.loadFactor
@@ -303,18 +401,26 @@ struct TodayView: View {
 struct WeekStrip: View {
     let logs: [WorkoutLog]
     let plan: TrainingPlan
+    var adjustment: SessionAdjustment? = nil
+    @Environment(\.dynamicTypeSize) private var textSize
 
     var body: some View {
-        let cal = Calendar(identifier: .iso8601)
+        let cal: Calendar = {
+            var calendar = Calendar(identifier: .iso8601)
+            calendar.timeZone = Calendar.current.timeZone
+            return calendar
+        }()
         let start = cal.dateInterval(of: .weekOfYear, for: .now)?.start ?? .now
         let days = (0..<7).compactMap { cal.date(byAdding: .day, value: $0, to: start) }
         let trained = Set(logs.filter { $0.finishedAt != nil }.map { cal.startOfDay(for: $0.startedAt) })
-        HStack(spacing: 0) {
+        let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 0))
+        layout {
             ForEach(days, id: \.self) { day in
                 let weekday = Calendar.current.component(.weekday, from: day)
                 let isToday = cal.isDateInToday(day)
                 let done = trained.contains(cal.startOfDay(for: day))
-                let planned = plan.preferredWeekdays.contains(weekday)
+                let planned = adjustment?.isTrainingDay(day, weekdays: plan.preferredWeekdays, calendar: cal)
+                    ?? plan.preferredWeekdays.contains(weekday)
                 let fixed = plan.fixedCommitments.contains { $0.weekday == weekday }
                 VStack(spacing: 6) {
                     Text(day.formatted(.dateTime.weekday(.narrow)))

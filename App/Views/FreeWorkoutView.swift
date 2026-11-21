@@ -69,6 +69,8 @@ struct FreeWorkoutView: View {
     @State private var confirmDiscard = false
     @State private var showRecap = false
     @State private var loggingCardio = false
+    @State private var latestSet: SetLog?
+    @State private var saveError = false
     private var nextUpText: String? { nil }
     @Query private var appSettings: [AppSettings]
     @FocusState private var focused: Bool
@@ -76,6 +78,8 @@ struct FreeWorkoutView: View {
     var body: some View {
         if let content = store.content {
             let items = log.freeExerciseIds.enumerated().map { FreeWorkout.item($1, order: $0, log: log, content: content) }
+            let completed = Dictionary(grouping: log.sets, by: \.slotOrder).mapValues { Set($0.map(\.setIndex)) }
+            let upcoming = WorkoutSetOrder.next(in: items, completed: completed, extraSets: [:])
             ScrollView {
                 VStack(spacing: 16) {
                     WorkoutHeader(name: log.workoutName, version: .standard, week: 0, done: log.sets.count,
@@ -102,7 +106,7 @@ struct FreeWorkoutView: View {
                                          isSwapped: false, canSwap: false,
                                          lastTime: WorkoutPlanner.lastTime(item.exerciseId, logs: logs.filter { $0 !== log }),
                                          focused: $focused,
-                                         onSetDone: { setDone(item) }, onSwap: {}, onInfo: { infoFor = item.exerciseId })
+                                         onSetDone: { set in latestSet = set; setDone(item) }, onSwap: {}, onInfo: { infoFor = item.exerciseId })
                             if !log.sets.contains(where: { $0.slotOrder == item.id }) {
                                 Button("Remove \(item.name)", role: .destructive) {
                                     FreeWorkout.remove(at: item.id, from: log)
@@ -144,15 +148,45 @@ struct FreeWorkoutView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(Color.night.ignoresSafeArea())
-            .safeAreaInset(edge: .bottom) {
-                if let end = restEndsAt {
-                    RestTimerBar(endsAt: end, total: restTotal,
-                                 onAdd: { restEndsAt = (restEndsAt ?? .now).addingTimeInterval(30); restTotal += 30 },
-                                 onLess: { restEndsAt = (restEndsAt ?? .now).addingTimeInterval(-15); restTotal = max(15, restTotal - 15) },
-                                 onDone: { restEndsAt = nil })
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if log.finishedAt == nil && !focused {
+                    let controls = VStack(spacing: 6) {
+                        if let end = restEndsAt {
+                            RestTimerBar(endsAt: end, total: restTotal,
+                                         onAdd: { restEndsAt = end.addingTimeInterval(30); restTotal += 30 },
+                                         onLess: { restEndsAt = end.addingTimeInterval(-15); restTotal = max(15, restTotal - 15) },
+                                         onDone: { restEndsAt = nil })
+                        }
+                        if let upcoming {
+                            let item = items[upcoming.exerciseIndex]
+                            let exercise = content.library[item.exerciseId]
+                            let history = logs.filter { $0 !== log }
+                            let suggestion = Progression.suggest(for: item, exercise: exercise,
+                                                                  history: WorkoutPlanner.history(item.exerciseId, logs: history),
+                                                                  oneRepMaxes: plans.first?.oneRepMaxes ?? [:],
+                                                                  increment: plans.first?.upperIncrement ?? 2.5)
+                            let previous = log.sets.filter { $0.slotOrder == item.id }.max { $0.setIndex < $1.setIndex }
+                            QuickSetPanel(item: item, index: upcoming.setIndex, setCount: item.sets,
+                                          loadable: exercise?.loadable ?? true,
+                                          weight: WorkoutPlanner.quickWeight(item, exercise, suggestion, previous, log: log),
+                                          lastTime: WorkoutPlanner.lastTime(item.exerciseId, logs: history),
+                                          undo: undoAction) { weight, reps in
+                                do {
+                                    guard let set = try WorkoutPlanner.recordSet(item, index: upcoming.setIndex,
+                                                                                 weight: weight, reps: reps, log: log, context: context) else { return }
+                                    latestSet = set
+                                    setDone(item)
+                                } catch { saveError = true }
+                            }
+                            .id("\(item.id):\(item.exerciseId):\(upcoming.setIndex)")
+                        } else if let undoAction {
+                            Button("Undo last set", action: undoAction).frame(minHeight: 44)
+                        }
+                    }
+                    controls.background(.regularMaterial)
                 }
             }
+            .alert("Couldn’t update the set", isPresented: $saveError) { Button("OK", role: .cancel) {} }
             .animation(.snappy, value: restEndsAt)
             .task(id: restEndsAt) {
                 // A notification for a locked phone (if switched on), and a tap on the wrist or hand when rest ends in the app.
@@ -210,6 +244,21 @@ struct FreeWorkoutView: View {
                     dismiss()
                 }
             } message: { Text("Nothing from this session is kept.") }
+        }
+    }
+
+    private var undoAction: (() -> Void)? {
+        guard let set = latestSet, log.sets.contains(where: { $0 === set }) else { return nil }
+        return {
+            context.delete(set)
+            do {
+                try context.save()
+                latestSet = nil
+                restEndsAt = nil
+            } catch {
+                context.rollback()
+                saveError = true
+            }
         }
     }
 

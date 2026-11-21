@@ -44,7 +44,8 @@ struct FoodView: View {
     @Query private var plans: [NutritionPlan]
     @Query(sort: \FoodEntry.eatenAt) private var entries: [FoodEntry]
     @State private var day = Date.now
-    @State private var addingTo: MealSlot?
+    @Environment(FoodDraftNavigation.self) private var foodNavigation
+    @State private var addingTo: FoodDraftNavigation.Request?
     @State private var editing: FoodEntry?
     @State private var savingMeal: MealSlot?
     @State private var mealName = ""
@@ -78,23 +79,42 @@ struct FoodView: View {
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if let undo {
-                    HStack {
-                        Text(undoMessage(undo))
-                        Spacer()
+                    let actions = HStack {
                         Button("Undo") { undoChange(undo) }
-                            .fontWeight(.semibold).accessibilityIdentifier("undoFoodChange")
-                        Button { self.undo = nil } label: { Image(systemName: "xmark") }
-                            .accessibilityLabel("Dismiss undo")
+                            .fontWeight(.semibold).frame(minHeight: 44)
+                            .accessibilityIdentifier("undoFoodChange")
+                        Button { self.undo = nil } label: {
+                            Image(systemName: "xmark").frame(minWidth: 44, minHeight: 44)
+                        }
+                        .accessibilityLabel("Dismiss undo")
+                    }
+                    ViewThatFits(in: .horizontal) {
+                        HStack {
+                            Text(undoMessage(undo))
+                            Spacer()
+                            actions
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(undoMessage(undo))
+                            actions
+                        }.frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .font(.subheadline)
                     .padding()
                     .background(.regularMaterial)
                 }
             }
-            .sheet(item: $addingTo) { meal in
-                AddFoodSheet(meal: meal, day: day) { undo = .added($0) }
+            .sheet(item: $addingTo) { request in
+                AddFoodSheet(meal: request.meal.slot, day: request.meal.day,
+                             draft: foodNavigation.draft(for: request.meal), scanOnOpen: request.scan) {
+                    undo = .added($0)
+                }
             }
-            .onAppear(perform: openFromNotification)
+            .onAppear {
+                openFromNotification()
+                openFromToday()
+            }
+            .onChange(of: foodNavigation.request?.id) { _, _ in openFromToday() }
             .onChange(of: NotificationRouter.shared.openMeal) { _, _ in openFromNotification() }
             .onChange(of: entries.count) { _, _ in Task { await MealReminderService.refresh(context) } }
             .sheet(item: $editing) { entry in
@@ -153,7 +173,15 @@ struct FoodView: View {
         NotificationRouter.shared.openMeal = nil
         day = .now
         editing = nil
-        addingTo = meal
+        addingTo = .init(meal: .init(slot: meal))
+    }
+
+    private func openFromToday() {
+        guard let request = foodNavigation.request else { return }
+        foodNavigation.request = nil
+        day = request.meal.day
+        editing = nil
+        addingTo = request
     }
 
     private func saveMeal() {
@@ -297,7 +325,7 @@ struct FoodView: View {
                     .accessibilityLabel("Save \(meal.label) as a meal")
                     .accessibilityIdentifier("saveMeal-\(meal.rawValue)")
                 }
-                Button { addingTo = meal } label: {
+                Button { addingTo = .init(meal: .init(slot: meal, day: day)) } label: {
                     Image(systemName: "plus").font(.subheadline.weight(.bold)).foregroundStyle(Color.night)
                         .frame(width: 30, height: 30).background(LinearGradient.brand, in: Circle())
                         .frame(width: 44, height: 44).contentShape(Rectangle())
@@ -356,8 +384,11 @@ struct FoodView: View {
 struct AddFoodSheet: View {
     let meal: MealSlot
     let day: Date
+    @Binding var draft: [FoodDiaryDraft]
+    var scanOnOpen = false
     let onSaved: ([FoodEntry]) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.modelContext) private var context
     @Query(sort: \SavedFood.lastUsed, order: .reverse) private var saved: [SavedFood]
     @Query(sort: \SavedMeal.lastUsed, order: .reverse) private var meals: [SavedMeal]
@@ -384,7 +415,7 @@ struct AddFoodSheet: View {
     @State private var reviewedFood: FoodItem?
     @State private var plate = false
     @State private var tab = 0
-    @State private var draft: [FoodDiaryDraft] = []
+    @State private var opened = false
     @State private var editingLine: FoodDiaryDraft?
     @State private var confirmDiscard = false
     @State private var saveError = false
@@ -394,7 +425,8 @@ struct AddFoodSheet: View {
             List {
                 if !draft.isEmpty { draftSection }
                 Section {
-                    HStack(spacing: 12) {
+                    let layout = textSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 12))
+                    layout {
                         actionButton("Scan barcode", "barcode.viewfinder") { scannedCode = nil; scanning = true }
                             .accessibilityIdentifier("scanBarcode")
                             .disabled(lookingUp)
@@ -531,16 +563,28 @@ struct AddFoodSheet: View {
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    if !draft.isEmpty {
+                    if !draft.isEmpty && !textSize.isAccessibilitySize {
                         Button("Save meal", action: saveDraft)
                             .fontWeight(.semibold)
                             .accessibilityIdentifier("saveDiaryMeal")
                     }
                 }
             }
-            .alert("Discard this meal?", isPresented: $confirmDiscard) {
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if textSize.isAccessibilitySize && !draft.isEmpty {
+                    Button(action: saveDraft) {
+                        Text("Save meal").frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("saveDiaryMeal")
+                    .padding()
+                    .background(.regularMaterial)
+                }
+            }
+            .confirmationDialog("Leave this meal?", isPresented: $confirmDiscard, titleVisibility: .visible) {
+                Button("Continue later") { dismiss() }
+                Button("Discard", role: .destructive) { draft.removeAll(); dismiss() }
                 Button("Keep editing", role: .cancel) {}
-                Button("Discard", role: .destructive) { dismiss() }
             }
             .alert("Couldn’t save the meal", isPresented: $saveError) {
                 Button("OK", role: .cancel) {}
@@ -600,6 +644,11 @@ struct AddFoodSheet: View {
             }
         }
         .interactiveDismissDisabled(!draft.isEmpty)
+        .task {
+            guard scanOnOpen, !opened else { return }
+            opened = true
+            scanning = true
+        }
     }
 
     private var draftSection: some View {

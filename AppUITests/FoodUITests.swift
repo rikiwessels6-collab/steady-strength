@@ -129,6 +129,15 @@ final class FoodUITests: XCTestCase {
             XCTAssertTrue(add.waitForNonExistence(timeout: 10))
         }
 
+        app.buttons["Close"].firstMatch.tap()
+        let later = app.buttons["Continue later"]
+        XCTAssertTrue(later.waitForExistence(timeout: 5))
+        later.tap()
+        app.tabBars.buttons["Today"].firstMatch.tap()
+        let continueMeal = app.buttons["todayContinueMeal"]
+        XCTAssertTrue(continueMeal.waitForExistence(timeout: 5))
+        continueMeal.tap()
+
         saveDiaryMeal()
         let first = app.staticTexts["First draft food"].firstMatch
         let second = app.staticTexts["Second draft food"].firstMatch

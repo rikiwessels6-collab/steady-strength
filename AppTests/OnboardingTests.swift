@@ -25,6 +25,32 @@ final class OnboardingTests: XCTestCase {
         XCTAssertGreaterThan(c.library.count, 150)
     }
 
+    func testQuickStartSelectsAProgrammeAndLeavesOptionalServicesOff() throws {
+        let content = try bundledContent()
+        let store = try container()
+        let context = store.mainContext
+        let draft = OnboardingDraft()
+        draft.applyDefaults(from: content)
+        draft.beginQuickStart()
+        XCTAssertFalse(draft.canContinue)
+        draft.acceptedDisclaimer = true
+        for expected in [OnboardingDraft.Step.goals, .equipment, .schedule, .profile, .review] {
+            if expected == .profile { draft.toggleQuickDay(7) }
+            if expected == .review { draft.name = "Sam" }
+            draft.next(content)
+            XCTAssertEqual(draft.step, expected)
+        }
+        XCTAssertTrue(draft.canContinue)
+        XCTAssertFalse(draft.needsStrengths(content))
+        try draft.save(into: context, settings: nil)
+        let plan = try XCTUnwrap(context.fetch(FetchDescriptor<TrainingPlan>()).first)
+        let settings = try XCTUnwrap(context.fetch(FetchDescriptor<AppSettings>()).first)
+        XCTAssertEqual(plan.daysPerWeek, 2)
+        XCTAssertEqual(plan.preferredWeekdays, [2, 5])
+        XCTAssertNil(settings.consents[DataType.appleHealth.rawValue])
+        XCTAssertFalse(settings.remindersEnabled)
+    }
+
     func testSaveCreatesOnePersonsPlan() throws {
         let mc = try container()
         let ctx = mc.mainContext
