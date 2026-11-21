@@ -405,8 +405,11 @@ struct WeekStrip: View {
     @Environment(\.dynamicTypeSize) private var textSize
 
     var body: some View {
-        var cal = Calendar(identifier: .iso8601)
-        cal.timeZone = Calendar.current.timeZone
+        let cal: Calendar = {
+            var calendar = Calendar(identifier: .iso8601)
+            calendar.timeZone = Calendar.current.timeZone
+            return calendar
+        }()
         let start = cal.dateInterval(of: .weekOfYear, for: .now)?.start ?? .now
         let days = (0..<7).compactMap { cal.date(byAdding: .day, value: $0, to: start) }
         let trained = Set(logs.filter { $0.finishedAt != nil }.map { cal.startOfDay(for: $0.startedAt) })
