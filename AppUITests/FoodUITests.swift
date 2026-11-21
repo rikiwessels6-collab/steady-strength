@@ -110,6 +110,26 @@ final class FoodUITests: XCTestCase {
         XCTAssertTrue(addBack.exists, "the Apple Health add-back setting should be in Settings")
     }
 
+    func testTypeAMealAddsReviewedFoodsToTheDraft() {
+        app.buttons["add-breakfast"].tap()
+        let type = app.buttons["typeMeal"]
+        XCTAssertTrue(type.waitForExistence(timeout: 10))
+        type.tap()
+        let input = app.descendants(matching: .any)["mealTextInput"].firstMatch
+        XCTAssertTrue(input.waitForExistence(timeout: 5))
+        input.tap()
+        input.typeText("2 eggs and a flat white")
+        app.buttons["findMealTextFoods"].tap()
+
+        let add = app.buttons["addTypedMeal"]
+        XCTAssertTrue(waitUntil(add, "isEnabled == true"))
+        add.tap()
+        let review = app.staticTexts["This meal"]
+        XCTAssertTrue(review.waitForExistence(timeout: 5))
+        saveDiaryMeal()
+        XCTAssertTrue(app.buttons["undoFoodChange"].waitForExistence(timeout: 5))
+    }
+
     func testSaveAndUndoTwoFoodsTogether() {
         app.buttons["add-breakfast"].tap()
 

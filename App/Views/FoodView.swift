@@ -105,8 +105,8 @@ struct FoodView: View {
                 }
             }
             .sheet(item: $addingTo) { request in
-                AddFoodSheet(meal: request.meal.slot, day: request.meal.day,
-                             draft: foodNavigation.draft(for: request.meal), scanOnOpen: request.scan) {
+                AddFoodSheet(destination: request.meal,
+                             draft: foodNavigation.draft(for: request.meal, in: context), scanOnOpen: request.scan) {
                     undo = .added($0)
                 }
             }
@@ -382,8 +382,9 @@ struct FoodView: View {
 // MARK: - Adding food
 
 struct AddFoodSheet: View {
-    let meal: MealSlot
-    let day: Date
+    let destination: FoodDraftNavigation.Meal
+    private var meal: MealSlot { destination.slot }
+    private var day: Date { destination.day }
     @Binding var draft: [FoodDiaryDraft]
     var scanOnOpen = false
     let onSaved: ([FoodEntry]) -> Void
@@ -399,6 +400,7 @@ struct AddFoodSheet: View {
     @State private var browsingRestaurants = false
     @State private var makingCoffee = false
     @Environment(ContentStore.self) private var store
+    @Environment(FoodDraftNavigation.self) private var foodNavigation
     @State private var query = ""
     @State private var results: [FoodItem] = []
     @State private var searching = false
@@ -414,6 +416,7 @@ struct AddFoodSheet: View {
     @State private var reviewNote: String?
     @State private var reviewedFood: FoodItem?
     @State private var plate = false
+    @State private var typingMeal = false
     @State private var tab = 0
     @State private var opened = false
     @State private var editingLine: FoodDiaryDraft?
@@ -439,6 +442,8 @@ struct AddFoodSheet: View {
                     .listRowInsets(EdgeInsets())
                 }
                 Section {
+                    Button { typingMeal = true } label: { Label("Type a meal", systemImage: "text.cursor") }
+                        .accessibilityIdentifier("typeMeal")
                     Menu {
                         Picker("Retailer", selection: $retailer) {
                             Text("All foods").tag(nil as OpenFoodFacts.Retailer?)
@@ -582,9 +587,23 @@ struct AddFoodSheet: View {
                 }
             }
             .confirmationDialog("Leave this meal?", isPresented: $confirmDiscard, titleVisibility: .visible) {
-                Button("Continue later") { dismiss() }
-                Button("Discard", role: .destructive) { draft.removeAll(); dismiss() }
+                Button("Continue later") {
+                    do { try foodNavigation.close(destination, in: context); dismiss() }
+                    catch { foodNavigation.storageError = true }
+                }
+                Button("Discard", role: .destructive) {
+                    do { try foodNavigation.discard(destination, in: context); dismiss() }
+                    catch { foodNavigation.storageError = true }
+                }
                 Button("Keep editing", role: .cancel) {}
+            }
+            .alert("Couldn’t keep the meal draft", isPresented: Binding(
+                get: { foodNavigation.storageError },
+                set: { foodNavigation.storageError = $0 }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Keep the app open and try again. You can still save the meal to your diary.")
             }
             .alert("Couldn’t save the meal", isPresented: $saveError) {
                 Button("OK", role: .cancel) {}
@@ -615,6 +634,9 @@ struct AddFoodSheet: View {
                         draft.append(line)
                     }
                 }
+            }
+            .sheet(isPresented: $typingMeal) {
+                MealTextReviewSheet(meal: meal, day: day) { draft.append(contentsOf: $0) }
             }
             .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { draft.append(contentsOf: $0) } }
             .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { draft.append($0) } }
@@ -687,8 +709,7 @@ struct AddFoodSheet: View {
     private func saveDraft() {
         guard !draft.isEmpty else { return }
         do {
-            let entries = try FoodDiary.save(draft, in: context)
-            draft.removeAll()
+            let entries = try foodNavigation.commit(destination, in: context)
             onSaved(entries)
             dismiss()
         } catch { saveError = true }

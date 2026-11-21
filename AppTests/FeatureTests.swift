@@ -19,6 +19,65 @@ final class FeatureTests: XCTestCase {
         return NutritionPlan(targets: t, presetName: "Balanced", proteinPerKg: 1.8, startAtMaintenance: true)
     }
 
+    func testMealDraftSurvivesAStoreReopenAndClearsWhenSaved() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let url = folder.appendingPathComponent("diary.store")
+        func openStore() throws -> ModelContainer {
+            try ModelContainer(for: Persistence.schema, configurations: ModelConfiguration(schema: Persistence.schema, url: url))
+        }
+
+        let meal = FoodDraftNavigation.Meal(slot: .lunch, day: Date(timeIntervalSince1970: 1_700_000_000))
+        let food = FoodItem(id: "milk", name: "Milk", brand: nil, barcode: "9300123456789",
+                            per100: Per100(kcal: 60, protein: 4, carbs: 5, fat: 3, sugar: 5, sodium: 20),
+                            servingGrams: 250, servingLabel: nil, amountUnit: "mL")
+        let time = meal.day.addingTimeInterval(11 * 60 * 60)
+        do {
+            let oldSchema = Schema([UserProfile.self, TrainingPlan.self, NutritionPlan.self, CheckInSettings.self,
+                                    AppSettings.self, WorkoutLog.self, SetLog.self, FoodEntry.self, SavedFood.self,
+                                    CheckInEntry.self, ExerciseNote.self, ProgressPhoto.self, CustomExercise.self,
+                                    SavedMeal.self, Recipe.self, CustomProgram.self, WaterEntry.self, CardioSession.self])
+            let old = try ModelContainer(for: oldSchema, configurations: ModelConfiguration(schema: oldSchema, url: url))
+            old.mainContext.insert(FoodEntry(item: food, grams: 100, meal: .breakfast, source: .manual, eatenAt: time))
+            try old.mainContext.save()
+        }
+        do {
+            let store = try openStore()
+            let context = store.mainContext
+            let first = FoodDraftNavigation()
+            first.load(in: context)
+            let entry = FoodEntry(item: food, grams: 200, meal: .lunch, source: .photo, eatenAt: time)
+            entry.confidence = "medium"
+            first.draft(for: meal, in: context).wrappedValue = [FoodDiaryDraft(entry: entry, food: food, favourite: true)]
+            XCTAssertFalse(first.storageError)
+            XCTAssertEqual(try context.fetchCount(FetchDescriptor<FoodEntry>()), 1)
+        }
+        do {
+            let store = try openStore()
+            let context = store.mainContext
+            let second = FoodDraftNavigation()
+            second.load(in: context)
+            XCTAssertEqual(second.latest, meal)
+            let draft = try XCTUnwrap(second.draft(for: meal, in: context).wrappedValue.first)
+            XCTAssertEqual(draft.entry.eatenAt, time)
+            XCTAssertEqual(draft.entry.confidence, "medium")
+            XCTAssertEqual(draft.entry.sugar, 10)
+            XCTAssertEqual(draft.entry.portionUnit, "mL")
+            XCTAssertEqual(draft.food, food)
+            let saved = try second.commit(meal, in: context)
+            XCTAssertEqual(saved.count, 1)
+            XCTAssertNil(second.latest)
+            XCTAssertEqual(try context.fetchCount(FetchDescriptor<MealDraftRecord>()), 0)
+            XCTAssertEqual(try FoodDiary.savedFood(food.id, in: context)?.isFavourite, true)
+        }
+        let reopened = try openStore()
+        let context = reopened.mainContext
+        let entries = try context.fetch(FetchDescriptor<FoodEntry>())
+        XCTAssertEqual(entries.map(\.grams).sorted(), [100, 200])
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<MealDraftRecord>()), 0)
+    }
+
     func testMealDraftCommitsTogetherAndUndoRemovesOnlyItsEntries() throws {
         let store = try container()
         let context = ModelContext(store)

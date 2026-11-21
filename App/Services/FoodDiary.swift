@@ -4,40 +4,95 @@ import SwiftData
 
 /// An entry under review. It only becomes part of the diary when the whole meal is saved.
 struct FoodDiaryDraft: Identifiable {
-    let id = UUID()
+    let id: UUID
     let entry: FoodEntry
     var food: FoodItem?
     var favourite: Bool?
-    var recipe: Recipe?
-    var savedMeal: SavedMeal?
+    var recipeDate: Date?
+    var savedMealDate: Date?
+
+    init(entry: FoodEntry, food: FoodItem? = nil, favourite: Bool? = nil,
+         recipe: Recipe? = nil, savedMeal: SavedMeal? = nil) {
+        id = UUID()
+        self.entry = entry
+        self.food = food
+        self.favourite = favourite
+        recipeDate = recipe?.createdAt
+        savedMealDate = savedMeal?.createdAt
+    }
+
+    struct Snapshot: Codable {
+        let id: UUID
+        let item: MealItem
+        let meal: MealSlot
+        let loggedAt: Date
+        let eatenAt: Date
+        let confidence: String?
+        let food: FoodItem?
+        let favourite: Bool?
+        let recipeDate: Date?
+        let savedMealDate: Date?
+
+        init(_ draft: FoodDiaryDraft) {
+            id = draft.id
+            item = MealItem(draft.entry)
+            meal = draft.entry.meal
+            loggedAt = draft.entry.loggedAt
+            eatenAt = draft.entry.eatenAt
+            confidence = draft.entry.confidence
+            food = draft.food
+            favourite = draft.favourite
+            recipeDate = draft.recipeDate
+            savedMealDate = draft.savedMealDate
+        }
+    }
+
+    init(snapshot: Snapshot) {
+        id = snapshot.id
+        entry = FoodEntry(mealItem: snapshot.item, eatenAt: snapshot.eatenAt, meal: snapshot.meal)
+        entry.loggedAt = snapshot.loggedAt
+        entry.confidence = snapshot.confidence
+        food = snapshot.food
+        favourite = snapshot.favourite
+        recipeDate = snapshot.recipeDate
+        savedMealDate = snapshot.savedMealDate
+    }
 }
 
 @MainActor
 enum FoodDiary {
-    static func save(_ draft: [FoodDiaryDraft], in context: ModelContext) throws -> [FoodEntry] {
+    static func save(_ draft: [FoodDiaryDraft], removing record: MealDraftRecord? = nil,
+                     in context: ModelContext) throws -> [FoodEntry] {
+        do { return try commitMeal(draft, removing: record, in: context) }
+        catch { context.rollback(); throw error }
+    }
+
+    private static func commitMeal(_ draft: [FoodDiaryDraft], removing record: MealDraftRecord?,
+                                   in context: ModelContext) throws -> [FoodEntry] {
         var foods: [String: SavedFood] = [:]
         var entries: [FoodEntry] = []
         for line in draft {
             let entry = FoodEntry(copying: line.entry, eatenAt: line.entry.eatenAt, meal: line.entry.meal)
             context.insert(entry)
             entries.append(entry)
-            line.recipe?.lastUsed = .now
-            line.savedMeal?.lastUsed = .now
+            if let date = line.recipeDate {
+                let recipes = try context.fetch(FetchDescriptor<Recipe>(predicate: #Predicate { $0.createdAt == date }))
+                recipes.first?.lastUsed = .now
+            }
+            if let date = line.savedMealDate {
+                let meals = try context.fetch(FetchDescriptor<SavedMeal>(predicate: #Predicate { $0.createdAt == date }))
+                meals.first?.lastUsed = .now
+            }
             guard let food = line.food else { continue }
             let record: SavedFood
             if let cached = foods[food.id] {
                 record = cached
             } else {
-                do {
-                    if let existing = try savedFood(food.id, in: context) {
-                        record = existing
-                    } else {
-                        record = SavedFood(item: food, isCustom: entry.source == .manual)
-                        context.insert(record)
-                    }
-                } catch {
-                    context.rollback()
-                    throw error
+                if let existing = try savedFood(food.id, in: context) {
+                    record = existing
+                } else {
+                    record = SavedFood(item: food, isCustom: entry.source == .manual)
+                    context.insert(record)
                 }
                 foods[food.id] = record
             }
@@ -45,7 +100,8 @@ enum FoodDiary {
             record.useCount += 1
             if let favourite = line.favourite { record.isFavourite = favourite }
         }
-        try commit(in: context)
+        if let record { context.delete(record) }
+        try context.save()
         return entries
     }
 
