@@ -19,6 +19,57 @@ final class FeatureTests: XCTestCase {
         return NutritionPlan(targets: t, presetName: "Balanced", proteinPerKg: 1.8, startAtMaintenance: true)
     }
 
+    func testMealDraftCommitsTogetherAndUndoRemovesOnlyItsEntries() throws {
+        let store = try container()
+        let context = ModelContext(store)
+        let food = FoodItem(id: "sausage", name: "Sausage", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 240, protein: 13, carbs: 2, fat: 20),
+                            servingGrams: 89, servingLabel: "1 sausage")
+        let existing = FoodEntry(item: food, grams: 89, meal: .breakfast, source: .search, eatenAt: .now)
+        context.insert(existing)
+        try context.save()
+        let draft = [178.0, 76.0].map { amount in
+            FoodDiaryDraft(entry: FoodEntry(item: food, grams: amount, meal: .dinner, source: .search, eatenAt: .now),
+                           food: food, favourite: true)
+        }
+
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<FoodEntry>()), 1)
+        let added = try FoodDiary.save(draft, in: context)
+        XCTAssertEqual(added.map(\.grams), [178, 76])
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<FoodEntry>()), 3)
+        XCTAssertEqual(try FoodDiary.savedFood(food.id, in: context)?.useCount, 2)
+        XCTAssertEqual(try FoodDiary.lastAmount(for: food, in: context), 76)
+
+        try FoodDiary.delete(added, in: context)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<FoodEntry>()), 1)
+        XCTAssertEqual(try FoodDiary.lastAmount(for: food, in: context), 89)
+    }
+
+    func testRestoreDeletedDiaryEntryPreservesNutritionAndTimestamps() throws {
+        let store = try container()
+        let context = ModelContext(store)
+        let food = FoodItem(id: "milk", name: "Milk", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 60, protein: 4, carbs: 5, fat: 3, sugar: 5, sodium: 20),
+                            servingGrams: 250, servingLabel: nil, amountUnit: "mL")
+        let entry = FoodEntry(item: food, grams: 250, meal: .lunch, source: .photo, eatenAt: Date(timeIntervalSince1970: 500))
+        entry.loggedAt = Date(timeIntervalSince1970: 600)
+        entry.confidence = "medium"
+        context.insert(entry)
+        try context.save()
+        let snapshot = FoodDiary.copyForUndo(entry)
+
+        try FoodDiary.delete([entry], in: context)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<FoodEntry>()), 0)
+        try FoodDiary.restore(snapshot, in: context)
+        let restored = try XCTUnwrap(context.fetch(FetchDescriptor<FoodEntry>()).first)
+        XCTAssertEqual(restored.macros, snapshot.macros)
+        XCTAssertEqual(restored.loggedAt, snapshot.loggedAt)
+        XCTAssertEqual(restored.eatenAt, snapshot.eatenAt)
+        XCTAssertEqual(restored.meal, .lunch)
+        XCTAssertEqual(restored.portionUnit, "mL")
+        XCTAssertEqual(restored.confidence, "medium")
+    }
+
     func testReviewedProductCanBeReadFromTheLocalStoreAndRepeated() throws {
         let container = try container()
         let item = FoodItem(id: "9300633603224", name: "Test drink", brand: nil, barcode: "9300633603224",

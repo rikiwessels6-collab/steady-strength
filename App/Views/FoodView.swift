@@ -48,6 +48,13 @@ struct FoodView: View {
     @State private var editing: FoodEntry?
     @State private var savingMeal: MealSlot?
     @State private var mealName = ""
+    @State private var undo: DiaryUndo?
+    @State private var saveError = false
+
+    private enum DiaryUndo {
+        case added([FoodEntry])
+        case deleted(FoodEntry)
+    }
 
     private var dayEntries: [FoodEntry] {
         let (s, e) = Calendar.current.dayRange(day)
@@ -69,11 +76,39 @@ struct FoodView: View {
             }
             .background(Color.night.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
-            .sheet(item: $addingTo) { meal in AddFoodSheet(meal: meal, day: day) }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if let undo {
+                    HStack {
+                        Text(undoMessage(undo))
+                        Spacer()
+                        Button("Undo") { undoChange(undo) }
+                            .fontWeight(.semibold).accessibilityIdentifier("undoFoodChange")
+                        Button { self.undo = nil } label: { Image(systemName: "xmark") }
+                            .accessibilityLabel("Dismiss undo")
+                    }
+                    .font(.subheadline)
+                    .padding()
+                    .background(.regularMaterial)
+                }
+            }
+            .sheet(item: $addingTo) { meal in
+                AddFoodSheet(meal: meal, day: day) { undo = .added($0) }
+            }
             .onAppear(perform: openFromNotification)
             .onChange(of: NotificationRouter.shared.openMeal) { _, _ in openFromNotification() }
             .onChange(of: entries.count) { _, _ in Task { await MealReminderService.refresh(context) } }
-            .sheet(item: $editing) { entry in EditEntrySheet(entry: entry) }
+            .sheet(item: $editing) { entry in
+                EditEntrySheet(entry: entry,
+                               food: (try? FoodDiary.savedFood(entry.foodId, in: context))?.item,
+                               onSave: { try FoodDiary.commit(in: context) }, onDelete: {
+                    try deleteEntry(entry)
+                })
+            }
+            .alert("Couldn’t update the diary", isPresented: $saveError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Your diary was left as it was. Try again.")
+            }
             .alert("Save as a meal", isPresented: Binding(get: { savingMeal != nil }, set: { if !$0 { savingMeal = nil } })) {
                 TextField("Name, for example Usual breakfast", text: $mealName)
                 Button("Save") { saveMeal() }
@@ -82,6 +117,34 @@ struct FoodView: View {
                 Text("Keeps these foods and amounts together so you can add them all in one tap from Add, then Meals.")
             }
         }
+    }
+
+    private func undoMessage(_ action: DiaryUndo) -> String {
+        switch action {
+        case .added(let entries): entries.count == 1 ? "Food added" : "\(entries.count) foods added"
+        case .deleted: "Food deleted"
+        }
+    }
+
+    private func undoChange(_ action: DiaryUndo) {
+        do {
+            switch action {
+            case .added(let entries): try FoodDiary.delete(entries, in: context)
+            case .deleted(let snapshot): try FoodDiary.restore(snapshot, in: context)
+            }
+            undo = nil
+        } catch { saveError = true }
+    }
+
+    private func deleteEntry(_ entry: FoodEntry) throws {
+        let snapshot = FoodDiary.copyForUndo(entry)
+        try FoodDiary.delete([entry], in: context)
+        undo = .deleted(snapshot)
+    }
+
+    private func addEntries(_ entries: [FoodEntry]) {
+        do { undo = .added(try FoodDiary.save(entries.map { FoodDiaryDraft(entry: $0) }, in: context)) }
+        catch { saveError = true }
     }
 
     /// A tapped "Log lunch?" nudge: show today and open Add for that meal.
@@ -145,10 +208,9 @@ struct FoodView: View {
     /// Copies a past meal onto the day being viewed, at the same times of day (never in the future).
     private func repeatMeal(_ meal: MealSlot) {
         guard let prev = previousMeal(meal) else { return }
-        for e in prev.items {
-            context.insert(FoodEntry(copying: e, eatenAt: FoodRepeat.time(of: e.eatenAt, on: day), meal: meal))
-        }
-        try? context.save()
+        addEntries(prev.items.map {
+            FoodEntry(copying: $0, eatenAt: FoodRepeat.time(of: $0.eatenAt, on: day), meal: meal)
+        })
     }
 
     /// The most recent earlier day with anything logged, to copy a whole day in one tap.
@@ -161,10 +223,9 @@ struct FoodView: View {
     /// Copies every food from that day onto the day being viewed, in the same meals and at the same times.
     private func repeatDay() {
         guard let prev = previousDay else { return }
-        for e in prev.items {
-            context.insert(FoodEntry(copying: e, eatenAt: FoodRepeat.time(of: e.eatenAt, on: day), meal: e.meal))
-        }
-        try? context.save()
+        addEntries(prev.items.map {
+            FoodEntry(copying: $0, eatenAt: FoodRepeat.time(of: $0.eatenAt, on: day), meal: $0.meal)
+        })
     }
 
     private func copyDayButton(_ prev: (date: Date, items: [FoodEntry])) -> some View {
@@ -205,8 +266,7 @@ struct FoodView: View {
     /// Logs a usual food with the amount used last time.
     private func logUsual(_ u: UsualFood, meal: MealSlot) {
         guard let source = entries.last(where: { $0.foodId == u.foodId && $0.meal == meal }) else { return }
-        context.insert(FoodEntry(copying: source, eatenAt: FoodTiming.defaultEatenAt(for: day), meal: meal))
-        try? context.save()
+        addEntries([FoodEntry(copying: source, eatenAt: FoodTiming.defaultEatenAt(for: day), meal: meal)])
     }
 
     private func repeatLabel(_ date: Date, _ items: [FoodEntry]) -> String {
@@ -296,6 +356,7 @@ struct FoodView: View {
 struct AddFoodSheet: View {
     let meal: MealSlot
     let day: Date
+    let onSaved: ([FoodEntry]) -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Query(sort: \SavedFood.lastUsed, order: .reverse) private var saved: [SavedFood]
@@ -323,10 +384,15 @@ struct AddFoodSheet: View {
     @State private var reviewedFood: FoodItem?
     @State private var plate = false
     @State private var tab = 0
+    @State private var draft: [FoodDiaryDraft] = []
+    @State private var editingLine: FoodDiaryDraft?
+    @State private var confirmDiscard = false
+    @State private var saveError = false
 
     var body: some View {
         NavigationStack {
             List {
+                if !draft.isEmpty { draftSection }
                 Section {
                     HStack(spacing: 12) {
                         actionButton("Scan barcode", "barcode.viewfinder") { scannedCode = nil; scanning = true }
@@ -458,7 +524,36 @@ struct AddFoodSheet: View {
             }
             .navigationTitle("Add to \(meal.label)")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        if draft.isEmpty { dismiss() } else { confirmDiscard = true }
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    if !draft.isEmpty {
+                        Button("Save meal", action: saveDraft)
+                            .fontWeight(.semibold)
+                            .accessibilityIdentifier("saveDiaryMeal")
+                    }
+                }
+            }
+            .alert("Discard this meal?", isPresented: $confirmDiscard) {
+                Button("Keep editing", role: .cancel) {}
+                Button("Discard", role: .destructive) { dismiss() }
+            }
+            .alert("Couldn’t save the meal", isPresented: $saveError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Your meal is still here. Try saving again.")
+            }
+            .sheet(item: $editingLine) { line in
+                EditEntrySheet(entry: line.entry, food: line.food, onSave: {
+                    if let index = draft.firstIndex(where: { $0.id == line.id }) { draft[index] = line }
+                }, onDelete: {
+                    draft.removeAll { $0.id == line.id }
+                })
+            }
             .fullScreenCover(isPresented: $scanning, onDismiss: {
                 guard let code = scannedCode else { return }
                 scannedCode = nil
@@ -472,11 +567,13 @@ struct AddFoodSheet: View {
             .sheet(isPresented: Binding(get: { picked != nil }, set: { if !$0 { picked = nil } })) {
                 if let p = picked {
                     PortionSheet(item: p.item, source: p.source, meal: meal, day: day,
-                                 provenance: store.nutritionCatalogue?.entries.first { $0.item.id == p.item.id }) { dismiss() }
+                                 provenance: store.nutritionCatalogue?.entries.first { $0.item.id == p.item.id }) { line in
+                        draft.append(line)
+                    }
                 }
             }
-            .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { dismiss() } }
-            .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { dismiss() } }
+            .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { draft.append(contentsOf: $0) } }
+            .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { draft.append($0) } }
             .sheet(isPresented: $browsingRestaurants) {
                 RestaurantBrowser { item in
                     browsingRestaurants = false
@@ -490,7 +587,7 @@ struct AddFoodSheet: View {
                 }
             }
             .sheet(isPresented: $newRecipe) { RecipeEditor() }
-            .sheet(item: $loggingRecipe) { r in RecipePortionSheet(recipe: r, meal: meal, day: day) { dismiss() } }
+            .sheet(item: $loggingRecipe) { r in RecipePortionSheet(recipe: r, meal: meal, day: day) { draft.append($0) } }
             .sheet(isPresented: $creating, onDismiss: {
                 guard let item = reviewedFood else { return }
                 reviewedFood = nil
@@ -502,6 +599,50 @@ struct AddFoodSheet: View {
                 }
             }
         }
+        .interactiveDismissDisabled(!draft.isEmpty)
+    }
+
+    private var draftSection: some View {
+        let total = totals(draft.map(\.entry))
+        return Section("This meal") {
+            ForEach(draft) { line in
+                Button { editingLine = line } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(line.entry.name)
+                            if let detail = draftAmount(line.entry) {
+                                Text(detail).font(.footnote).foregroundStyle(Color.inkMuted)
+                            }
+                        }
+                        Spacer()
+                        Text("\(Int(line.entry.kcal.rounded())) kcal").foregroundStyle(Color.inkMuted)
+                    }
+                }
+            }
+            .onDelete { draft.remove(atOffsets: $0) }
+            LabeledContent("Total", value: "\(Int(total.kcal.rounded())) kcal")
+                .fontWeight(.semibold)
+            Text("Protein \(Int(total.protein.rounded())) g · Carbs \(Int(total.carbs.rounded())) g · Fat \(Int(total.fat.rounded())) g")
+                .font(.footnote).foregroundStyle(Color.inkMuted)
+        }
+    }
+
+    private func draftAmount(_ entry: FoodEntry) -> String? {
+        guard entry.grams > 0, !entry.foodId.hasPrefix("quick-") else { return nil }
+        if entry.foodId.hasPrefix(FoodItem.perServePrefix) {
+            return "\(NumberText.format(entry.grams / 100)) \(entry.grams == 100 ? "serve" : "serves")"
+        }
+        return "\(NumberText.format(entry.grams)) \(entry.portionUnit)"
+    }
+
+    private func saveDraft() {
+        guard !draft.isEmpty else { return }
+        do {
+            let entries = try FoodDiary.save(draft, in: context)
+            draft.removeAll()
+            onSaved(entries)
+            dismiss()
+        } catch { saveError = true }
     }
 
     private func startReview(code: String? = nil, item: FoodItem? = nil, note: String? = nil) {
@@ -550,10 +691,9 @@ struct AddFoodSheet: View {
     /// Adds every food in a saved meal to this meal, now if the day is today, otherwise at midday.
     private func add(_ m: SavedMeal) {
         let when = FoodTiming.defaultEatenAt(for: day)
-        for item in m.items { context.insert(FoodEntry(mealItem: item, eatenAt: when, meal: meal)) }
-        m.lastUsed = .now
-        try? context.save()
-        dismiss()
+        draft.append(contentsOf: m.items.map {
+            FoodDiaryDraft(entry: FoodEntry(mealItem: $0, eatenAt: when, meal: meal), savedMeal: m)
+        })
     }
 
     private var list: [SavedFood] {
@@ -641,7 +781,7 @@ struct PortionSheet: View {
     let meal: MealSlot
     let day: Date
     var provenance: NutritionCatalogue.Entry? = nil
-    let onDone: () -> Void
+    let onDone: (FoodDiaryDraft) -> Void
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
@@ -649,9 +789,9 @@ struct PortionSheet: View {
     @State private var portion: FoodMeasure?
     @State private var quantity = "1"
     @State private var measuredAmount = ""
-    @State private var slot: MealSlot = .snacks
-    @State private var eatenAt = Date.now
     @State private var favourite = false
+    @State private var loaded = false
+    @State private var remembered = false
 
     private var grams: Double? {
         let input = portion == nil ? measuredAmount : quantity
@@ -687,10 +827,6 @@ struct PortionSheet: View {
                             .font(.footnote).foregroundStyle(Color.inkMuted)
                     }
                 }
-                Section("When") {
-                    Picker("Meal", selection: $slot) { ForEach(MealSlot.allCases) { Text($0.label).tag($0) } }
-                    DatePicker("Eaten at", selection: $eatenAt)
-                }
                 Section { Toggle("Favourite", isOn: $favourite) }
             }
             .themedList()
@@ -705,13 +841,17 @@ struct PortionSheet: View {
             }
         }
         .onAppear {
-            portion = item.defaultQuantityMeasure
-            measuredAmount = (portion?.grams ?? item.defaultGrams).formatted(.number.grouping(.never).locale(locale))
-            slot = meal
-            // Logging another day: keep that day, at the current time.
-            if !Calendar.current.isDateInToday(day) {
-                let t = Calendar.current.dateComponents([.hour, .minute], from: .now)
-                eatenAt = Calendar.current.date(bySettingHour: t.hour ?? 12, minute: t.minute ?? 0, second: 0, of: day) ?? day
+            guard !loaded else { return }
+            loaded = true
+            let format = FloatingPointFormatStyle<Double>.number.grouping(.never).precision(.fractionLength(0...8)).locale(locale)
+            if let last = try? FoodDiary.lastAmount(for: item, in: context) {
+                remembered = true
+                portion = item.measure(forLoggedAmount: last)
+                if let portion { quantity = (last / portion.grams).formatted(format) }
+                measuredAmount = last.formatted(format)
+            } else {
+                portion = item.defaultQuantityMeasure
+                measuredAmount = (portion?.grams ?? item.defaultGrams).formatted(format)
             }
             favourite = saved.first { $0.foodId == item.id }?.isFavourite ?? false
         }
@@ -719,6 +859,10 @@ struct PortionSheet: View {
 
     private var amountSection: some View {
         Section("Amount") {
+            if remembered {
+                Text("Starts with your last logged amount")
+                    .font(.footnote).foregroundStyle(Color.inkMuted)
+            }
             if !item.isPerServe && !item.quantityMeasures.isEmpty {
                 Picker("Portion", selection: $portion) {
                     ForEach(item.quantityMeasures, id: \.self) { measure in
@@ -777,18 +921,10 @@ struct PortionSheet: View {
 
     private func save() {
         guard let grams else { return }
-        context.insert(FoodEntry(item: item, grams: grams, meal: slot, source: source, eatenAt: eatenAt))
-        let s = saved.first { $0.foodId == item.id } ?? {
-            let n = SavedFood(item: item, isCustom: source == .manual)
-            context.insert(n)
-            return n
-        }()
-        s.lastUsed = .now
-        s.useCount += 1
-        s.isFavourite = favourite
-        try? context.save()
+        let entry = FoodEntry(item: item, grams: grams, meal: meal, source: source,
+                              eatenAt: FoodTiming.defaultEatenAt(for: day))
+        onDone(FoodDiaryDraft(entry: entry, food: item, favourite: favourite))
         dismiss()
-        onDone()
     }
 }
 
@@ -838,8 +974,7 @@ enum FoodTiming {
 struct QuickAddSheet: View {
     let meal: MealSlot
     let day: Date
-    let onDone: () -> Void
-    @Environment(\.modelContext) private var context
+    let onDone: (FoodDiaryDraft) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var kcal: Double?
@@ -881,10 +1016,10 @@ struct QuickAddSheet: View {
         let item = FoodItem(id: "quick-" + UUID().uuidString, name: label.isEmpty ? "Quick add" : label, brand: nil, barcode: nil,
                             per100: Per100(kcal: kcal ?? 0, protein: protein ?? 0, carbs: carbs ?? 0, fat: fat ?? 0),
                             servingGrams: nil, servingLabel: nil)
-        context.insert(FoodEntry(item: item, grams: 100, meal: meal, source: .manual, eatenAt: FoodTiming.defaultEatenAt(for: day)))
-        try? context.save()
+        let entry = FoodEntry(item: item, grams: 100, meal: meal, source: .manual,
+                              eatenAt: FoodTiming.defaultEatenAt(for: day))
+        onDone(FoodDiaryDraft(entry: entry))
         dismiss()
-        onDone()
     }
 
     private func field(_ label: String, _ v: Binding<Double?>) -> some View {
@@ -896,56 +1031,84 @@ struct QuickAddSheet: View {
 }
 
 struct EditEntrySheet: View {
-    @Bindable var entry: FoodEntry
-    @Environment(\.modelContext) private var context
+    let entry: FoodEntry
+    var food: FoodItem? = nil
+    let onSave: () throws -> Void
+    let onDelete: () throws -> Void
     @Environment(\.dismiss) private var dismiss
-    @State private var grams: Double = 0
+    @State private var amount = 0.0
+    @State private var measure: FoodMeasure?
+    @State private var slot: MealSlot = .snacks
+    @State private var eatenAt = Date.now
+    @State private var saveError = false
+
+    private var canEditAmount: Bool { entry.grams > 0 && !entry.foodId.hasPrefix("quick-") }
+    private var amountLabel: String {
+        if let measure { return measure.label == "1 serve" ? "Serves" : "Quantity" }
+        return entry.portionUnit == "mL" ? "Millilitres" : "Grams"
+    }
+    private var updatedAmount: Double { amount * (measure?.grams ?? 1) }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     Text(entry.name).font(.title3.weight(.semibold))
-                    if entry.foodId.hasPrefix(FoodItem.perServePrefix) {
-                        TextField("Serves", value: Binding(get: { grams / 100 }, set: { grams = $0 * 100 }), format: .number)
-                            .keyboardType(.decimalPad)
-                    } else {
-                        TextField(entry.portionUnit == "mL" ? "Millilitres" : "Grams", value: $grams, format: .number)
-                            .keyboardType(.decimalPad)
+                    if canEditAmount {
+                        if let measure, amountLabel == "Quantity" {
+                            LabeledContent("Portion", value: measure.label)
+                        }
+                        LabeledContent(amountLabel) {
+                            TextField(amountLabel, value: $amount, format: .number)
+                                .keyboardType(.decimalPad).multilineTextAlignment(.trailing)
+                        }
                     }
-                    Picker("Meal", selection: Binding(get: { entry.meal }, set: { entry.mealRaw = $0.rawValue })) {
+                    Picker("Meal", selection: $slot) {
                         ForEach(MealSlot.allCases) { Text($0.label).tag($0) }
                     }
-                    DatePicker("Eaten at", selection: $entry.eatenAt)
+                    DatePicker("Eaten at", selection: $eatenAt)
                 }
                 Section {
                     LabeledContent("Logged", value: entry.loggedAt.formatted(date: .abbreviated, time: .shortened))
                     LabeledContent("Source", value: entry.source.rawValue.capitalized)
                 }
                 Section {
-                    Button("Delete", role: .destructive) { context.delete(entry); try? context.save(); dismiss() }
+                    Button("Delete", role: .destructive) {
+                        do { try onDelete(); dismiss() }
+                        catch { saveError = true }
+                    }
+                    .accessibilityIdentifier("deleteDiaryFood")
                 }
             }
             .themedList()
-            .navigationTitle("Edit")
+            .navigationTitle("Edit food")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
-                        if grams > 0, entry.grams > 0, grams != entry.grams {
-                            let f = grams / entry.grams
-                            entry.kcal *= f; entry.protein *= f; entry.carbs *= f; entry.fat *= f; entry.fibre *= f
-                            entry.sugar = entry.sugar.map { $0 * f }
-                            entry.satFat = entry.satFat.map { $0 * f }
-                            entry.sodiumMg = entry.sodiumMg.map { $0 * f }
-                            entry.grams = grams
-                        }
-                        try? context.save()
-                        dismiss()
+                        if canEditAmount { entry.updatePortion(updatedAmount) }
+                        entry.mealRaw = slot.rawValue
+                        entry.eatenAt = eatenAt
+                        do { try onSave(); dismiss() }
+                        catch { saveError = true }
                     }
+                    .disabled(canEditAmount && (!(0...100_000).contains(updatedAmount) || updatedAmount <= 0))
                 }
             }
-            .onAppear { grams = entry.grams }
+            .alert("Couldn’t update the food", isPresented: $saveError) {
+                Button("OK", role: .cancel) {}
+            }
+            .onAppear {
+                if entry.foodId.hasPrefix(FoodItem.perServePrefix) {
+                    measure = FoodMeasure(label: "1 serve", grams: 100)
+                } else if food?.portionUnit == entry.portionUnit {
+                    measure = food?.measure(forLoggedAmount: entry.grams)
+                }
+                amount = entry.grams / (measure?.grams ?? 1)
+                slot = entry.meal
+                eatenAt = entry.eatenAt
+            }
         }
     }
 }

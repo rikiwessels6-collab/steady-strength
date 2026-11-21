@@ -403,6 +403,16 @@ final class FoodEntry {
         self.sodiumMg = i.sodiumMg
     }
 
+    func updatePortion(_ amount: Double) {
+        guard amount.isFinite, amount > 0, grams > 0, amount != grams else { return }
+        let factor = amount / grams
+        kcal *= factor; protein *= factor; carbs *= factor; fat *= factor; fibre *= factor
+        sugar = sugar.map { $0 * factor }
+        satFat = satFat.map { $0 * factor }
+        sodiumMg = sodiumMg.map { $0 * factor }
+        grams = amount
+    }
+
     var meal: MealSlot { MealSlot(rawValue: mealRaw) ?? .snacks }
     var source: FoodSource { FoodSource(rawValue: sourceRaw) ?? .manual }
     var macros: Macros {
