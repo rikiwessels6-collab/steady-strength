@@ -54,7 +54,7 @@ struct MealTextReviewSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Describe your meal") {
+                Section {
                     TextField("2 eggs, 2 slices of sourdough and a flat white", text: $text, axis: .vertical)
                         .lineLimit(2...5)
                         .focused($typing)
@@ -62,6 +62,8 @@ struct MealTextReviewSheet: View {
                     Button("Find foods", action: findFoods)
                         .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .accessibilityIdentifier("findMealTextFoods")
+                } header: {
+                    Text("Describe your meal")
                 } footer: {
                     Text("Separate foods with commas or “and”. Review each match and amount before adding it.")
                 }
