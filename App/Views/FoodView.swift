@@ -437,11 +437,7 @@ struct AddFoodSheet: View {
 
     private var foodList: some View {
         List {
-            if !draft.isEmpty { draftSection }
-            captureActions
-            foodOptions
-            searchOrLibrary
-            dataAttribution
+            listRows
         }
         .themedList()
         .overlay { if searching || lookingUp { ProgressView().controlSize(.large) } }
@@ -470,46 +466,46 @@ struct AddFoodSheet: View {
         .navigationTitle("Add to \(meal.label)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        if draft.isEmpty { dismiss() } else { confirmDiscard = true }
-                    }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Close") {
+                    if draft.isEmpty { dismiss() } else { confirmDiscard = true }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    if !draft.isEmpty && !textSize.isAccessibilitySize {
-                        Button("Save meal", action: saveDraft)
-                            .fontWeight(.semibold)
-                            .accessibilityIdentifier("saveDiaryMeal")
-                    }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                if !draft.isEmpty && !textSize.isAccessibilitySize {
+                    Button("Save meal", action: saveDraft)
+                        .fontWeight(.semibold)
+                        .accessibilityIdentifier("saveDiaryMeal")
                 }
+            }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-                if textSize.isAccessibilitySize && !draft.isEmpty {
-                    Button(action: saveDraft) {
-                        Text("Save meal").frame(maxWidth: .infinity, minHeight: 44)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityIdentifier("saveDiaryMeal")
-                    .padding()
-                    .background(.regularMaterial)
+            if textSize.isAccessibilitySize && !draft.isEmpty {
+                Button(action: saveDraft) {
+                    Text("Save meal").frame(maxWidth: .infinity, minHeight: 44)
                 }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("saveDiaryMeal")
+                .padding()
+                .background(.regularMaterial)
+            }
         }
         .confirmationDialog("Leave this meal?", isPresented: $confirmDiscard, titleVisibility: .visible) {
-                Button("Continue later") {
-                    do { try foodNavigation.close(destination, in: context); dismiss() }
-                    catch { foodNavigation.storageError = true }
-                }
-                Button("Discard", role: .destructive) {
-                    do { try foodNavigation.discard(destination, in: context); dismiss() }
-                    catch { foodNavigation.storageError = true }
-                }
-                Button("Keep editing", role: .cancel) {}
+            Button("Continue later") {
+                do { try foodNavigation.close(destination, in: context); dismiss() }
+                catch { foodNavigation.storageError = true }
+            }
+            Button("Discard", role: .destructive) {
+                do { try foodNavigation.discard(destination, in: context); dismiss() }
+                catch { foodNavigation.storageError = true }
+            }
+            Button("Keep editing", role: .cancel) {}
         }
         .alert("Couldn’t keep the meal draft", isPresented: Binding(
-                get: { foodNavigation.storageError },
-                set: { foodNavigation.storageError = $0 }
-            )) {
-                Button("OK", role: .cancel) {}
+            get: { foodNavigation.storageError },
+            set: { foodNavigation.storageError = $0 }
+        )) {
+            Button("OK", role: .cancel) {}
         } message: {
             Text("Keep the app open and try again. You can still save the meal to your diary.")
         }
@@ -519,59 +515,69 @@ struct AddFoodSheet: View {
             Text("Your meal is still here. Try saving again.")
         }
         .sheet(item: $editingLine) { line in
-                EditEntrySheet(entry: line.entry, food: line.food, onSave: {
-                    if let index = draft.firstIndex(where: { $0.id == line.id }) { draft[index] = line }
-                }, onDelete: {
-                    draft.removeAll { $0.id == line.id }
-                })
+            EditEntrySheet(entry: line.entry, food: line.food, onSave: {
+                if let index = draft.firstIndex(where: { $0.id == line.id }) { draft[index] = line }
+            }, onDelete: {
+                draft.removeAll { $0.id == line.id }
+            })
         }
         .fullScreenCover(isPresented: $scanning, onDismiss: {
-                guard let code = scannedCode else { return }
-                scannedCode = nil
-                Task { await lookup(code) }
+            guard let code = scannedCode else { return }
+            scannedCode = nil
+            Task { await lookup(code) }
         }) {
-                BarcodeScanner { code in
-                    scannedCode = code
-                    scanning = false
-                } onCancel: { scanning = false }
+            BarcodeScanner { code in
+                scannedCode = code
+                scanning = false
+            } onCancel: { scanning = false }
         }
         .sheet(isPresented: Binding(get: { picked != nil }, set: { if !$0 { picked = nil } })) {
-                if let p = picked {
-                    PortionSheet(item: p.item, source: p.source, meal: meal, day: day,
-                                 provenance: store.nutritionCatalogue?.entries.first { $0.item.id == p.item.id }) { line in
-                        draft.append(line)
-                    }
+            if let p = picked {
+                PortionSheet(item: p.item, source: p.source, meal: meal, day: day,
+                             provenance: store.nutritionCatalogue?.entries.first { $0.item.id == p.item.id }) { line in
+                    draft.append(line)
                 }
+            }
         }
         .sheet(isPresented: $typingMeal) {
-                MealTextReviewSheet(meal: meal, day: day) { draft.append(contentsOf: $0) }
+            MealTextReviewSheet(meal: meal, day: day) { draft.append(contentsOf: $0) }
         }
         .sheet(isPresented: $plate) { PlateFlow(meal: meal, day: day) { draft.append(contentsOf: $0) } }
         .sheet(isPresented: $quickAdding) { QuickAddSheet(meal: meal, day: day) { draft.append($0) } }
         .sheet(isPresented: $browsingRestaurants) {
-                RestaurantBrowser { item in
-                    browsingRestaurants = false
-                    picked = (item, .search)
-                }
+            RestaurantBrowser { item in
+                browsingRestaurants = false
+                picked = (item, .search)
+            }
         }
         .sheet(isPresented: $makingCoffee) {
-                CoffeeBuilderView { item in
-                    makingCoffee = false
-                    picked = (item, .manual)
-                }
+            CoffeeBuilderView { item in
+                makingCoffee = false
+                picked = (item, .manual)
+            }
         }
         .sheet(isPresented: $newRecipe) { RecipeEditor() }
         .sheet(item: $loggingRecipe) { r in RecipePortionSheet(recipe: r, meal: meal, day: day) { draft.append($0) } }
         .sheet(isPresented: $creating, onDismiss: {
-                guard let item = reviewedFood else { return }
-                reviewedFood = nil
-                picked = (item, item.barcode == nil ? .manual : .barcode)
+            guard let item = reviewedFood else { return }
+            reviewedFood = nil
+            picked = (item, item.barcode == nil ? .manual : .barcode)
         }) {
-                CustomFoodForm(barcode: newBarcode, item: reviewItem, initialNote: reviewNote) { item in
-                    reviewedFood = try saveReviewedFood(item)
-                    creating = false
-                }
+            CustomFoodForm(barcode: newBarcode, item: reviewItem, initialNote: reviewNote) { item in
+                reviewedFood = try saveReviewedFood(item)
+                creating = false
+            }
         }
+    }
+
+    private var listRows: AnyView {
+        AnyView(Group {
+            if !draft.isEmpty { draftSection }
+            captureActions
+            foodOptions
+            searchOrLibrary
+            dataAttribution
+        })
     }
 
     private var captureActions: some View {
