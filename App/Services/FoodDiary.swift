@@ -39,7 +39,7 @@ enum FoodDiary {
                     context.rollback()
                     throw error
                 }
-                foods[id] = record
+                foods[food.id] = record
             }
             record.lastUsed = .now
             record.useCount += 1
