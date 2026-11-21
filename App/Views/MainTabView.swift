@@ -19,6 +19,7 @@ extension EnvironmentValues {
 }
 
 struct MainTabView: View {
+    @Environment(\.modelContext) private var context
     @State private var tab: AppTab = .today
     @State private var foodNavigation = FoodDraftNavigation()
 
@@ -43,7 +44,10 @@ struct MainTabView: View {
         .environment(\.showTab, { tab = $0 })
         .environment(foodNavigation)
         .onChange(of: foodNavigation.request?.id) { _, request in if request != nil { tab = .food } }
-        .onAppear { if NotificationRouter.shared.openMeal != nil { tab = .food } }
+        .onAppear {
+            foodNavigation.load(in: context)
+            if NotificationRouter.shared.openMeal != nil { tab = .food }
+        }
         .onChange(of: NotificationRouter.shared.openMeal) { _, meal in if meal != nil { tab = .food } }
     }
 }
