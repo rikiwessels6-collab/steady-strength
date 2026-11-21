@@ -19,6 +19,36 @@ final class ContentStore {
     /// Everyday generic foods (AUSNUT 2023), searchable offline.
     private(set) var genericFoods: GenericFoods?
     private var base: BundledContent?
+    private(set) var nutritionCatalogue: NutritionCatalogue?
+    private var refreshingCatalogue = false
+
+    func refreshNutritionCatalogue() async {
+        guard !refreshingCatalogue,
+              let address = Bundle.main.object(forInfoDictionaryKey: "NutritionCatalogueURL") as? String,
+              let url = URL(string: address), url.scheme == "https", url.host != nil else { return }
+        refreshingCatalogue = true
+        defer { refreshingCatalogue = false }
+
+        let cache = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("au-operator-menus.json")
+        if nutritionCatalogue == nil, let cache, let data = try? Data(contentsOf: cache) {
+            nutritionCatalogue = try? NutritionCatalogue(data: data)
+        }
+        if let cache, let date = (try? cache.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate,
+           nutritionCatalogue != nil, Date.now.timeIntervalSince(date) < 24 * 60 * 60 { return }
+        do {
+            var request = URLRequest(url: url, timeoutInterval: 15)
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+                  http.url?.scheme == "https", data.count <= 10 * 1024 * 1024 else { return }
+            let catalogue = try NutritionCatalogue(data: data)
+            if let cache { try? data.write(to: cache, options: .atomic) }
+            nutritionCatalogue = catalogue
+        } catch {
+            // Keep the last validated snapshot available if the source is offline.
+        }
+    }
 
     /// Replaces the user's own exercises (called at launch and after one is added or edited).
     func setCustom(_ exercises: [Exercise]) {

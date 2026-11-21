@@ -8,7 +8,7 @@ import SteadyCore
 struct PlateFlow: View {
     let meal: MealSlot
     let day: Date
-    let onDone: () -> Void
+    let onDone: ([FoodDiaryDraft]) -> Void
     @Environment(\.dismiss) private var dismiss
     @Query private var settings: [AppSettings]
 
@@ -32,7 +32,7 @@ struct PlateFlow: View {
                         Text("Estimating your plate…").foregroundStyle(Color.inkMuted)
                     }.frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .confirm(let result):
-                    ConfirmPlate(result: result, meal: meal, day: day, note: note) { dismiss(); onDone() }
+                    ConfirmPlate(result: result, meal: meal, day: day, note: note) { draft in onDone(draft); dismiss() }
                 case .failed(let message):
                     VStack(spacing: 16) {
                         Image(systemName: "exclamationmark.triangle").font(.largeTitle).foregroundStyle(Color.gold)
@@ -127,14 +127,13 @@ struct ConfirmPlate: View {
     let meal: MealSlot
     let day: Date
     let note: String
-    let onDone: () -> Void
-    @Environment(\.modelContext) private var context
+    let onDone: ([FoodDiaryDraft]) -> Void
     @State private var items: [PlateItem]
     @State private var answers: [String: Int] = [:]
     @State private var slot: MealSlot
     @State private var eatenAt: Date
 
-    init(result: PlateResult, meal: MealSlot, day: Date, note: String, onDone: @escaping () -> Void) {
+    init(result: PlateResult, meal: MealSlot, day: Date, note: String, onDone: @escaping ([FoodDiaryDraft]) -> Void) {
         self.result = result; self.meal = meal; self.day = day; self.note = note; self.onDone = onDone
         _items = State(initialValue: result.items)
         _slot = State(initialValue: meal)
@@ -222,14 +221,14 @@ struct ConfirmPlate: View {
     }
 
     private func save() {
-        for (n, item) in items.enumerated() {
+        var draft: [FoodDiaryDraft] = []
+        for item in items {
             guard let per100 = item.per100 else { continue }
             let food = FoodItem(id: "photo-\(UUID().uuidString)", name: item.name, brand: nil, barcode: nil,
                                 per100: per100, servingGrams: nil, servingLabel: nil)
             let entry = FoodEntry(item: food, grams: item.grams, meal: slot, source: .photo, eatenAt: eatenAt)
             entry.confidence = item.confidence.rawValue
-            _ = n
-            context.insert(entry)
+            draft.append(FoodDiaryDraft(entry: entry))
         }
         // Hidden calories the person told us about are logged as their own line, so they can be seen and edited.
         for q in result.questions {
@@ -242,10 +241,9 @@ struct ConfirmPlate: View {
             let entry = FoodEntry(item: placeholder, grams: 0, meal: slot, source: .photo, eatenAt: eatenAt)
             entry.kcal = opt.kcal; entry.protein = opt.protein; entry.carbs = opt.carbs; entry.fat = opt.fat
             entry.confidence = PlateConfidence.medium.rawValue
-            context.insert(entry)
+            draft.append(FoodDiaryDraft(entry: entry))
         }
-        try? context.save()
-        onDone()
+        onDone(draft)
     }
 }
 

@@ -33,6 +33,32 @@ final class OnboardingDraft {
     }
 
     var step: Step = .welcome
+    var quickStart = false
+
+    var steps: [Step] {
+        quickStart ? [.welcome, .health, .goals, .equipment, .schedule, .profile, .review] : Step.allCases
+    }
+
+    func beginQuickStart() {
+        quickStart = true
+        step = .health
+    }
+
+    func toggleQuickDay(_ weekday: Int) {
+        if preferredWeekdays.contains(weekday) {
+            preferredWeekdays.remove(weekday)
+        } else if preferredWeekdays.count < 6 {
+            preferredWeekdays.insert(weekday)
+        }
+        daysPerWeek = preferredWeekdays.count
+    }
+
+    private func chooseQuickProgram(_ content: BundledContent) {
+        let programmes = content.catalogue(showDraft: AppConfig.showDraft)
+            .filter { !$0.requiresOneRepMax }
+        programId = ProgramAdvisor.recommend(experience: experience, daysPerWeek: daysPerWeek, programs: programmes)
+            .first?.programId ?? programmes.first?.id
+    }
 
     // health + privacy
     var acceptedDisclaimer = false
@@ -137,23 +163,29 @@ final class OnboardingDraft {
         case .health: return acceptedDisclaimer
         case .privacy: return consents.contains(.profile) && consents.contains(.training)
         case .profile: return !name.trimmingCharacters(in: .whitespaces).isEmpty && heightCm > 100 && weightKg > 30
-        case .schedule: return !preferredWeekdays.isEmpty
-        case .program: return programId != nil
+        case .schedule: return quickStart ? (2...6).contains(preferredWeekdays.count) : !preferredWeekdays.isEmpty
+        case .program, .review: return programId != nil
         default: return true
         }
     }
 
     func next(_ content: BundledContent) {
-        guard let i = Step.allCases.firstIndex(of: step), i + 1 < Step.allCases.count else { return }
-        var n = Step.allCases[i + 1]
+        guard let i = steps.firstIndex(of: step), i + 1 < steps.count else { return }
+        var n = steps[i + 1]
         if n == .strengths && !needsStrengths(content) { n = .checkIn }
+        if quickStart && n == .review { chooseQuickProgram(content) }
         step = n
     }
 
     func back(_ content: BundledContent) {
-        guard let i = Step.allCases.firstIndex(of: step), i > 0 else { return }
-        var p = Step.allCases[i - 1]
+        guard let i = steps.firstIndex(of: step), i > 0 else { return }
+        var p = steps[i - 1]
         if p == .strengths && !needsStrengths(content) { p = .program }
+        if p == .welcome && quickStart {
+            quickStart = false
+            programId = nil
+            daysPerWeek = max(2, preferredWeekdays.count)
+        }
         step = p
     }
 

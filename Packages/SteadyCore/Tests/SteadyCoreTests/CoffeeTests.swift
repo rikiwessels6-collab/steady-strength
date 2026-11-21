@@ -51,4 +51,18 @@ final class CoffeeTests: XCTestCase {
         let none = try GenericFoods(data: Data(#"{"source":"x","foods":[]}"#.utf8))
         XCTAssertNil(CoffeeBuilder.build(CoffeeOrder(style: .flatWhite), foods: none))
     }
+
+    func testLegacyCoffeeOrdersAndNamedCapsuleIdentity() throws {
+        let old = #"{"style":"espresso","brewMl":40,"capsules":1,"milk":"noMilk","milkMl":0,"sugarTsp":0}"#
+        var order = try JSONDecoder().decode(CoffeeOrder.self, from: Data(old.utf8))
+        XCTAssertNil(order.capsuleName)
+        let genericID = CoffeeBuilder.id(order)
+        order.capsuleName = "  Melozio  "
+        XCTAssertTrue(CoffeeBuilder.name(order).contains("Melozio"))
+        XCTAssertNotEqual(genericID, CoffeeBuilder.id(order))
+        let saved = try JSONDecoder().decode(CoffeeOrder.self, from: JSONEncoder().encode(order))
+        XCTAssertEqual(saved.namedCapsule, "Melozio")
+        XCTAssertEqual(CoffeeBuilder.id(saved), CoffeeBuilder.id(order))
+    }
+
 }

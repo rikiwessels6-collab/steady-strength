@@ -72,4 +72,74 @@ final class FoodTests: XCTestCase {
         XCTAssertEqual((a + b).kcal, 150)
         XCTAssertEqual((a + b).fat, 2)
     }
+
+    func testRetailerSearchConfirmsAustralianStoreTagsAndCompleteMacros() throws {
+        let matching = #"{"product_name":"Milk","code":"12345678","countries_tags":["en:australia"],"stores_tags":["coles"],"nutriments":{"energy-kcal_100g":65,"proteins_100g":4,"carbohydrates_100g":5,"fat_100g":3}}"#
+        let foreign = matching.replacingOccurrences(of: "en:australia", with: "en:france")
+        let incomplete = matching.replacingOccurrences(of: #","fat_100g":3"#, with: "")
+        let json = #"{"products":["# + [matching, foreign, incomplete].joined(separator: ",") + "]}"
+        let hits = try OpenFoodFacts.parseSearch(Data(json.utf8), retailer: .coles)
+        XCTAssertEqual(hits.map(\.name), ["Milk"])
+        XCTAssertTrue(OpenFoodFacts.searchURL("milk", retailer: .coles)?.absoluteString.contains("tag_1=coles") == true)
+    }
+
+    func testBarcodeKeysAllowLeadingZerosWithoutRewritingLegacyFoodIDs() {
+        XCTAssertEqual(OpenFoodFacts.barcodeKey(" 0123456789012 "), OpenFoodFacts.barcodeKey("123456789012"))
+        XCTAssertNil(OpenFoodFacts.barcodeKey("abc12345678"))
+        XCTAssertNil(OpenFoodFacts.barcodeKey("123"))
+    }
+
+    func testMillilitreItemRoundTripsAndScales() throws {
+        let food = FoodItem(id: "drink", name: "Drink", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 100, protein: 2, carbs: 3, fat: 4, sodium: 50),
+                            servingGrams: nil, servingLabel: nil, amountUnit: "mL")
+        let saved = try JSONDecoder().decode(FoodItem.self, from: JSONEncoder().encode(food))
+        XCTAssertEqual(saved.energyLabel, "100 kcal/100mL")
+        XCTAssertEqual(saved.macros(grams: 250).sodium, 125)
+        let old = #"{"id":"old","name":"Old","per100":{"kcal":100,"protein":2,"carbs":3,"fat":4,"fibre":0}}"#
+        XCTAssertEqual(try JSONDecoder().decode(FoodItem.self, from: Data(old.utf8)).portionUnit, "g")
+    }
+
+
+    func testTwoRegularSausagesUseTwiceTheSinglePortion() throws {
+        let regular = FoodMeasure(label: "1 sausage, regular", grams: 89)
+        let cocktail = FoodMeasure(label: "1 sausage, cocktail", grams: 38)
+        let sausage = FoodItem(id: "sausage", name: "Sausage", brand: nil, barcode: nil,
+                               per100: Per100(kcal: 250, protein: 15, carbs: 0, fat: 20),
+                               servingGrams: 38, servingLabel: nil, measures: [cocktail, regular])
+        let portion = try XCTUnwrap(sausage.defaultQuantityMeasure)
+        XCTAssertEqual(portion, regular)
+        let total = try XCTUnwrap(portion.amount(for: 2))
+        XCTAssertEqual(total, 178)
+        XCTAssertEqual(sausage.macros(grams: total).protein, 26.7, accuracy: 0.001)
+        XCTAssertNil(portion.amount(for: .infinity))
+        XCTAssertNil(portion.amount(for: 0))
+    }
+
+    func testRememberedAmountUsesTheMatchingPortionOrKeepsTheWeight() {
+        let regular = FoodMeasure(label: "1 sausage, regular", grams: 89)
+        let cocktail = FoodMeasure(label: "1 sausage, cocktail", grams: 38)
+        let item = FoodItem(id: "sausage", name: "Sausage", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 240, protein: 13, carbs: 2, fat: 20),
+                            servingGrams: 89, servingLabel: nil, measures: [cocktail, regular])
+        XCTAssertEqual(item.measure(forLoggedAmount: 178), regular)
+        XCTAssertEqual(item.measure(forLoggedAmount: 76), cocktail)
+        XCTAssertEqual(item.measure(forLoggedAmount: 133.5), regular)
+        XCTAssertNil(item.measure(forLoggedAmount: 100))
+    }
+
+    func testQuantityUsesKnownServesAndLeavesUnmeasuredFoodsByWeight() throws {
+        var food = FoodItem(id: "example", name: "Example", brand: nil, barcode: nil,
+                            per100: Per100(kcal: 80, protein: 0, carbs: 0, fat: 0),
+                            servingGrams: nil, servingLabel: nil, amountUnit: "mL")
+        XCTAssertNil(food.defaultQuantityMeasure)
+        food.servingGrams = 250
+        XCTAssertEqual(food.defaultQuantityMeasure?.amount(for: 1.5), 375)
+
+        food.id = FoodItem.perServePrefix + "example"
+        let serve = try XCTUnwrap(food.defaultQuantityMeasure)
+        let amount = try XCTUnwrap(serve.amount(for: 1.5))
+        XCTAssertEqual(food.macros(grams: amount).kcal, 120)
+    }
+
 }

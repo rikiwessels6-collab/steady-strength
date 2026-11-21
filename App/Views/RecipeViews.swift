@@ -200,13 +200,14 @@ struct RecipePortionSheet: View {
     let recipe: Recipe
     let meal: MealSlot
     let day: Date
-    let onDone: () -> Void
+    let onDone: (FoodDiaryDraft) -> Void
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @State private var byWeight = false
     @State private var servings: Double = 1
     @State private var grams: Double = 0
     @State private var editing = false
+    @State private var loaded = false
 
     private var portionGrams: Double {
         byWeight ? grams : RecipeMath.grams(servings: servings, servingsInRecipe: recipe.servings, totalWeight: recipe.totalWeight)
@@ -253,19 +254,32 @@ struct RecipePortionSheet: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
-                        context.insert(FoodEntry(item: food, grams: portionGrams, meal: meal, source: .saved,
-                                                 eatenAt: FoodTiming.defaultEatenAt(for: day)))
-                        recipe.lastUsed = .now
-                        try? context.save()
+                        let entry = FoodEntry(item: food, grams: portionGrams, meal: meal, source: .saved,
+                                              eatenAt: FoodTiming.defaultEatenAt(for: day))
+                        onDone(FoodDiaryDraft(entry: entry, recipe: recipe))
                         dismiss()
-                        onDone()
                     }
                     .disabled(portionGrams <= 0)
                     .accessibilityIdentifier("addRecipePortion")
                 }
             }
             .sheet(isPresented: $editing) { RecipeEditor(editing: recipe) }
-            .onAppear { if grams == 0 { grams = (recipe.totalWeight / max(recipe.servings, 1)).rounded() } }
+            .onAppear {
+                guard !loaded else { return }
+                loaded = true
+                let standard = recipe.totalWeight / max(recipe.servings, 1)
+                if let last = try? FoodDiary.lastAmount(for: food, in: context) {
+                    let count = (last / standard * 4).rounded() / 4
+                    if standard > 0, (0.25...12).contains(count), abs(count * standard - last) < 0.01 {
+                        servings = count
+                    } else {
+                        byWeight = true
+                    }
+                    grams = last
+                } else {
+                    grams = standard.rounded()
+                }
+            }
         }
     }
 }

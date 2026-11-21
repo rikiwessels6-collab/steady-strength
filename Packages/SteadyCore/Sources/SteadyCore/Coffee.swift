@@ -71,19 +71,26 @@ public struct CoffeeOrder: Codable, Equatable, Sendable {
     /// Coffee per capsule or shot, in mL.
     public var brewMl: Double
     public var capsules: Int
+    public var capsuleName: String?
     public var milk: CoffeeMilk
     public var milkMl: Double
     /// Level 5 mL teaspoons of white sugar.
     public var sugarTsp: Double
 
     public init(style: CoffeeStyle, brewMl: Double? = nil, capsules: Int = 1, milk: CoffeeMilk = .fullCream,
-                milkMl: Double? = nil, sugarTsp: Double = 0) {
+                milkMl: Double? = nil, sugarTsp: Double = 0, capsuleName: String? = nil) {
         self.style = style
         self.brewMl = brewMl ?? style.defaults.brewMl
         self.capsules = capsules
+        self.capsuleName = capsuleName
         self.milkMl = milkMl ?? style.defaults.milkMl
         self.milk = (milkMl ?? style.defaults.milkMl) > 0 ? milk : .noMilk
         self.sugarTsp = sugarTsp
+    }
+
+    public var namedCapsule: String? {
+        let name = capsuleName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? nil : name
     }
 
     /// Vertuo cup sizes (nominal), offered as quick picks for the coffee amount.
@@ -132,7 +139,7 @@ public enum CoffeeBuilder {
             return true
         }
         let coffeeMl = order.brewMl * Double(max(order.capsules, 1))
-        guard add(coffeeId(brewMl: order.brewMl), ml: coffeeMl, label: "Coffee") else { return nil }
+        guard add(coffeeId(brewMl: order.brewMl), ml: coffeeMl, label: order.namedCapsule ?? "Coffee") else { return nil }
         if let milk = order.milk.ausnutId, order.milkMl > 0 {
             guard add(milk, ml: order.milkMl, label: order.milk.label + " milk") else { return nil }
         }
@@ -152,11 +159,15 @@ public enum CoffeeBuilder {
 
     /// The same coffee always gets the same id, so a favourite stays one favourite.
     public static func id(_ o: CoffeeOrder) -> String {
-        "coffee-\(o.style.rawValue)-\(Int(o.brewMl))x\(o.capsules)-\(o.milk.rawValue)-\(Int(o.milkMl))-\(Int((o.sugarTsp * 10).rounded()))"
+        let base = "coffee-\(o.style.rawValue)-\(Int(o.brewMl))x\(o.capsules)-\(o.milk.rawValue)-\(Int(o.milkMl))-\(Int((o.sugarTsp * 10).rounded()))"
+        guard let capsule = o.namedCapsule else { return base }
+        let key = Data(capsule.lowercased().utf8).base64EncodedString()
+        return base + "-capsule-" + key
     }
 
     public static func name(_ o: CoffeeOrder) -> String {
-        var bits = ["\(NumberText.format(o.brewMl * Double(max(o.capsules, 1)))) mL coffee"]
+        let coffee = o.namedCapsule ?? "coffee"
+        var bits = ["\(NumberText.format(o.brewMl * Double(max(o.capsules, 1)))) mL \(coffee)"]
         if o.milk != .noMilk && o.milkMl > 0 { bits.append("\(NumberText.format(o.milkMl)) mL \(o.milk.label.lowercased()) milk") }
         if o.sugarTsp > 0 { bits.append("\(NumberText.format(o.sugarTsp)) tsp sugar") }
         return "\(o.style.label) (\(bits.joined(separator: ", ")))"
