@@ -66,7 +66,7 @@ struct MealTextReviewSheet: View {
                     Text("Separate foods with commas or “and”. Review each match and amount before adding it.")
                 }
                 ForEach($lines) { $line in
-                    Section(line.typed.name) {
+                    Section {
                         if line.options.isEmpty {
                             Text("No local match. Edit your description, or remove this item and use food search or the barcode scanner.")
                                 .font(.footnote).foregroundStyle(.secondary)
@@ -112,6 +112,8 @@ struct MealTextReviewSheet: View {
                             let id = line.id
                             lines.removeAll { $0.id == id }
                         }
+                    } header: {
+                        Text(line.typed.name)
                     }
                 }
             }
@@ -136,7 +138,7 @@ struct MealTextReviewSheet: View {
             let options = matches(typed.name)
             let suitable = options.contains { typed.portion(for: $0)?.amount != nil }
             if !suitable, MealText.searchTerms(typed.name).contains("sourdough") {
-                let bread = matches("bread")
+                let bread = unique(matches("bread white commercial") + matches("bread"))
                 if !bread.isEmpty {
                     return ReviewLine(typed: typed, options: unique(options + bread), fallback: "bread matches")
                 }
