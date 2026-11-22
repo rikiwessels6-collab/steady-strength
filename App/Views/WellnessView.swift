@@ -12,6 +12,11 @@ struct WellnessView: View {
 
     private var activeFast: FastingSession? { fasts.first { $0.isActive } }
 
+    private func elapsedLabel(for fast: FastingSession) -> String {
+        let totalMinutes = max(0, Int(fast.elapsed / 60))
+        return "\(totalMinutes / 60)h \(totalMinutes % 60)m"
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
@@ -47,7 +52,7 @@ struct WellnessView: View {
             Label("Fasting", systemImage: "timer").font(.headline).foregroundStyle(Color.ink)
             if let fast = activeFast {
                 let progress = min(fast.elapsed / Double(fast.targetHours * 3600), 1)
-                Text(fast.elapsed.formatted(.units(allowed: [.hours, .minutes], width: .abbreviated)))
+                Text(elapsedLabel(for: fast))
                     .font(.system(.largeTitle, design: .rounded).weight(.bold)).foregroundStyle(Color.ink)
                 ProgressView(value: progress).tint(Color.emerald)
                 Text(progress >= 1 ? "Target reached. Eat when it works for you." : "Target: \(fast.targetHours) hours")
