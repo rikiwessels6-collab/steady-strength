@@ -695,3 +695,38 @@ final class CardioSession {
 
     var kind: CardioKind { CardioKind(rawValue: kindRaw) ?? .other }
 }
+
+// MARK: - Fasting and supplements
+
+/// An optional fasting window. It is a preference tracker, never a nutrition prescription.
+@Model
+final class FastingSession {
+    var startedAt: Date
+    var endedAt: Date?
+    var targetHours: Int
+
+    init(startedAt: Date = .now, targetHours: Int) {
+        self.startedAt = startedAt
+        self.targetHours = targetHours
+    }
+
+    var isActive: Bool { endedAt == nil }
+    var elapsed: TimeInterval { (endedAt ?? .now).timeIntervalSince(startedAt) }
+}
+
+/// A product the user has chosen to track. Advice remains food-first and non-prescriptive.
+@Model
+final class SupplementEntry {
+    var name: String
+    var amount: String
+    var timing: String
+    var evidenceRaw: String
+    var notes: String
+    var isActive: Bool
+    var createdAt: Date
+
+    init(name: String, amount: String, timing: String, evidenceRaw: String, notes: String = "") {
+        self.name = name; self.amount = amount; self.timing = timing
+        self.evidenceRaw = evidenceRaw; self.notes = notes; self.isActive = true; self.createdAt = .now
+    }
+}
