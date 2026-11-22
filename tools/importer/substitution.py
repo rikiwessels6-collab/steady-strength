@@ -29,7 +29,9 @@ CURATED = {
     "hip_thrust": ["machine_hip_thrust", "db_glute_bridge"],
     "leg_press": ["hack_squat", "goblet_squat"],
     "reverse_lunge": ["split_squat", "step_up"],
-    "db_bench_press": ["machine_chest_press", "push_up"],
+    # A fly is a chest-hypertrophy alternative, not a like-for-like pressing-strength replacement.
+    # It stays behind pressing options so automatic swaps preserve the original movement goal.
+    "db_bench_press": ["machine_chest_press", "push_up", "db_fly"],
     "incline_db_press": ["machine_incline_press"],
     "seated_db_shoulder_press": ["machine_shoulder_press"],
     "machine_shoulder_press": ["seated_db_shoulder_press"],
@@ -95,7 +97,12 @@ def score(src, cand, curated_rank=None):
     elif cand["pattern"] in NEIGHBOUR_PATTERNS.get(src["pattern"], []):
         s = 20
     else:
-        return 0
+        # A deliberate coach-approved alternative can cross movement patterns
+        # when it keeps the same primary training goal (for example press -> fly
+        # for chest hypertrophy). Uncurated mismatches are still rejected.
+        if curated_rank is None:
+            return 0
+        s = 0
     s += 20 * _jaccard(src["primaryMuscles"], cand["primaryMuscles"])
     s += 5 * _jaccard(src["secondaryMuscles"], cand["secondaryMuscles"])
     s += 6 if cand["unilateral"] == src["unilateral"] else 0
