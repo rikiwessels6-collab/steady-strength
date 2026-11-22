@@ -23,6 +23,7 @@ struct WellnessView: View {
                 header
                 fastingCard
                 supplementCard
+                currentGuidanceCard
                 evidenceCard
                 safetyCard
             }
@@ -119,6 +120,24 @@ struct WellnessView: View {
             Divider()
             Text("Research updates are reviewed before they change a plan. You will see what changed, why it changed and how strong the evidence is.")
                 .font(.footnote).foregroundStyle(Color.inkMuted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).card()
+    }
+
+    private var currentGuidanceCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Current strength guidance", systemImage: "checkmark.seal.fill").font(.headline).foregroundStyle(Color.ink)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Progress volume patiently").font(.subheadline.weight(.semibold)).foregroundStyle(Color.ink)
+                Text("Do not add sets just to meet a target. Give performance and recovery 2 to 4 consistent weeks before making a small volume increase.")
+                    .font(.footnote).foregroundStyle(Color.inkMuted)
+                Text("Choose chest swaps by goal").font(.subheadline.weight(.semibold)).foregroundStyle(Color.ink)
+                Text("A fly can support chest growth; keep a press in your plan when pressing or triceps strength is a priority.")
+                    .font(.footnote).foregroundStyle(Color.inkMuted)
+                Text("Creatine and blood tests").font(.subheadline.weight(.semibold)).foregroundStyle(Color.ink)
+                Text("Creatine can raise creatinine on a blood test. Tell your clinician before interpreting kidney results. Seek individual advice if you have kidney disease, take kidney-affecting medication, or are unsure.")
+                    .font(.footnote).foregroundStyle(Color.inkMuted)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading).card()
     }
