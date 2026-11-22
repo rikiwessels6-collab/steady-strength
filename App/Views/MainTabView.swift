@@ -158,6 +158,23 @@ struct TodayView: View {
                         sessionCard(plan: plan, program: program)
                     }
                     foodShortcuts
+                    NavigationLink {
+                        WellnessView()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "leaf.circle.fill").font(.title2).foregroundStyle(Color.emerald)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("WELLNESS TOOLS").font(.caption.weight(.semibold)).tracking(1.4).foregroundStyle(Color.gold)
+                                Text("Fasting, supplements and research-backed guidance").font(.subheadline).foregroundStyle(Color.ink)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").foregroundStyle(Color.inkMuted)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .card()
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("wellnessTools")
                     if let plan = plans.first {
                         WeekStrip(logs: logs, plan: plan, adjustment: adjustment(for: plan))
                         let streak = Consistency.weekStreak(sessionDates: logs.compactMap(\.finishedAt), planned: plan.daysPerWeek)
