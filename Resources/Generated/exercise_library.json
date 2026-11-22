@@ -6866,6 +6866,12 @@
      "samePattern": true
     },
     {
+     "id": "db_fly",
+     "score": 56.0,
+     "curated": true,
+     "samePattern": false
+    },
+    {
      "id": "bench_press",
      "score": 84.0,
      "curated": false,
@@ -6916,12 +6922,6 @@
     {
      "id": "larsen_press",
      "score": 76.0,
-     "curated": false,
-     "samePattern": true
-    },
-    {
-     "id": "pin_press",
-     "score": 75.0,
      "curated": false,
      "samePattern": true
     }
