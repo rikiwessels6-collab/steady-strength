@@ -352,6 +352,11 @@ class LibraryAndSwaps(unittest.TestCase):
         self.assertEqual(substitution.choose("bench_press", self.lib, self.profiles["travel"])[0], "push_up")
         self.assertEqual(substitution.choose("goblet_squat", self.lib, self.profiles["full_gym"])[0], "goblet_squat")
 
+    def test_dumbbell_fly_is_a_manual_chest_growth_alternative(self):
+        import substitution
+        options = substitution.options("db_bench_press", self.lib, self.profiles["home_dumbbells"], limit=12)
+        self.assertIn("db_fly", options)
+
     def test_unavailable_exercise_can_be_excluded(self):
         import substitution
         choice, why = substitution.choose("leg_press", self.lib, self.profiles["full_gym"], exclude={"leg_press"})

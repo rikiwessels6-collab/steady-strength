@@ -17,6 +17,13 @@ final class MealTextTests: XCTestCase {
         XCTAssertEqual(MealText.parse("1½ serves of pumpkin")[0].quantity, 1.5)
     }
 
+    func testParsesDetailedEverydayLunchIntoReviewableFoods() {
+        let lines = MealText.parse("2 slices of white bread, avocado spread on both slices and diced chicken breast")
+        XCTAssertEqual(lines.map(\.name), ["white bread", "avocado spread on both slices", "diced chicken breast"])
+        XCTAssertEqual(lines.map(\.quantity), [2, 1, 1])
+        XCTAssertEqual(lines.map(\.unit), [.slice, .portion, .portion])
+    }
+
     func testPortionsRequireACompatibleUnitOrARealMeasure() throws {
         let bread = FoodItem(id: "bread", name: "Bread", brand: nil, barcode: nil,
                             per100: Per100(kcal: 200, protein: 8, carbs: 40, fat: 2),

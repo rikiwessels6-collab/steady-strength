@@ -43,7 +43,7 @@ struct WeeklyVolumeView: View {
                 Section {
                     ForEach(trained) { row in MuscleRow(row: row) }
                 } header: { Text("Sets per muscle") } footer: {
-                    Text("Direct sets are the main muscle an exercise works. Indirect is half credit for the helpers, such as triceps on a bench press. Warm-ups are not counted. About 10 to 20 direct sets a week suits many people for building muscle; it is a guide, not a rule, and you know your recovery best.")
+                    Text("Direct sets are the main muscle an exercise works. Indirect is half credit for the helpers, such as triceps on a bench press. Warm-ups are not counted. About 10 to 20 direct sets a week suits many people for building muscle; it is a guide, not a rule. Do not add sets simply to reach a number — consider a small increase only after 2 to 4 consistent weeks if progress has stalled and recovery is good.")
                 }
             }
             if !untrained.isEmpty && !trained.isEmpty {

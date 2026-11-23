@@ -19,6 +19,22 @@ final class FeatureTests: XCTestCase {
         return NutritionPlan(targets: t, presetName: "Balanced", proteinPerKg: 1.8, startAtMaintenance: true)
     }
 
+    func testFastingSessionTracksItsActiveStateAndTarget() {
+        let fast = FastingSession(startedAt: Date(timeIntervalSince1970: 1_000), targetHours: 14)
+        XCTAssertTrue(fast.isActive)
+        XCTAssertEqual(fast.targetHours, 14)
+        fast.endedAt = Date(timeIntervalSince1970: 2_000)
+        XCTAssertFalse(fast.isActive)
+        XCTAssertEqual(fast.elapsed, 1_000)
+    }
+
+    func testSupplementEntryStartsActive() {
+        let entry = SupplementEntry(name: "Creatine", amount: "3 g", timing: "Any time", evidenceRaw: "Strong evidence in specific contexts")
+        XCTAssertTrue(entry.isActive)
+        XCTAssertEqual(entry.name, "Creatine")
+        XCTAssertEqual(entry.evidenceRaw, "Strong evidence in specific contexts")
+    }
+
     func testMealDraftSurvivesAStoreReopenAndClearsWhenSaved() throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

@@ -1119,12 +1119,19 @@ struct SwapSheet: View {
                         }
                     }
                 } footer: {
-                    Text("For this session only. Each exercise keeps its own weight history; a swap starts by feel at the same effort.")
+                    Text(swapGuidance)
                 }
             }
             .navigationTitle("Swap \(item.name)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         }
+    }
+
+    private var swapGuidance: String {
+        if item.originalExerciseId == "db_bench_press" {
+            return "For chest growth, a dumbbell fly can be a useful alternative if it feels better. Keep a pressing variation when building pressing strength or triceps strength matters. Each exercise keeps its own weight history; a swap starts by feel at the same effort."
+        }
+        return "For this session only. Each exercise keeps its own weight history; a swap starts by feel at the same effort."
     }
 }

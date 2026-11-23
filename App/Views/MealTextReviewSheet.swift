@@ -12,12 +12,13 @@ struct MealTextReviewSheet: View {
     @Query private var recipes: [Recipe]
     @State private var text = ""
     @State private var lines: [ReviewLine] = []
+    @State private var customLineID: UUID?
     @FocusState private var typing: Bool
 
     private struct ReviewLine: Identifiable {
         let id = UUID()
         let typed: MealText.Line
-        let options: [FoodItem]
+        var options: [FoodItem]
         let fallback: String?
         var selectedID: String?
         var measure: FoodMeasure?
@@ -70,8 +71,10 @@ struct MealTextReviewSheet: View {
                 ForEach($lines) { $line in
                     Section {
                         if line.options.isEmpty {
-                            Text("No local match. Edit your description, or remove this item and use food search or the barcode scanner.")
+                            Text("We could not find a close local match. You can still add it yourself and save it for next time.")
                                 .font(.footnote).foregroundStyle(.secondary)
+                            Button("Create custom food") { customLineID = line.id }
+                                .accessibilityIdentifier("createTypedFood")
                         } else {
                             Picker("Food", selection: Binding(get: { line.selectedID }, set: { line.select($0) })) {
                                 ForEach(line.options) { food in
@@ -123,6 +126,14 @@ struct MealTextReviewSheet: View {
             .navigationTitle("Type a meal")
             .navigationBarTitleDisplayMode(.inline)
             .onChange(of: text) { _, _ in lines = [] }
+            .sheet(isPresented: Binding(get: { customLineID != nil }, set: { if !$0 { customLineID = nil } })) {
+                if let id = customLineID, let line = lines.first(where: { $0.id == id }) {
+                    CustomFoodForm(initialName: line.typed.name) { food in
+                        replaceLine(id, with: food)
+                        customLineID = nil
+                    }
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -153,26 +164,42 @@ struct MealTextReviewSheet: View {
         let words = MealText.searchTerms(name)
         let query = words.joined(separator: " ")
         guard !query.isEmpty else { return [] }
-        let personal = (saved.compactMap(\.item) + recipes.map(\.asFood)).filter { food in
-            let title = MealText.searchTerms(food.name + " " + (food.brand ?? ""))
-            return words.allSatisfy(title.contains)
+        func search(_ terms: [String], limit: Int = 18) -> [FoodItem] {
+            let search = terms.joined(separator: " ")
+            let personal = (saved.compactMap(\.item) + recipes.map(\.asFood)).filter { food in
+                let title = MealText.searchTerms(food.name + " " + (food.brand ?? ""))
+                return terms.allSatisfy(title.contains)
+            }
+            let menu = store.restaurants?.search(search).map { $0.item.food(chain: $0.chain) } ?? []
+            let general = store.genericFoods?.search(search, limit: limit) ?? []
+            let catalogue = store.nutritionCatalogue?.search(search) ?? []
+            return unique(personal + catalogue + menu + general)
         }
-        let menu = store.restaurants?.search(query).map { $0.item.food(chain: $0.chain) } ?? []
-        var general = store.genericFoods?.search(query, limit: 18) ?? []
+        var found = search(words)
+        if found.isEmpty {
+            // People naturally add detail such as “diced”, “spread on both slices”
+            // or a cooking method. Fall back to the most useful food words rather
+            // than making them retype a simpler version.
+            let filler: Set<String> = ["and", "with", "on", "both", "the", "of", "a", "an", "spread", "diced", "sliced", "cooked"]
+            let anchors = Array(Set(words.filter { $0.count > 2 && !filler.contains($0) })).sorted {
+                $0.count == $1.count ? $0 < $1 : $0.count > $1.count
+            }
+            found = unique(anchors.flatMap { search([$0], limit: 8) })
+        }
+        var general = found
         if query == "egg", let foods = store.genericFoods {
             let common = foods.search("egg chicken whole", limit: 20).filter { food in
                 let name = food.name.lowercased()
                 return name.hasPrefix("egg, chicken, whole,") && !name.contains("raw")
             }
-            general = common + general
+            general = unique(common + general)
         }
-        let catalogue = store.nutritionCatalogue?.search(query) ?? []
         var coffee: [FoodItem] = []
         if let style = CoffeeStyle.allCases.first(where: { $0.label.lowercased() == query }),
            let foods = store.genericFoods, let built = CoffeeBuilder.build(CoffeeOrder(style: style), foods: foods) {
             coffee = [built.item]
         }
-        return unique(personal + coffee + catalogue + menu + general)
+        return unique(coffee + general)
     }
 
     private func unique(_ options: [FoodItem]) -> [FoodItem] {
@@ -192,5 +219,18 @@ struct MealTextReviewSheet: View {
         guard drafts.count == lines.count else { return }
         onAdd(drafts)
         dismiss()
+    }
+
+    private func replaceLine(_ id: UUID, with food: FoodItem) {
+        guard let index = lines.firstIndex(where: { $0.id == id }) else { return }
+        lines[index].options = [food]
+        lines[index].selectedID = food.id
+        if let measure = food.defaultQuantityMeasure {
+            lines[index].measure = measure
+            lines[index].quantity = 1
+        } else {
+            lines[index].measure = nil
+            lines[index].quantity = food.servingGrams ?? 100
+        }
     }
 }
