@@ -410,7 +410,7 @@ struct ProgramStep: View {
                     if let p = content.program(rec.programId) { row(p, reason: rec.reason) }
                 }
             }
-            Section("All programs") {
+            Section("Other reviewed programs") {
                 ForEach(others) { row($0, reason: nil) }
             }
         }
