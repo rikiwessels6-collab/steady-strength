@@ -1264,11 +1264,11 @@ struct CustomFoodForm: View {
     @State private var reading = false
     @State private var note: String?
 
-    init(barcode: String? = nil, item: FoodItem? = nil, initialNote: String? = nil,
+    init(barcode: String? = nil, item: FoodItem? = nil, initialName: String? = nil, initialNote: String? = nil,
          onSave: @escaping (FoodItem) throws -> Void) {
         self.onSave = onSave
         _barcode = State(initialValue: barcode ?? item?.barcode ?? "")
-        _name = State(initialValue: item?.name ?? "")
+        _name = State(initialValue: item?.name ?? initialName ?? "")
         _brand = State(initialValue: item?.brand ?? "")
         _kcal = State(initialValue: item?.per100.kcal)
         _protein = State(initialValue: item?.per100.protein)
