@@ -54,6 +54,22 @@ public enum MealText {
                 return Portion(measure: measure, quantity: quantity)
             }
         }
+
+        /// A practical starting weight when someone describes an everyday food
+        /// without specifying an amount. This is deliberately only used for the
+        /// bundled generic food database; branded and restaurant food must be
+        /// selected with an actual serve or entered weight.
+        public func suggestedGenericGrams(for food: FoodItem) -> Double? {
+            guard unit == .portion,
+                  food.id.hasPrefix(GenericFoods.idPrefix),
+                  !food.isPerServe,
+                  food.portionUnit == "g" else { return nil }
+
+            let words = Set(MealText.searchTerms(name))
+            if words.contains("avocado") { return 50 }
+            if words.contains("chicken") && words.contains("breast") { return 100 }
+            return 100
+        }
     }
 
     private static let numbers: [String: Double] = [
