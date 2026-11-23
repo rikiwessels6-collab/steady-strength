@@ -50,4 +50,15 @@ final class MealTextTests: XCTestCase {
         let weighed = try XCTUnwrap(MealText.parse("150 g rice").first)
         XCTAssertEqual(weighed.portion(for: food)?.amount, 150)
     }
+
+    func testGenericIngredientSuggestionsUseUsefulEditableStartingWeights() throws {
+        let avocado = FoodItem(id: "ausnut-F000162", name: "Avocado, raw", brand: GenericFoods.brand,
+                               barcode: nil, per100: Per100(kcal: 160, protein: 2, carbs: 1, fat: 15),
+                               servingGrams: nil, servingLabel: nil)
+        let chicken = FoodItem(id: "ausnut-F002592", name: "Chicken, breast, lean, cooked", brand: GenericFoods.brand,
+                               barcode: nil, per100: Per100(kcal: 150, protein: 30, carbs: 0, fat: 3),
+                               servingGrams: nil, servingLabel: nil)
+        XCTAssertEqual(try XCTUnwrap(MealText.parse("avocado").first).suggestedGenericGrams(for: avocado), 50)
+        XCTAssertEqual(try XCTUnwrap(MealText.parse("diced chicken breast").first).suggestedGenericGrams(for: chicken), 100)
+    }
 }

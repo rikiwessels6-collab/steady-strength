@@ -44,6 +44,10 @@ struct MealTextReviewSheet: View {
             let portion = food.flatMap { typed.portion(for: $0) }
             measure = portion?.measure
             quantity = portion?.quantity
+            if portion == nil, let food, let grams = typed.suggestedGenericGrams(for: food) {
+                measure = nil
+                quantity = grams
+            }
             if portion == nil, let food, food.isPerServe {
                 measure = food.defaultQuantityMeasure
             }
@@ -107,6 +111,10 @@ struct MealTextReviewSheet: View {
                                 if let amount = line.amount {
                                     Text("\(food.macros(grams: amount).kcal.formatted(.number.precision(.fractionLength(0)))) kcal")
                                         .font(.footnote).foregroundStyle(.secondary)
+                                    if food.id.hasPrefix(GenericFoods.idPrefix) {
+                                        Text("Generic Australian food values from AUSNUT 2023. Adjust the amount to match what you ate.")
+                                            .font(.footnote).foregroundStyle(.secondary)
+                                    }
                                 } else {
                                     Text("Check the portion and enter the amount you ate.")
                                         .font(.footnote).foregroundStyle(.secondary)
@@ -170,10 +178,13 @@ struct MealTextReviewSheet: View {
                 let title = MealText.searchTerms(food.name + " " + (food.brand ?? ""))
                 return terms.allSatisfy(title.contains)
             }
-            let menu = store.restaurants?.search(search).map { $0.item.food(chain: $0.chain) } ?? []
             let general = store.genericFoods?.search(search, limit: limit) ?? []
             let catalogue = store.nutritionCatalogue?.search(search) ?? []
-            return unique(personal + catalogue + menu + general)
+            let menu = store.restaurants?.search(search).map { $0.item.food(chain: $0.chain) } ?? []
+            // Typed meals normally describe ingredients. Put the small, offline
+            // AUSNUT list first so a plain "chicken breast" never defaults to a
+            // restaurant menu item such as popcorn chicken.
+            return unique(general + personal + catalogue + menu)
         }
         var found = search(words)
         if found.isEmpty {
@@ -181,10 +192,14 @@ struct MealTextReviewSheet: View {
             // or a cooking method. Fall back to the most useful food words rather
             // than making them retype a simpler version.
             let filler: Set<String> = ["and", "with", "on", "both", "the", "of", "a", "an", "spread", "diced", "sliced", "cooked"]
-            let anchors = Array(Set(words.filter { $0.count > 2 && !filler.contains($0) })).sorted {
+            let meaningful = words.filter { $0.count > 2 && !filler.contains($0) }
+            found = search(meaningful)
+            let anchors = Array(Set(meaningful)).sorted {
                 $0.count == $1.count ? $0 < $1 : $0.count > $1.count
             }
-            found = unique(anchors.flatMap { search([$0], limit: 8) })
+            if found.isEmpty {
+                found = unique(anchors.flatMap { search([$0], limit: 8) })
+            }
         }
         var general = found
         if query == "egg", let foods = store.genericFoods {
