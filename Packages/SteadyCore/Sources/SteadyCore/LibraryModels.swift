@@ -176,8 +176,12 @@ public struct BundledContent: Sendable {
 
     public func program(_ id: String) -> Program? { programs.first { $0.id == id } }
 
-    /// What users can choose from. Retired programs never appear; draft (unreviewed) programs appear only in internal builds.
+    /// What users can choose from. The public catalogue deliberately contains the
+    /// five reviewed Steady Strength pathways (plus programs a user creates).
+    /// Imported coach and personal plans remain in the bundle so existing users
+    /// never lose an active plan or their history, but they are not presented as
+    /// equivalent recommendations.
     public func catalogue(showDraft: Bool) -> [Program] {
-        programs.filter { $0.catalogue != "legacy" && (showDraft || !$0.isDraft) }
+        programs.filter { ($0.catalogue == "core" || $0.catalogue == "mine") && (showDraft || !$0.isDraft) }
     }
 }

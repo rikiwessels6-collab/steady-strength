@@ -61,6 +61,13 @@ final class ContentTests: XCTestCase {
         XCTAssertEqual(grow.weeks[0].workouts[0].slots.first?.isMainLift, true)
     }
 
+    func testPublicCatalogueContainsOnlyReviewedCorePrograms() {
+        let ids = Set(content.catalogue(showDraft: false).map(\.id))
+        XCTAssertEqual(ids, ["ss-strength-foundations", "ss-build-and-grow", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strong-for-life"])
+        // The older source programmes remain available to resolve an existing plan.
+        XCTAssertNotNil(content.program("rw-12-week"))
+    }
+
     func testRepSchemesAndDisplay() throws {
         let twelve = try XCTUnwrap(content.program("rw-12-week"))
         let pullUp = twelve.weeks[0].workouts[0].slots[4]
@@ -190,7 +197,7 @@ final class TrainingTests: XCTestCase {
         let new2 = ProgramAdvisor.recommend(experience: .new, daysPerWeek: 2, programs: content.programs)
         XCTAssertEqual(new2.first?.programId, "ss-strong-for-life")
         let adv5 = ProgramAdvisor.recommend(experience: .advanced, daysPerWeek: 5, programs: content.programs)
-        XCTAssertEqual(adv5.first?.programId, "rw-intermediate-18wk")
+        XCTAssertEqual(adv5.first?.programId, "ss-muscle-builder-pro")
         XCTAssertFalse(new3.contains { $0.programId.hasPrefix("rw-12") })
     }
 

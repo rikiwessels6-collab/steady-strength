@@ -93,7 +93,7 @@ struct ChangeProgramView: View {
                                 }
                             }
                         }
-                        Section("All programs") {
+                        Section("Other reviewed programs") {
                             ForEach(all.filter { !recIds.contains($0.id) && !mineIds.contains($0.id) }) { row($0, plan: plan, reason: nil) }
                         }
                     }
