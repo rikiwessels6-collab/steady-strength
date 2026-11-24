@@ -18,9 +18,9 @@ final class ContentTests: XCTestCase {
     var content: BundledContent { Self.content }
 
     func testAllProgramsDecode() {
-        XCTAssertEqual(content.programs.count, 15)
+        XCTAssertEqual(content.programs.count, 16)
         let slots = content.programs.flatMap { $0.weeks.flatMap { $0.workouts.flatMap(\.slots) } }
-        XCTAssertEqual(slots.count, 4204)
+        XCTAssertEqual(slots.count, 4408)
         XCTAssertFalse(slots.contains { if case .unknown = $0.reps.scheme { return true } else { return false } })
     }
 
@@ -43,7 +43,7 @@ final class ContentTests: XCTestCase {
     }
 
     func testGuidePrograms() throws {
-        let ids = ["ss-strength-foundations", "ss-build-and-grow", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strong-for-life"]
+        let ids = ["ss-strength-foundations", "ss-build-and-grow", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strong-for-life", "ss-full-body-hypertrophy-2day"]
         for id in ids {
             let p = try XCTUnwrap(content.program(id), id)
             XCTAssertEqual(p.weeks.count, 12, id)
@@ -55,6 +55,9 @@ final class ContentTests: XCTestCase {
         // Two-day plan skips the optional C; three-day plan includes it.
         XCTAssertEqual(life.session(at: 2, includeOptional: false)?.week.number, 2)
         XCTAssertEqual(life.session(at: 2, includeOptional: true)?.workout.name, "Full Body C")
+        let hypertrophy = try XCTUnwrap(content.program("ss-full-body-hypertrophy-2day"))
+        XCTAssertEqual(hypertrophy.sessionsPerWeek, 2...2)
+        XCTAssertEqual(hypertrophy.weeks[0].workouts.map(\.name), ["Full Body A", "Full Body B"])
         let grow = try XCTUnwrap(content.program("ss-build-and-grow"))
         XCTAssertEqual(grow.weeks[3].lowFatigueOptional, true)
         XCTAssertEqual(grow.weeks[0].workouts[0].slots.first?.exerciseId, "bench_press")
@@ -63,7 +66,7 @@ final class ContentTests: XCTestCase {
 
     func testPublicCatalogueContainsOnlyReviewedCorePrograms() {
         let ids = Set(content.catalogue(showDraft: false).map(\.id))
-        XCTAssertEqual(ids, ["ss-strength-foundations", "ss-build-and-grow", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strong-for-life"])
+        XCTAssertEqual(ids, ["ss-strength-foundations", "ss-build-and-grow", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strong-for-life", "ss-full-body-hypertrophy-2day"])
         // The older source programmes remain available to resolve an existing plan.
         XCTAssertNotNil(content.program("rw-12-week"))
     }
@@ -196,6 +199,8 @@ final class TrainingTests: XCTestCase {
         XCTAssertEqual(new3.first?.programId, "ss-strength-foundations")
         let new2 = ProgramAdvisor.recommend(experience: .new, daysPerWeek: 2, programs: content.programs)
         XCTAssertEqual(new2.first?.programId, "ss-strong-for-life")
+        let intermediate2 = ProgramAdvisor.recommend(experience: .intermediate, daysPerWeek: 2, programs: content.programs)
+        XCTAssertEqual(intermediate2.first?.programId, "ss-full-body-hypertrophy-2day")
         let adv5 = ProgramAdvisor.recommend(experience: .advanced, daysPerWeek: 5, programs: content.programs)
         XCTAssertEqual(adv5.first?.programId, "ss-muscle-builder-pro")
         XCTAssertFalse(new3.contains { $0.programId.hasPrefix("rw-12") })

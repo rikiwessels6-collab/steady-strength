@@ -1,4 +1,4 @@
-"""The five Steady Strength programs from the implementation guide.
+"""The Steady Strength programmes, including the two-day hypertrophy plan.
 
 Source: "Steady Strength - Complete Muscle-Building Program Library and App
 Implementation Guide", v1.0, 3 November 2026 (Resources/Source/
@@ -103,6 +103,31 @@ PROGRAMS = [
                                     ("Dumbbell shoulder press", 2, "8-12"), ("Pallof press", 2, "12 each side")]),
             ("Full Body C", True, [("Step-up", 2, "10 each side"), ("Incline push-up", 3, "8-12"),
                                    ("Cable row", 3, "10-12"), ("Leg curl", 2, "12-15"), ("Calf raise", 2, "12-15")]),
+        ],
+    },
+    {
+        # Built for the requested two-day hypertrophy option.  Each session has
+        # a knee-dominant and hip-dominant lower-body movement, horizontal and
+        # vertical upper-body work, then targeted isolation work.  That gives
+        # each major muscle two useful exposures per week without relying on an
+        # optional third training day.
+        "id": "ss-full-body-hypertrophy-2day", "name": "Full Body Hypertrophy", "level": "intermediate",
+        "days": 2, "split": "Full body", "goals": ["muscle", "hypertrophy", "strength"],
+        "description": "Two full-body days designed to build muscle with balanced weekly volume.",
+        "workouts": [
+            ("Full Body A", False, [
+                ("Squat", 3, "6-10"), ("Romanian deadlift", 3, "8-10"),
+                ("Bench press", 3, "6-10"), ("Chest-supported row", 3, "8-12"),
+                ("Lat pulldown", 2, "10-12"), ("Lateral raise", 3, "12-20"),
+                ("Biceps curl", 2, "10-15"), ("Triceps pressdown", 2, "10-15"),
+            ]),
+            ("Full Body B", False, [
+                ("Leg press", 3, "10-12"), ("Hip thrust", 3, "8-12"),
+                ("Leg curl", 3, "10-15"), ("Incline dumbbell press", 3, "8-12"),
+                ("Seated cable row", 3, "8-12"), ("Leg extension", 2, "12-15"),
+                ("Biceps curl", 2, "10-15"), ("Triceps pressdown", 2, "10-15"),
+                ("Calf raise", 3, "12-15"),
+            ]),
         ],
     },
 ]

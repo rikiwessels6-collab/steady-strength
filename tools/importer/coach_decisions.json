@@ -64,7 +64,8 @@
    "ss-build-and-grow",
    "ss-lower-body-focus",
    "ss-muscle-builder-pro",
-   "ss-strong-for-life"
+    "ss-strong-for-life",
+    "ss-full-body-hypertrophy-2day"
   ],
   "rule": "Main lift if the exercise is a main lift in the library AND the program gives it 2+ min rest, or if the program gives anything 3+ min rest.",
   "why": "Rest alone mislabelled lifts like leg press at 1 min as accessories and missed none. The library knows which movements are big compound lifts; the rest time shows the role it plays in that session."

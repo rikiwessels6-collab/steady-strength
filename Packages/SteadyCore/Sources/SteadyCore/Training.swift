@@ -54,6 +54,9 @@ public enum ProgramAdvisor {
             add("ss-strength-foundations", "The recommended start: three full-body days to learn the main lifts. The first four weeks are an easy on-ramp.")
             add("ss-strong-for-life", "Two full-body days, with an optional third, for lasting strength.")
         case .intermediate:
+            if daysPerWeek <= 2 {
+                add("ss-full-body-hypertrophy-2day", "Two full-body days with balanced volume for muscle growth.")
+            }
             if daysPerWeek <= 3 { add("ss-strength-foundations", "Three full-body sessions with steady, repeatable progression.") }
             if daysPerWeek == 4 {
                 add("ss-build-and-grow", "Four days, upper and lower, 12 weeks of steady gains.")

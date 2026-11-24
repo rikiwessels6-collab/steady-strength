@@ -206,9 +206,9 @@ class GuidePrograms(unittest.TestCase):
     def setUpClass(cls):
         GeneratedOutput.setUpClass.__func__(cls)
 
-    def test_five_programs_with_12_weeks(self):
-        ids = ["ss-strength-foundations", "ss-build-and-grow", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strong-for-life"]
-        days = [3, 4, 4, 5, 3]
+    def test_core_programs_with_12_weeks(self):
+        ids = ["ss-strength-foundations", "ss-build-and-grow", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strong-for-life", "ss-full-body-hypertrophy-2day"]
+        days = [3, 4, 4, 5, 3, 2]
         for pid, d in zip(ids, days):
             p = self.programs[pid]
             self.assertEqual(len(p["weeks"]), 12)
@@ -270,7 +270,7 @@ class ChangeRequestV5(unittest.TestCase):
     def test_catalogues_and_review_flags(self):
         cats = {pid: p["catalogue"] for pid, p in self.programs.items()}
         self.assertEqual(sorted(k for k, v in cats.items() if v == "core"),
-                         ["ss-build-and-grow", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strength-foundations", "ss-strong-for-life"])
+                         ["ss-build-and-grow", "ss-full-body-hypertrophy-2day", "ss-lower-body-focus", "ss-muscle-builder-pro", "ss-strength-foundations", "ss-strong-for-life"])
         self.assertEqual(len([v for v in cats.values() if v == "legacy"]), 4)
         for pid, p in self.programs.items():
             if cats[pid] == "core":
