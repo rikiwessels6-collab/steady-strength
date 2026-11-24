@@ -42,11 +42,11 @@ final class ProgramSwitchUITests: XCTestCase {
         XCTAssertTrue(change.waitForExistence(timeout: 5))
         change.tap()
 
-        let row = app.buttons["switch-emily-workout"]
+        let row = app.buttons["switch-ss-full-body-hypertrophy-2day"]
         var tries = 0
         while !(row.exists && row.isHittable) && tries < 15 { app.swipeUp(); tries += 1 }
         shot(app, "program-list")
-        XCTAssertTrue(row.exists, "Emily's workout should be in the program list")
+        XCTAssertTrue(row.exists && row.isHittable, "Full Body Hypertrophy should be selectable")
         row.tap()
 
         let confirm = app.buttons["confirmSwitch"]
@@ -60,6 +60,7 @@ final class ProgramSwitchUITests: XCTestCase {
         app.tabBars.buttons["Today"].firstMatch.tap()
         XCTAssertTrue(nextSession.waitForExistence(timeout: 5))
         shot(app, "today-after")
-        XCTAssertTrue(nextSession.label.contains("Workout A (Monday)"), "Today still shows: \(nextSession.label)")
+        XCTAssertTrue(nextSession.label.contains("Full Body A"), nextSession.label)
+        XCTAssertTrue(nextSession.label.contains("8 exercises"), "Today still shows: \(nextSession.label)")
     }
 }
