@@ -22,7 +22,7 @@ struct SpecialisationBlocksView: View {
                 Button { selected = block; sessionIndex = 0 } label: {
                     VStack(alignment: .leading, spacing: 5) {
                         Text(block.name).foregroundStyle(.primary).font(.headline)
-                        Text("6 weeks · 2 sessions each week · (block.targetMuscles.map(VolumeReport.prettyName).joined(separator: ", "))")
+                        Text("6 weeks · 2 sessions each week · \(block.targetMuscles.map(VolumeReport.prettyName).joined(separator: ", "))")
                             .font(.footnote).foregroundStyle(.secondary)
                     }
                 }
