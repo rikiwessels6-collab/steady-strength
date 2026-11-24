@@ -401,7 +401,7 @@ struct ProgramStep: View {
     let content: BundledContent
 
     var body: some View {
-        let recs = ProgramAdvisor.recommend(experience: draft.experience, daysPerWeek: draft.daysPerWeek, programs: content.catalogue(showDraft: AppConfig.showDraft))
+        let recs = ProgramAdvisor.recommend(experience: draft.experience, daysPerWeek: draft.daysPerWeek, programs: content.catalogue(showDraft: AppConfig.showDraft), goal: draft.goal)
         let recIds = recs.map(\.programId)
         let others = content.catalogue(showDraft: AppConfig.showDraft).filter { !recIds.contains($0.id) }
         Form {

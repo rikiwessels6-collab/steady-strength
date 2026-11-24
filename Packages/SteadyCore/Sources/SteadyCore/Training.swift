@@ -40,7 +40,7 @@ public struct ProgramRecommendation: Equatable, Sendable {
 
 /// Suggests programs; the user always makes the final choice.
 public enum ProgramAdvisor {
-    public static func recommend(experience: Experience, daysPerWeek: Int, programs: [Program]) -> [ProgramRecommendation] {
+    public static func recommend(experience: Experience, daysPerWeek: Int, programs: [Program], goal: Goal? = nil) -> [ProgramRecommendation] {
         let ids = Set(programs.map(\.id))
         var out: [ProgramRecommendation] = []
         func add(_ id: String, _ reason: String) {
@@ -76,7 +76,13 @@ public enum ProgramAdvisor {
             add("ss-muscle-builder-pro", "Five days: push, pull, legs, then upper and lower.")
             add("ss-build-and-grow", "Four days, upper and lower, with enough work for sustained progress.")
         }
-        return out
+        guard let goal else { return out }
+        let tag = goal.programTag
+        return out.enumerated().sorted { lhs, rhs in
+            let leftMatches = programs.first { $0.id == lhs.element.programId }?.goalTags?.contains(tag) == true
+            let rightMatches = programs.first { $0.id == rhs.element.programId }?.goalTags?.contains(tag) == true
+            return leftMatches == rightMatches ? lhs.offset < rhs.offset : leftMatches
+        }.map(\.element)
     }
 }
 

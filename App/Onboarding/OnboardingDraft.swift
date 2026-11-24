@@ -56,7 +56,7 @@ final class OnboardingDraft {
     private func chooseQuickProgram(_ content: BundledContent) {
         let programmes = content.catalogue(showDraft: AppConfig.showDraft)
             .filter { !$0.requiresOneRepMax }
-        programId = ProgramAdvisor.recommend(experience: experience, daysPerWeek: daysPerWeek, programs: programmes)
+        programId = ProgramAdvisor.recommend(experience: experience, daysPerWeek: daysPerWeek, programs: programmes, goal: goal)
             .first?.programId ?? programmes.first?.id
     }
 

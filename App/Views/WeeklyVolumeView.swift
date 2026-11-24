@@ -24,6 +24,7 @@ struct WeeklyVolumeView: View {
         let rows = content.map { VolumeReport.week(setCounts: counts, library: $0.library, muscles: $0.muscleIds) } ?? []
         let trained = rows.filter { $0.direct > 0 || $0.indirect > 0 }
         let untrained = rows.filter { $0.direct == 0 && $0.indirect == 0 }
+        let focus = weeklyFocus(rows: trained)
         List {
             Section {
                 Picker("Week", selection: $weeksBack) {
@@ -40,6 +41,12 @@ struct WeeklyVolumeView: View {
             if trained.isEmpty {
                 Section { Text("No sets logged this week yet.").foregroundStyle(.secondary) }
             } else {
+                if let focus {
+                    Section("Next week") {
+                        Label(focus, systemImage: "sparkles")
+                            .font(.callout).foregroundStyle(Color.ink)
+                    }
+                }
                 Section {
                     ForEach(trained) { row in MuscleRow(row: row) }
                 } header: { Text("Sets per muscle") } footer: {
@@ -56,6 +63,16 @@ struct WeeklyVolumeView: View {
         .themedList()
         .navigationTitle("Weekly volume")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func weeklyFocus(rows: [MuscleWeek]) -> String? {
+        if let high = rows.first(where: { $0.band == .high }) {
+            return "Keep an eye on recovery for \(VolumeReport.prettyName(high.muscle)). You have logged about \(Int(high.direct.rounded())) direct sets."
+        }
+        if let low = rows.filter({ $0.band == .low }).max(by: { $0.direct < $1.direct }) {
+            return "If building \(VolumeReport.prettyName(low.muscle)) is a priority and recovery is good, add a small amount of work next week."
+        }
+        return "Your logged volume sits in a steady range. Keep the same plan and aim to improve a rep or load when it feels earned."
     }
 }
 

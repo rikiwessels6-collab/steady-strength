@@ -5,11 +5,33 @@ import SteadyCore
 /// An open workout: no program, you choose the exercises as you go. Your logged sets still feed
 /// progression suggestions, records, and weekly volume. It does not move your program on.
 enum FreeWorkout {
+    private static let focusPrefix = "focus-template:"
+
+    private struct FocusPrescription: Codable {
+        let exerciseId: String
+        let sets: Int
+        let repMin: Int
+        let repMax: Int
+        let restSeconds: Int
+    }
     static func start(in context: ModelContext) -> WorkoutLog {
         let log = WorkoutLog(programId: "open", weekNumber: 0, workoutPosition: 0, workoutName: "Open workout",
                              version: .standard, swaps: [:])
         log.isFreestyle = true
         context.insert(log)
+        try? context.save()
+        return log
+    }
+
+    /// Starts an optional focus session alongside the user's ordinary programme.
+    static func start(name: String, module: [ModuleSlot], in context: ModelContext) -> WorkoutLog {
+        let log = start(in: context)
+        log.workoutName = name
+        log.freeExerciseIds = module.map(\.exerciseId)
+        let template = module.map { FocusPrescription(exerciseId: $0.exerciseId, sets: $0.sets, repMin: $0.repMin, repMax: $0.repMax, restSeconds: $0.restSeconds) }
+        if let data = try? JSONEncoder().encode(template), let json = String(data: data, encoding: .utf8) {
+            log.notes = focusPrefix + json
+        }
         try? context.save()
         return log
     }
@@ -21,8 +43,18 @@ enum FreeWorkout {
     static func item(_ id: String, order: Int, log: WorkoutLog, content: BundledContent) -> PlannedExercise {
         let ex = content.library[id]
         let done = log.sets.filter { $0.slotOrder == order }.count
-        return PlannedExercise(moduleExerciseId: id, name: ex?.name ?? "Exercise", id: order, sets: max(3, done + 1),
-                               repMin: 8, repMax: 12, restSeconds: 90, perSide: ex?.unilateral ?? false)
+        let prescription = focusPrescription(id, in: log)
+        return PlannedExercise(moduleExerciseId: id, name: ex?.name ?? "Exercise", id: order,
+                               sets: max(prescription?.sets ?? 3, done + 1), repMin: prescription?.repMin ?? 8,
+                               repMax: prescription?.repMax ?? 12, restSeconds: prescription?.restSeconds ?? 90,
+                               perSide: ex?.unilateral ?? false)
+    }
+
+    private static func focusPrescription(_ exerciseId: String, in log: WorkoutLog) -> FocusPrescription? {
+        guard log.notes.hasPrefix(focusPrefix),
+              let data = String(log.notes.dropFirst(focusPrefix.count)).data(using: .utf8),
+              let template = try? JSONDecoder().decode([FocusPrescription].self, from: data) else { return nil }
+        return template.first { $0.exerciseId == exerciseId }
     }
 
     /// Removes an added exercise that has no sets yet, and closes the gap in the sets recorded for the ones after it.

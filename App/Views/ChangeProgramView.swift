@@ -59,7 +59,7 @@ struct ChangeProgramView: View {
                 if let content = store.content, let plan = plans.first {
                     let all = content.catalogue(showDraft: AppConfig.showDraft)
                     let recs = profiles.first.map {
-                        ProgramAdvisor.recommend(experience: $0.experience, daysPerWeek: plan.daysPerWeek, programs: all)
+                        ProgramAdvisor.recommend(experience: $0.experience, daysPerWeek: plan.daysPerWeek, programs: all, goal: $0.goal)
                     } ?? []
                     let recIds = recs.map(\.programId)
                     let mineIds = Set(mine.map(\.programId))

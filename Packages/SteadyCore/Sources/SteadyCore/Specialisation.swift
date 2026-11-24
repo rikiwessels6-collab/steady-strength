@@ -46,6 +46,30 @@ public struct Specialisation: Codable, Equatable, Sendable, Identifiable {
     }
 }
 
+/// Reviewed six-week focus blocks. They are deliberately offered as optional
+/// open workouts, so a person can add one beside their usual program without
+/// silently changing its sessions or progression.
+public enum SpecialisationCatalogue {
+    public static let all: [Specialisation] = [
+        .init(id: "legs", name: "Legs", kind: .lower, targetMuscles: ["quads", "hamstrings", "glutes"], sessions: [
+            [.init(exerciseId: "leg_press", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "seated_leg_curl", sets: 3, repMin: 10, repMax: 15), .init(exerciseId: "leg_extension", sets: 3, repMin: 12, repMax: 15)],
+            [.init(exerciseId: "hip_thrust", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "db_rdl", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "split_squat", sets: 2, repMin: 8, repMax: 12)],
+        ]),
+        .init(id: "arms", name: "Arms", kind: .upper, targetMuscles: ["biceps", "triceps"], sessions: [
+            [.init(exerciseId: "db_curl", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "triceps_pushdown", sets: 3, repMin: 10, repMax: 15), .init(exerciseId: "db_hammer_curl", sets: 2, repMin: 10, repMax: 15)],
+            [.init(exerciseId: "incline_db_curl", sets: 3, repMin: 10, repMax: 15), .init(exerciseId: "overhead_cable_triceps", sets: 3, repMin: 10, repMax: 15), .init(exerciseId: "triceps_pushdown", sets: 2, repMin: 12, repMax: 15)],
+        ]),
+        .init(id: "back", name: "Back", kind: .upper, targetMuscles: ["lats", "upper_back"], sessions: [
+            [.init(exerciseId: "lat_pulldown", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "seated_cable_row", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "reverse_pec_deck", sets: 3, repMin: 12, repMax: 15)],
+            [.init(exerciseId: "chest_supported_row", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "single_arm_pulldown", sets: 3, repMin: 10, repMax: 12), .init(exerciseId: "reverse_pec_deck", sets: 2, repMin: 12, repMax: 15)],
+        ]),
+        .init(id: "chest_shoulders", name: "Chest & shoulders", kind: .upper, targetMuscles: ["chest", "delts"], sessions: [
+            [.init(exerciseId: "incline_db_press", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "lateral_raise", sets: 3, repMin: 12, repMax: 20), .init(exerciseId: "cable_fly", sets: 2, repMin: 12, repMax: 15)],
+            [.init(exerciseId: "machine_chest_press", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "seated_db_shoulder_press", sets: 3, repMin: 8, repMax: 12), .init(exerciseId: "lateral_raise", sets: 2, repMin: 12, repMax: 20)],
+        ]),
+    ]
+}
+
 /// What a merge did, so the app can show a "What changed" list. Nothing is ever added or removed silently.
 public struct MergeChange: Equatable, Sendable {
     public var added: [String] = []

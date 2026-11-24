@@ -45,6 +45,8 @@ struct ProgressTabView: View {
                         .accessibilityIdentifier("liftsAndRecords")
                     NavigationLink { WeeklyVolumeView() } label: { Label("Weekly volume", systemImage: "chart.bar.fill") }
                         .accessibilityIdentifier("weeklyVolume")
+                    NavigationLink { SpecialisationBlocksView() } label: { Label("Focus blocks", systemImage: "target") }
+                        .accessibilityIdentifier("focusBlocks")
                     NavigationLink { ProgressPhotosView() } label: { Label("Progress photos", systemImage: "person.crop.rectangle") }
                         .accessibilityIdentifier("progressPhotos")
                     NavigationLink { WorkoutHistoryView() } label: { Label("Workout history", systemImage: "calendar") }
