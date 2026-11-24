@@ -21,7 +21,8 @@ final class OnboardingTests: XCTestCase {
 
     func testBundledContentShipsWithTheApp() throws {
         let c = try bundledContent()
-        XCTAssertEqual(c.programs.count, 15)
+        XCTAssertEqual(c.programs.count, 16)
+        XCTAssertNotNil(c.program("ss-full-body-hypertrophy-2day"))
         XCTAssertGreaterThan(c.library.count, 150)
     }
 
